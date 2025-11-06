@@ -44,14 +44,36 @@
 - 天気予報API（livedoor天気互換）
 - NHKニュースRSS
 
+## プロジェクト状況
+
+### 現在のフェーズ: 設計工程完了 ✅
+
+- ✅ 要件定義完了
+- ✅ アーキテクチャ設計完了
+- ✅ 各モジュール設計完了
+- ✅ 設計レビュー完了
+- ⏭️ 次: 実装工程
+
 ## ディレクトリ構成
 
 ```
 asachiru/
-├── requirement/       # 要件定義ドキュメント
-├── design/           # 設計ドキュメント
-├── test/             # テストドキュメント・スクリーンキャプチャ
-└── README.md         # 本ファイル
+├── requirement/              # 要件定義ドキュメント
+│   ├── BaseRequirements.md  # 基本要件定義書
+│   ├── ui_mockup.html        # UIモックアップ
+│   └── ui_mockup_pastel.html # パステル版UIモックアップ
+├── design/                   # 設計ドキュメント
+│   ├── Architecture.md       # アーキテクチャ設計書
+│   ├── LayerDefinition.md    # レイヤー構成詳細定義書
+│   ├── Module_Clock.md       # 時計機能モジュール設計書
+│   ├── Module_Weather.md     # 天気機能モジュール設計書
+│   ├── Module_News.md        # ニュース機能モジュール設計書
+│   ├── Module_MusicAndVisualizer.md # 音楽・ビジュアライザー機能設計書
+│   ├── Module_Setup.md       # 初回設定機能設計書
+│   ├── DataFlow.md           # データフロー設計書
+│   └── DESIGN_REVIEW.md      # 設計レビュー報告書
+├── test/                     # テストドキュメント・スクリーンキャプチャ
+└── README.md                 # 本ファイル
 ```
 
 ## 開発者
