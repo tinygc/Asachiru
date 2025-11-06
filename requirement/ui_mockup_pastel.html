@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モーニングダッシュボード - パステルUIモックアップ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Press Start 2P', 'Segoe UI', Arial, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* グラデーション背景（時間で変化） */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg,
+                #FFE5EC 0%,
+                #FFC1D9 25%,
+                #B4E4FF 50%,
+                #D4C5F9 75%,
+                #FFEAA7 100%
+            );
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+            z-index: 0;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* ドットパターン */
+        .dot-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px);
+            background-size: 20px 20px;
+            z-index: 1;
+        }
+
+        /* 浮かぶパーティクル */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: float 15s ease-in-out infinite;
+            opacity: 0.4;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) translateX(0);
+            }
+            25% {
+                transform: translateY(-30px) translateX(20px);
+            }
+            50% {
+                transform: translateY(-60px) translateX(-10px);
+            }
+            75% {
+                transform: translateY(-30px) translateX(-20px);
+            }
+        }
+
+        /* ビジュアライザー背景 */
+        .visualizer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 6px;
+            padding: 0 20px;
+            opacity: 0.25;
+            z-index: 3;
+        }
+
+        .visualizer-bar {
+            width: 16px;
+            border-radius: 8px 8px 0 0;
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { height: 15%; }
+            50% { height: 85%; }
+        }
+
+        /* コンテンツエリア */
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10;
+        }
+
+        .content {
+            position: relative;
+            height: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            padding: 60px 80px;
+            gap: 40px;
+        }
+
+        /* 時計エリア（左上） */
+        .clock-area {
+            grid-column: 1;
+            grid-row: 1;
+            text-shadow: 4px 4px 0px rgba(255, 105, 180, 0.3);
+        }
+
+        .time {
+            font-size: 80px;
+            font-weight: bold;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            color: #2a2a2a;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% {
+                text-shadow: 4px 4px 0px rgba(255, 105, 180, 0.3);
+            }
+            50% {
+                text-shadow: 4px 4px 0px rgba(135, 206, 250, 0.5);
+            }
+        }
+
+        .date {
+            font-size: 32px;
+            color: #2a2a2a;
+        }
+
+        .date-weekday {
+            margin-left: 15px;
+        }
+
+        .weekday-black { color: #2a2a2a; }
+        .weekday-blue { color: #2563eb; }
+        .weekday-red { color: #dc2626; }
+
+        /* 天気エリア（右側） */
+        .weather-area {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            padding: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .weather-icon {
+            font-size: 120px;
+            margin-bottom: 20px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .current-temp {
+            font-size: 64px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2a2a2a;
+        }
+
+        .temp-range {
+            font-size: 24px;
+            color: #555555;
+            margin-bottom: 10px;
+        }
+
+        .precipitation {
+            font-size: 24px;
+            color: #4ECDC4;
+            font-weight: bold;
+        }
+
+        /* 下部エリア（左下） */
+        .bottom-area {
+            grid-column: 1;
+            grid-row: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .now-playing {
+            font-size: 20px;
+            color: #555555;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 3px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .now-playing-label {
+            font-size: 14px;
+            color: #B8A9C9;
+            margin-bottom: 10px;
+        }
+
+        .news-title {
+            font-size: 22px;
+            color: #2a2a2a;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 20px 25px;
+            border-radius: 16px;
+            max-width: 90%;
+            border: 3px solid rgba(255, 192, 203, 0.5);
+            animation: fadeIn 1s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .news-label {
+            font-size: 14px;
+            color: #FF6B9D;
+            margin-bottom: 12px;
+        }
+
+        /* デモ用の切り替え */
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            border: 3px solid #FFB6C1;
+            z-index: 1000;
+            font-size: 10px;
+            color: #2a2a2a;
+        }
+
+        .demo-controls button {
+            margin: 5px;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #FFB6C1, #B8A9C9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .demo-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- グラデーション背景 -->
+    <div class="background"></div>
+
+    <!-- ドットパターン -->
+    <div class="dot-pattern"></div>
+
+    <!-- 浮かぶパーティクル -->
+    <div class="particles" id="particles"></div>
+
+    <!-- ビジュアライザー背景 -->
+    <div class="visualizer" id="visualizer"></div>
+
+    <!-- メインコンテンツ -->
+    <div class="container">
+        <div class="content">
+            <!-- 時計エリア -->
+            <div class="clock-area">
+                <div class="time" id="time">07:45</div>
+                <div class="date">
+                    <span id="date">11/06</span>
+                    <span class="date-weekday weekday-black" id="weekday">(Wed)</span>
+                </div>
+            </div>
+
+            <!-- 天気エリア -->
+            <div class="weather-area">
+                <div class="weather-card">
+                    <div class="weather-icon">☀️</div>
+                    <div class="current-temp">18°C</div>
+                    <div class="temp-range">↑22°C ↓14°C</div>
+                    <div class="precipitation">💧 20%</div>
+                </div>
+            </div>
+
+            <!-- 下部エリア -->
+            <div class="bottom-area">
+                <div class="now-playing">
+                    <div class="now-playing-label">♪ NOW PLAYING</div>
+                    <div>Chill Morning Vibes</div>
+                </div>
+                <div class="news-title">
+                    <div class="news-label">📰 NEWS</div>
+                    <div>気象庁、今週末にかけて全国的に晴れの予報を発表</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- デモ用コントロール -->
+    <div class="demo-controls">
+        <div style="margin-bottom: 10px;"><strong>DEMO CONTROLS</strong></div>
+        <button onclick="setWeekday('Mon', 'black')">月曜（黒）</button>
+        <button onclick="setWeekday('Sat', 'blue')">土曜（青）</button>
+        <button onclick="setWeekday('Sun', 'red')">日曜（赤）</button>
+    </div>
+
+    <script>
+        // 現在時刻を更新
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
+        }
+
+        // 曜日の色を変更
+        function setWeekday(day, color) {
+            const weekdayElement = document.getElementById('weekday');
+            weekdayElement.textContent = `(${day})`;
+            weekdayElement.className = `date-weekday weekday-${color}`;
+        }
+
+        // パーティクルを生成
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const colors = ['#FFB6C1', '#B8A9C9', '#87CEEB', '#FFD93D', '#6BCF7F', '#FFA07A'];
+
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+
+                const size = Math.random() * 30 + 10;
+                const left = Math.random() * 100;
+                const animationDuration = Math.random() * 10 + 10;
+                const animationDelay = Math.random() * 5;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${left}%`;
+                particle.style.top = `${Math.random() * 80}%`;
+                particle.style.backgroundColor = color;
+                particle.style.animationDuration = `${animationDuration}s`;
+                particle.style.animationDelay = `${animationDelay}s`;
+
+                particlesContainer.appendChild(particle);
+            }
+        }
+
+        // ビジュアライザーのバーを生成
+        function createVisualizerBars() {
+            const visualizerContainer = document.getElementById('visualizer');
+            const colors = ['#FF6B9D', '#FFA07A', '#FFD93D', '#6BCF7F', '#4ECDC4', '#95B8D1', '#B8A9C9', '#F38FB1'];
+            const barCount = 50; // バーの本数を増やす
+
+            for (let i = 0; i < barCount; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'visualizer-bar';
+
+                const colorIndex = i % colors.length;
+                const animationDelay = (i % 16) * 0.05;
+
+                bar.style.background = colors[colorIndex];
+                bar.style.animationDelay = `${animationDelay}s`;
+
+                visualizerContainer.appendChild(bar);
+            }
+        }
+
+        // 初期表示
+        updateTime();
+        setInterval(updateTime, 1000);
+        createParticles();
+        createVisualizerBars();
+    </script>
+</body>
+</html>

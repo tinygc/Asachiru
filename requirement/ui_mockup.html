@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>モーニングダッシュボード - UIモックアップ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #d0d0d0;
+            color: #2a2a2a;
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ビジュアライザー背景 */
+        .visualizer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 50px;
+            opacity: 0.12;
+            z-index: 0;
+        }
+
+        .visualizer-bar {
+            width: 12px;
+            background: linear-gradient(to top, #4d9de0, #3d5a80);
+            border-radius: 6px 6px 0 0;
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        .visualizer-bar:nth-child(1) { animation-delay: 0s; }
+        .visualizer-bar:nth-child(2) { animation-delay: 0.1s; }
+        .visualizer-bar:nth-child(3) { animation-delay: 0.2s; }
+        .visualizer-bar:nth-child(4) { animation-delay: 0.3s; }
+        .visualizer-bar:nth-child(5) { animation-delay: 0.4s; }
+        .visualizer-bar:nth-child(6) { animation-delay: 0.5s; }
+        .visualizer-bar:nth-child(7) { animation-delay: 0.6s; }
+        .visualizer-bar:nth-child(8) { animation-delay: 0.7s; }
+        .visualizer-bar:nth-child(9) { animation-delay: 0.6s; }
+        .visualizer-bar:nth-child(10) { animation-delay: 0.5s; }
+        .visualizer-bar:nth-child(11) { animation-delay: 0.4s; }
+        .visualizer-bar:nth-child(12) { animation-delay: 0.3s; }
+        .visualizer-bar:nth-child(13) { animation-delay: 0.2s; }
+        .visualizer-bar:nth-child(14) { animation-delay: 0.1s; }
+        .visualizer-bar:nth-child(15) { animation-delay: 0s; }
+
+        @keyframes pulse {
+            0%, 100% { height: 20%; }
+            50% { height: 80%; }
+        }
+
+        /* メインコンテンツエリア */
+        .content {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: auto 1fr auto;
+            padding: 60px 80px;
+            gap: 40px;
+        }
+
+        /* 時計エリア（左上） */
+        .clock-area {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .time {
+            font-size: 120px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+        }
+
+        .date {
+            font-size: 48px;
+            font-weight: 300;
+        }
+
+        .date-weekday {
+            margin-left: 15px;
+        }
+
+        .weekday-black { color: #2a2a2a; }
+        .weekday-blue { color: #2563eb; }
+        .weekday-red { color: #dc2626; }
+
+        /* 天気エリア（右側） */
+        .weather-area {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-end;
+            text-align: right;
+        }
+
+        .weather-icon {
+            font-size: 180px;
+            margin-bottom: 20px;
+        }
+
+        .current-temp {
+            font-size: 96px;
+            font-weight: 300;
+            margin-bottom: 20px;
+        }
+
+        .temp-range {
+            font-size: 36px;
+            color: #555555;
+            margin-bottom: 10px;
+        }
+
+        .precipitation {
+            font-size: 32px;
+            color: #2563eb;
+        }
+
+        /* 下部エリア（左下） */
+        .bottom-area {
+            grid-column: 1;
+            grid-row: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .now-playing {
+            font-size: 28px;
+            color: #555555;
+        }
+
+        .now-playing-label {
+            font-size: 20px;
+            color: #777777;
+            margin-bottom: 5px;
+        }
+
+        .news-title {
+            font-size: 32px;
+            color: #1a1a1a;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px 20px;
+            border-radius: 8px;
+            max-width: 90%;
+        }
+
+        .news-label {
+            font-size: 20px;
+            color: #dc2626;
+            margin-bottom: 8px;
+        }
+
+        /* デモ用の切り替え */
+        .demo-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid #999;
+            z-index: 1000;
+            font-size: 14px;
+            color: #2a2a2a;
+        }
+
+        .demo-controls button {
+            margin: 5px;
+            padding: 8px 15px;
+            background: #ffffff;
+            color: #2a2a2a;
+            border: 1px solid #999;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .demo-controls button:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- ビジュアライザー背景 -->
+        <div class="visualizer">
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+        </div>
+
+        <!-- メインコンテンツ -->
+        <div class="content">
+            <!-- 時計エリア -->
+            <div class="clock-area">
+                <div class="time" id="time">07:45</div>
+                <div class="date">
+                    <span id="date">11/06</span>
+                    <span class="date-weekday weekday-black" id="weekday">(Wed)</span>
+                </div>
+            </div>
+
+            <!-- 天気エリア -->
+            <div class="weather-area">
+                <div class="weather-icon">☀️</div>
+                <div class="current-temp">18°C</div>
+                <div class="temp-range">↑22°C ↓14°C</div>
+                <div class="precipitation">💧 20%</div>
+            </div>
+
+            <!-- 下部エリア -->
+            <div class="bottom-area">
+                <div class="now-playing">
+                    <div class="now-playing-label">♪ Now Playing</div>
+                    <div>Chill Morning Vibes</div>
+                </div>
+                <div class="news-title">
+                    <div class="news-label">📰 NEWS</div>
+                    <div>気象庁、今週末にかけて全国的に晴れの予報を発表</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- デモ用コントロール -->
+    <div class="demo-controls">
+        <div style="margin-bottom: 10px;"><strong>曜日の色デモ</strong></div>
+        <button onclick="setWeekday('Mon', 'black')">月曜（黒）</button>
+        <button onclick="setWeekday('Sat', 'blue')">土曜（青）</button>
+        <button onclick="setWeekday('Sun', 'red')">日曜（赤）</button>
+    </div>
+
+    <script>
+        // 現在時刻を更新
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('time').textContent = `${hours}:${minutes}`;
+        }
+
+        // 曜日の色を変更
+        function setWeekday(day, color) {
+            const weekdayElement = document.getElementById('weekday');
+            weekdayElement.textContent = `(${day})`;
+            weekdayElement.className = `date-weekday weekday-${color}`;
+        }
+
+        // 初期表示
+        updateTime();
+        setInterval(updateTime, 1000);
+    </script>
+</body>
+</html>
