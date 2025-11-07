@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">朝チル (AsaChil)</string>
+
+    <!-- Setup Screen -->
+    <string name="setup_title">初回設定</string>
+    <string name="setup_postal_code_label">郵便番号（7桁）</string>
+    <string name="setup_postal_code_hint">例: 1000001</string>
+    <string name="setup_news_interval_label">ニュース読み上げ間隔</string>
+    <string name="setup_save_button">保存</string>
+    <string name="setup_postal_code_error">郵便番号は7桁の数字で入力してください</string>
+    <string name="setup_news_interval_format">%d 分</string>
+
+    <!-- Error Messages -->
+    <string name="error_network">ネットワークエラーが発生しました</string>
+    <string name="error_weather">天気情報の取得に失敗しました</string>
+    <string name="error_news">ニュースの取得に失敗しました</string>
+</resources>
