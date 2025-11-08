@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:padding="48dp">
+
+    <!-- タイトル -->
+    <TextView
+        android:id="@+id/title_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="初回設定"
+        android:textColor="#FFFFFF"
+        android:textSize="48sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/postal_code_label"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <!-- 郵便番号ラベル -->
+    <TextView
+        android:id="@+id/postal_code_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:text="郵便番号（7桁）"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text_view"
+        app:layout_constraintBottom_toTopOf="@id/postal_code_edit_text" />
+
+    <!-- 郵便番号入力 -->
+    <EditText
+        android:id="@+id/postal_code_edit_text"
+        android:layout_width="400dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="16dp"
+        android:background="#333333"
+        android:gravity="center"
+        android:hint="例: 1000001"
+        android:inputType="number"
+        android:maxLength="7"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#888888"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_label"
+        app:layout_constraintBottom_toTopOf="@id/news_interval_label" />
+
+    <!-- ニュース読み上げ間隔ラベル -->
+    <TextView
+        android:id="@+id/news_interval_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:text="ニュース読み上げ間隔"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text"
+        app:layout_constraintBottom_toTopOf="@id/news_interval_text_view" />
+
+    <!-- ニュース読み上げ間隔表示 -->
+    <TextView
+        android:id="@+id/news_interval_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="30 分"
+        android:textColor="#FFFFFF"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_label"
+        app:layout_constraintBottom_toTopOf="@id/news_interval_seek_bar" />
+
+    <!-- ニュース読み上げ間隔スライダー -->
+    <SeekBar
+        android:id="@+id/news_interval_seek_bar"
+        android:layout_width="600dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:max="60"
+        android:min="1"
+        android:progress="30"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_text_view"
+        app:layout_constraintBottom_toTopOf="@id/save_button" />
+
+    <!-- 保存ボタン -->
+    <Button
+        android:id="@+id/save_button"
+        android:layout_width="300dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="80dp"
+        android:backgroundTint="#4CAF50"
+        android:text="保存"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_seek_bar"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
