@@ -132,6 +132,7 @@ class GetCurrentDateTimeUseCaseTest {
 
         // Assert
         assertNotNull(result.dateString)
-        assertTrue(result.dateString.matches(Regex("\\d{4}/\\d{2}/\\d{2}")))
+        // dateStringは "MM/DD (Day)" 形式 (例: "11/10 (日)")
+        assertTrue(result.dateString.matches(Regex("\\d{2}/\\d{2} \\(.+\\)")))
     }
 }

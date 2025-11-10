@@ -9,10 +9,15 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class NewsRepositoryImplTest {
 
     private lateinit var newsRssDataSource: NewsRssDataSource
@@ -43,7 +48,7 @@ class NewsRepositoryImplTest {
         assertEquals(3, newsList.size)
         assertEquals("Title 1", newsList[0].title)
         assertEquals("Description 1", newsList[0].description)
-        assertEquals("https://example.com/1", newsList[0].link)
+        // Note: link field was removed from News entity
     }
 
     @Test
@@ -105,10 +110,9 @@ class NewsRepositoryImplTest {
     fun `getLatestNews should convert DTO to Entity correctly`() = runTest {
         // Given
         val mockNewsList = listOf(
-            NewsDto(
+            NewsDto(link = "https://example.com", 
                 title = "Test Title",
                 description = "Test Description",
-                link = "https://test.example.com",
                 pubDate = "Mon, 01 Jan 2024 12:00:00 +0900"
             )
         )
@@ -122,14 +126,16 @@ class NewsRepositoryImplTest {
         val news = (result as Result.Success).data.first()
         assertEquals("Test Title", news.title)
         assertEquals("Test Description", news.description)
-        assertEquals("https://test.example.com", news.link)
+        // Note: link field was removed from News entity
         assertTrue(news.publishedAt > 0L)
     }
 
     @Test
     fun `getLatestNews should return NetworkException on IOException`() = runTest {
         // Given
-        whenever(newsRssDataSource.fetchLatestNews()).thenThrow(IOException("Network error"))
+        whenever(newsRssDataSource.fetchLatestNews()).thenAnswer {
+            throw IOException("Network error")
+        }
 
         // When
         val result = repository.getLatestNews(count = 10)

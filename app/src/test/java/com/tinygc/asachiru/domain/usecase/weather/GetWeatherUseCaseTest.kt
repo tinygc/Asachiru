@@ -78,7 +78,7 @@ class GetWeatherUseCaseTest {
     @Test
     fun `invoke should return error when settingsRepository throws exception`() = runTest {
         // Arrange
-        val exception = Exception("Failed to get settings")
+        val exception = RuntimeException("Failed to get settings")
         whenever(settingsRepository.getSettings()).thenThrow(exception)
 
         // Act

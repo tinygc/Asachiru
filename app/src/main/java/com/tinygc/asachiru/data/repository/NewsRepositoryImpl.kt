@@ -18,9 +18,9 @@ class NewsRepositoryImpl(
         return try {
             val newsDtoList = newsRssDataSource.fetchLatestNews()
 
-            // DTO → Entity変換 & 件数制限
+            // DTO → Entity変換 & 件数制限 (negative countは0として扱う)
             val newsList = newsDtoList
-                .take(count)
+                .take(maxOf(0, count))
                 .map { it.toEntity() }
 
             Result.Success(newsList)

@@ -24,7 +24,6 @@ class NewsViewTest {
         id = "https://example.com/news1",
         title = "テストニュース1",
         description = "テスト説明1",
-        link = "https://example.com/news1",
         publishedAt = 1000L
     )
 
@@ -32,7 +31,6 @@ class NewsViewTest {
         id = "https://example.com/news2",
         title = "重要なニュース速報",
         description = "テスト説明2",
-        link = "https://example.com/news2",
         publishedAt = 2000L
     )
 
@@ -40,7 +38,6 @@ class NewsViewTest {
         id = "https://example.com/news3",
         title = "非常に長いタイトルのニュース".repeat(10),
         description = "テスト説明3",
-        link = "https://example.com/news3",
         publishedAt = 3000L
     )
 
@@ -127,7 +124,6 @@ class NewsViewTest {
             id = "https://example.com/news4",
             title = "",
             description = "テスト説明4",
-            link = "https://example.com/news4",
             publishedAt = 4000L
         )
 
@@ -184,7 +180,6 @@ class NewsViewTest {
             id = "https://example.com/news5",
             title = "特殊文字!@#$%^&*()_+-={}[]|:;<>?,./",
             description = "テスト説明5",
-            link = "https://example.com/news5",
             publishedAt = 5000L
         )
 
@@ -199,7 +194,6 @@ class NewsViewTest {
             id = "https://example.com/news6",
             title = "😀😁😂🤣😃😄😅😆😉",
             description = "テスト説明6",
-            link = "https://example.com/news6",
             publishedAt = 6000L
         )
 
@@ -214,7 +208,6 @@ class NewsViewTest {
             id = "https://example.com/news7",
             title = "日本語のニュースタイトル",
             description = "テスト説明7",
-            link = "https://example.com/news7",
             publishedAt = 7000L
         )
 
@@ -229,7 +222,6 @@ class NewsViewTest {
             id = "https://example.com/news8",
             title = "Breaking News: Important Event",
             description = "Test description 8",
-            link = "https://example.com/news8",
             publishedAt = 8000L
         )
 
@@ -244,7 +236,6 @@ class NewsViewTest {
             id = "https://example.com/news9",
             title = "ニュース News 新闻 새소식",
             description = "テスト説明9",
-            link = "https://example.com/news9",
             publishedAt = 9000L
         )
 

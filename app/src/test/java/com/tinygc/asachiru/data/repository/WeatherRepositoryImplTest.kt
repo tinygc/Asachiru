@@ -5,6 +5,7 @@ import com.tinygc.asachiru.data.dto.ForecastDto
 import com.tinygc.asachiru.data.dto.TemperatureDto
 import com.tinygc.asachiru.data.dto.TemperatureValueDto
 import com.tinygc.asachiru.data.dto.WeatherApiResponse
+import com.tinygc.asachiru.data.util.PostalCodeConverter
 import com.tinygc.asachiru.domain.common.AppException
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.WeatherCondition
@@ -13,10 +14,15 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class WeatherRepositoryImplTest {
 
     private lateinit var weatherApiDataSource: WeatherApiDataSource
@@ -24,6 +30,7 @@ class WeatherRepositoryImplTest {
 
     @Before
     fun setUp() {
+        PostalCodeConverter.initializeForTest()
         weatherApiDataSource = mock()
         repository = WeatherRepositoryImpl(weatherApiDataSource)
     }
@@ -34,7 +41,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "25"),
@@ -64,7 +71,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "曇り",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "20"),
@@ -90,7 +97,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "雨",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "18"),
@@ -116,7 +123,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "雪",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "5"),
@@ -142,11 +149,11 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "晴れ",
                     temperature = TemperatureDto(
-                        max = TemperatureValueDto(celsius = null),
-                        min = TemperatureValueDto(celsius = null)
+                        max = null,
+                        min = null
                     )
                 )
             )
@@ -168,7 +175,9 @@ class WeatherRepositoryImplTest {
     fun `getWeather should return NetworkException on IOException`() = runTest {
         // Given
         val postalCode = "1000001"
-        whenever(weatherApiDataSource.fetchWeather(any())).thenThrow(IOException("Network error"))
+        whenever(weatherApiDataSource.fetchWeather(any())).thenAnswer {
+            throw IOException("Network error")
+        }
 
         // When
         val result = repository.getWeather(postalCode)
@@ -232,7 +241,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "0600000"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "22"),
@@ -257,14 +266,14 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "25"),
                         min = TemperatureValueDto(celsius = "15")
                     )
                 ),
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "雨",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "20"),
@@ -290,7 +299,7 @@ class WeatherRepositoryImplTest {
         val postalCode = "1000001"
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
-                ForecastDto(
+                ForecastDto(date = "2024-01-01", 
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "invalid"),

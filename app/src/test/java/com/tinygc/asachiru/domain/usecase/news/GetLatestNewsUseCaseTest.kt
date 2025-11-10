@@ -103,7 +103,7 @@ class GetLatestNewsUseCaseTest {
     @Test
     fun `invoke should return error when repository throws exception`() = runTest {
         // Arrange
-        val exception = Exception("Unexpected error")
+        val exception = RuntimeException("Unexpected error")
         whenever(newsRepository.getLatestNews(10)).thenThrow(exception)
 
         // Act

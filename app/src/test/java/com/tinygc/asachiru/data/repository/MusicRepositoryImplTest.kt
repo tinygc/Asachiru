@@ -25,9 +25,9 @@ class MusicRepositoryImplTest {
     fun `getAllTracks should return all tracks from data source`() {
         // Given
         val mockTracks = listOf(
-            Music("1", "Track 1", "Artist 1", 1),
-            Music("2", "Track 2", "Artist 2", 2),
-            Music("3", "Track 3", "Artist 3", 3)
+            Music("1", "Track 1", "Artist 1", 1, 180_000L),
+            Music("2", "Track 2", "Artist 2", 2, 200_000L),
+            Music("3", "Track 3", "Artist 3", 3, 190_000L)
         )
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
@@ -54,7 +54,7 @@ class MusicRepositoryImplTest {
     @Test
     fun `getAllTracks should call data source exactly once`() {
         // Given
-        val mockTracks = listOf(Music("1", "Track 1", "Artist 1", 1))
+        val mockTracks = listOf(Music("1", "Track 1", "Artist 1", 1, 180_000L))
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
         // When
@@ -68,8 +68,8 @@ class MusicRepositoryImplTest {
     fun `playTrack should play track when track exists`() {
         // Given
         val mockTracks = listOf(
-            Music("1", "Track 1", "Artist 1", 1),
-            Music("2", "Track 2", "Artist 2", 2)
+            Music("1", "Track 1", "Artist 1", 1, 180_000L),
+            Music("2", "Track 2", "Artist 2", 2, 180_000L)
         )
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
@@ -83,8 +83,8 @@ class MusicRepositoryImplTest {
     @Test
     fun `playTrack should play correct track by id`() {
         // Given
-        val track1 = Music("1", "Track 1", "Artist 1", 1)
-        val track2 = Music("2", "Track 2", "Artist 2", 2)
+        val track1 = Music("1", "Track 1", "Artist 1", 1, 180_000L)
+        val track2 = Music("2", "Track 2", "Artist 2", 2, 180_000L)
         val mockTracks = listOf(track1, track2)
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
@@ -100,7 +100,7 @@ class MusicRepositoryImplTest {
     fun `playTrack should not play when track does not exist`() {
         // Given
         val mockTracks = listOf(
-            Music("1", "Track 1", "Artist 1", 1)
+            Music("1", "Track 1", "Artist 1", 1, 180_000L)
         )
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
@@ -144,7 +144,7 @@ class MusicRepositoryImplTest {
     @Test
     fun `getCurrentTrack should return current track from music player`() {
         // Given
-        val currentTrack = Music("1", "Current Track", "Artist", 1)
+        val currentTrack = Music("1", "Current Track", "Artist", 1, 180_000L)
         whenever(musicPlayer.getCurrentTrack()).thenReturn(currentTrack)
 
         // When
@@ -181,8 +181,8 @@ class MusicRepositoryImplTest {
     @Test
     fun `playTrack should handle multiple plays sequentially`() {
         // Given
-        val track1 = Music("1", "Track 1", "Artist 1", 1)
-        val track2 = Music("2", "Track 2", "Artist 2", 2)
+        val track1 = Music("1", "Track 1", "Artist 1", 1, 180_000L)
+        val track2 = Music("2", "Track 2", "Artist 2", 2, 180_000L)
         val mockTracks = listOf(track1, track2)
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
@@ -198,7 +198,7 @@ class MusicRepositoryImplTest {
     @Test
     fun `playTrack should retrieve tracks each time it is called`() {
         // Given
-        val mockTracks = listOf(Music("1", "Track 1", "Artist 1", 1))
+        val mockTracks = listOf(Music("1", "Track 1", "Artist 1", 1, 180_000L))
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 
         // When
@@ -212,9 +212,9 @@ class MusicRepositoryImplTest {
     @Test
     fun `getAllTracks should preserve track order from data source`() {
         // Given
-        val track1 = Music("1", "First", "Artist A", 1)
-        val track2 = Music("2", "Second", "Artist B", 2)
-        val track3 = Music("3", "Third", "Artist C", 3)
+        val track1 = Music("1", "First", "Artist A", 1, 180_000L)
+        val track2 = Music("2", "Second", "Artist B", 2, 180_000L)
+        val track3 = Music("3", "Third", "Artist C", 3, 180_000L)
         val mockTracks = listOf(track1, track2, track3)
         whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
 

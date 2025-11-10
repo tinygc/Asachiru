@@ -117,7 +117,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
-            .thenThrow(Exception("Custom error message"))
+            .thenThrow(RuntimeException("Custom error message"))
 
         // When
         val result = repository.saveSettings(settings)

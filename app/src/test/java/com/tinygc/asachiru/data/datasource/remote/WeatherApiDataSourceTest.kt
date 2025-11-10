@@ -263,7 +263,7 @@ class WeatherApiDataSourceTest {
     private fun createDataSourceWithMockUrl(): WeatherApiDataSource {
         // Create a custom data source that uses the mock server URL
         return object : WeatherApiDataSource(httpClient, gson) {
-            suspend fun fetchWeather(areaCode: String): com.tinygc.asachiru.data.dto.WeatherApiResponse {
+            override suspend fun fetchWeather(areaCode: String): com.tinygc.asachiru.data.dto.WeatherApiResponse {
                 val url = "${mockWebServer.url("/")}?city=$areaCode"
                 val request = okhttp3.Request.Builder()
                     .url(url)
@@ -276,7 +276,11 @@ class WeatherApiDataSourceTest {
                 }
 
                 val json = response.body?.string() ?: throw IOException("Empty response")
+                if (json.isBlank()) {
+                    throw IOException("Empty response")
+                }
                 return gson.fromJson(json, com.tinygc.asachiru.data.dto.WeatherApiResponse::class.java)
+                    ?: throw IOException("Empty response")
             }
         }
     }

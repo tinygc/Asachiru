@@ -53,13 +53,14 @@ fun ForecastDto.toEntity(currentTemp: Int, precipProb: Int): Weather {
 
 /**
  * 天気文字列をWeatherConditionに変換
+ * 複数の天気が含まれる場合は悪い天気を優先（雪 > 雨 > 曇り > 晴れ）
  */
 private fun parseWeatherCondition(telop: String): WeatherCondition {
     return when {
-        telop.contains("晴") -> WeatherCondition.SUNNY
-        telop.contains("曇") -> WeatherCondition.CLOUDY
-        telop.contains("雨") -> WeatherCondition.RAINY
         telop.contains("雪") -> WeatherCondition.SNOWY
+        telop.contains("雨") -> WeatherCondition.RAINY
+        telop.contains("曇") -> WeatherCondition.CLOUDY
+        telop.contains("晴") -> WeatherCondition.SUNNY
         else -> WeatherCondition.OTHER
     }
 }

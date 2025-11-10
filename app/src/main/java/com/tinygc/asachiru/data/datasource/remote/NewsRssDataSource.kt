@@ -11,7 +11,7 @@ import java.io.IOException
 /**
  * NHKニュースRSSからデータを取得するデータソース
  */
-class NewsRssDataSource(
+open class NewsRssDataSource(
     private val httpClient: OkHttpClient
 ) {
     companion object {
@@ -24,6 +24,7 @@ class NewsRssDataSource(
      * @return NewsDtoリスト
      * @throws IOException ネットワークエラー
      */
+    open
     suspend fun fetchLatestNews(): List<NewsDto> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(RSS_URL)

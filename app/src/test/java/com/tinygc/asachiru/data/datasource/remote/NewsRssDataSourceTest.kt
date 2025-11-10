@@ -8,9 +8,14 @@ import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class NewsRssDataSourceTest {
 
     private lateinit var mockWebServer: MockWebServer
@@ -117,23 +122,20 @@ class NewsRssDataSourceTest {
         // Arrange
         val items = (1..10).map { i ->
             """
-            <item>
-                <title>News $i</title>
-                <description>Description $i</description>
-                <link>https://example.com/$i</link>
-                <pubDate>Wed, 06 Nov 2025 12:00:00 +0900</pubDate>
-            </item>
-            """.trimIndent()
+                <item>
+                    <title>News $i</title>
+                    <description>Description $i</description>
+                    <link>https://example.com/$i</link>
+                    <pubDate>Wed, 06 Nov 2025 12:00:00 +0900</pubDate>
+                </item>""".trimIndent()
         }.joinToString("\n")
 
-        val rssXml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-                <channel>
-                    $items
-                </channel>
-            </rss>
-        """.trimIndent()
+        val rssXml = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+$items
+    </channel>
+</rss>"""
 
         mockWebServer.enqueue(MockResponse()
             .setResponseCode(200)
@@ -297,7 +299,7 @@ class NewsRssDataSourceTest {
     // Helper method to create a data source with mock URL
     private fun createDataSourceWithMockUrl(): NewsRssDataSource {
         return object : NewsRssDataSource(httpClient) {
-            suspend fun fetchLatestNews(): List<com.tinygc.asachiru.data.dto.NewsDto> {
+            override suspend fun fetchLatestNews(): List<com.tinygc.asachiru.data.dto.NewsDto> {
                 val url = mockWebServer.url("/").toString()
                 val request = okhttp3.Request.Builder()
                     .url(url)
@@ -309,9 +311,13 @@ class NewsRssDataSourceTest {
                     throw IOException("HTTP Error: ${response.code}")
                 }
 
-                val inputStream = response.body?.byteStream()
-                    ?: throw IOException("Empty response")
+                val body = response.body ?: throw IOException("Empty response")
+                val bodyString = body.string()
+                if (bodyString.isBlank()) {
+                    throw IOException("Empty response")
+                }
 
+                val inputStream = bodyString.byteInputStream()
                 return com.tinygc.asachiru.data.util.RssParser.parse(inputStream)
             }
         }

@@ -11,7 +11,7 @@ import java.io.IOException
 /**
  * 天気APIからデータを取得するデータソース
  */
-class WeatherApiDataSource(
+open class WeatherApiDataSource(
     private val httpClient: OkHttpClient,
     private val gson: Gson
 ) {
@@ -26,7 +26,7 @@ class WeatherApiDataSource(
      * @return WeatherApiResponse
      * @throws IOException ネットワークエラー
      */
-    suspend fun fetchWeather(areaCode: String): WeatherApiResponse = withContext(Dispatchers.IO) {
+    open suspend fun fetchWeather(areaCode: String): WeatherApiResponse = withContext(Dispatchers.IO) {
         val url = "$BASE_URL?city=$areaCode"
 
         val request = Request.Builder()
@@ -41,6 +41,9 @@ class WeatherApiDataSource(
         }
 
         val json = response.body?.string() ?: throw IOException("Empty response")
-        gson.fromJson(json, WeatherApiResponse::class.java)
+        if (json.isBlank()) {
+            throw IOException("Empty response")
+        }
+        gson.fromJson(json, WeatherApiResponse::class.java) ?: throw IOException("Empty response")
     }
 }

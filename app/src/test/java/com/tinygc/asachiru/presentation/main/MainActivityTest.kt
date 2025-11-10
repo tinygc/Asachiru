@@ -16,7 +16,7 @@ import kotlin.test.assertNotNull
  * MainActivityのUIテスト
  */
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [28])
+@Config(sdk = [28], qualifiers = "xlarge")
 class MainActivityTest {
 
     private lateinit var activity: MainActivity

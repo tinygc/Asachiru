@@ -54,8 +54,8 @@ class PostalCodeConverterTest {
         // Assert
         assertTrue(mapping.containsKey("001"))
         assertTrue(mapping.containsKey("060"))
-        assertEquals("016010", mapping["001"])
-        assertEquals("016010", mapping["060"])
+        assertEquals("016000", mapping["001"])
+        assertEquals("016000", mapping["060"])
     }
 
     @Test

@@ -93,6 +93,7 @@ class WeatherView @JvmOverloads constructor(
             WeatherCondition.CLOUDY -> "☁"
             WeatherCondition.RAINY -> "☂"
             WeatherCondition.SNOWY -> "⛄"
+            WeatherCondition.OTHER -> "?"
         }
 
         canvas.drawText(icon, 50f, 80f, iconPaint)

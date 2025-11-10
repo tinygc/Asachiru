@@ -30,7 +30,7 @@ class MusicPlayerTest {
         id = "test_1",
         title = "Test Track 1",
         artist = "Test Artist",
-        resourceId = android.R.raw.sym_def_app_icon, // Androidの標準リソースを使用
+        resourceId = 1, // Dummy resource ID for testing
         durationMs = 180_000L
     )
 
@@ -38,7 +38,7 @@ class MusicPlayerTest {
         id = "test_2",
         title = "Test Track 2",
         artist = "Test Artist",
-        resourceId = android.R.raw.sym_def_app_icon,
+        resourceId = 2, // Dummy resource ID for testing
         durationMs = 200_000L
     )
 
@@ -46,7 +46,7 @@ class MusicPlayerTest {
         id = "test_3",
         title = "Test Track 3",
         artist = "Test Artist",
-        resourceId = android.R.raw.sym_def_app_icon,
+        resourceId = 3, // Dummy resource ID for testing
         durationMs = 190_000L
     )
 

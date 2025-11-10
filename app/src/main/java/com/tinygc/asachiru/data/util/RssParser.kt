@@ -23,6 +23,7 @@ object RssParser {
 
         var eventType = parser.eventType
         var currentTag: String? = null
+        var insideItem = false
 
         var title: String? = null
         var description: String? = null
@@ -32,14 +33,20 @@ object RssParser {
         while (eventType != XmlPullParser.END_DOCUMENT) {
             when (eventType) {
                 XmlPullParser.START_TAG -> {
+                    if (parser.name == "item") {
+                        insideItem = true
+                    }
                     currentTag = parser.name
                 }
                 XmlPullParser.TEXT -> {
-                    when (currentTag) {
-                        "title" -> title = parser.text
-                        "description" -> description = parser.text
-                        "link" -> link = parser.text
-                        "pubDate" -> pubDate = parser.text
+                    val text = parser.text?.trim()
+                    if (text != null && insideItem) {
+                        when (currentTag) {
+                            "title" -> if (title == null) title = text
+                            "description" -> if (description == null) description = text
+                            "link" -> if (link == null) link = text
+                            "pubDate" -> if (pubDate == null) pubDate = text
+                        }
                     }
                 }
                 XmlPullParser.END_TAG -> {
@@ -60,6 +67,7 @@ object RssParser {
                         description = null
                         link = null
                         pubDate = null
+                        insideItem = false
                     }
                 }
             }

@@ -230,12 +230,13 @@ class SetupViewModelTest {
         // When
         viewModel.saveSettings()
 
-        // Then (保存処理開始直後)
-        assertTrue(viewModel.uiState.value.isSaving)
-
-        // Then (保存処理完了後)
+        // Then - coroutineを進めて保存処理を実行
         advanceUntilIdle()
-        assertFalse(viewModel.uiState.value.isSaving)
+
+        // 保存処理完了後、isSavingがfalseになり、isCompleteがtrueになる
+        val state = viewModel.uiState.value
+        assertFalse(state.isSaving)
+        assertTrue(state.isComplete)
     }
 
     @Test

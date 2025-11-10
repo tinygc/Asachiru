@@ -2,7 +2,25 @@
   "permissions": {
     "allow": [
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nComplete design phase with all module designs and review\n\n設計工程を完了。アーキテクチャ設計、全モジュール設計、データフロー設計、レビューおよび修正を実施。\n\n設計ドキュメント:\n- Architecture.md: Clean Architectureに基づくアーキテクチャ設計\n- LayerDefinition.md: 各レイヤーの詳細定義\n- Module_Clock.md: 時計機能の設計\n- Module_Weather.md: 天気機能の設計\n- Module_News.md: ニュース読み上げ機能の設計\n- Module_MusicAndVisualizer.md: 音楽再生・ビジュアライザーの設計\n- Module_Setup.md: 初回設定機能の設計\n- DataFlow.md: 全体のデータフロー設計\n- DESIGN_REVIEW.md: 設計レビュー結果と修正内容\n\nレビュー指摘事項（優先度高）の修正完了:\n- 音楽のクロスフェード処理の実装詳細追加\n- TTS初期化の非同期処理対応\n- 郵便番号→地域コード変換テーブルの完全化対応\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nComplete design phase with all module designs and review\n\n設計工程を完了。アーキテクチャ設計、全モジュール設計、データフロー設計、レビューおよび修正を実施。\n\n設計ドキュメント:\n- Architecture.md: Clean Architectureに基づくアーキテクチャ設計\n- LayerDefinition.md: 各レイヤーの詳細定義\n- Module_Clock.md: 時計機能の設計\n- Module_Weather.md: 天気機能の設計\n- Module_News.md: ニュース読み上げ機能の設計\n- Module_MusicAndVisualizer.md: 音楽再生・ビジュアライザーの設計\n- Module_Setup.md: 初回設定機能の設計\n- DataFlow.md: 全体のデータフロー設計\n- DESIGN_REVIEW.md: 設計レビュー結果と修正内容\n\nレビュー指摘事項（優先度高）の修正完了:\n- 音楽のクロスフェード処理の実装詳細追加\n- TTS初期化の非同期処理対応\n- 郵便番号→地域コード変換テーブルの完全化対応\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push)",
+      "Bash(gh issue create:*)",
+      "Bash(gh label create:*)",
+      "Bash(gh issue view:*)",
+      "Bash(git commit:*)",
+      "Bash(powershell -Command \".\\gradlew.bat build --stacktrace\")",
+      "Bash(export JAVA_HOME=\"C:/Program Files/Android/Android Studio/jbr\")",
+      "Bash(\"$JAVA_HOME/bin/java\" -version)",
+      "Bash(./gradlew build:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(cut:*)",
+      "mcp__serena__find_symbol",
+      "mcp__serena__activate_project",
+      "Bash(./gradlew testDebugUnitTest:*)",
+      "Bash(./gradlew clean:*)",
+      "Bash(./gradlew assembleDebug:*)",
+      "Bash(cat:*)",
+      "Bash($env:JAVA_HOME=\"C:\\Program Files\\Android\\Android Studio\\jbr\")"
     ],
     "deny": [],
     "ask": []

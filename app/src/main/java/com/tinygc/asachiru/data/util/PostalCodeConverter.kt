@@ -61,6 +61,14 @@ object PostalCodeConverter {
     }
 
     /**
+     * テスト用の初期化メソッド
+     * サンプルマッピングを使用する
+     */
+    fun initializeForTest() {
+        postalCodeToAreaCodeMap = getSampleMapping()
+    }
+
+    /**
      * サンプルのマッピングテーブル（開発用）
      * 実際の実装では、assets/postal_code_mapping.jsonに以下の形式で格納:
      * {
@@ -80,8 +88,8 @@ object PostalCodeConverter {
      */
     fun getSampleMapping(): Map<String, String> = mapOf(
         // 北海道
-        "001" to "016010", "002" to "016010", "003" to "016010", "004" to "016010",
-        "060" to "016010", "061" to "016010", "062" to "016010", "063" to "016010",
+        "001" to "016000", "002" to "016000", "003" to "016000", "004" to "016000",
+        "060" to "016000", "061" to "016000", "062" to "016000", "063" to "016000",
 
         // 東京都
         "100" to "130010", "101" to "130010", "102" to "130010", "103" to "130010",

@@ -2,8 +2,13 @@ package com.tinygc.asachiru.data.util
 
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.ByteArrayInputStream
 
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class RssParserTest {
 
     @Test
@@ -153,23 +158,20 @@ class RssParserTest {
         // Arrange
         val items = (1..10).map { i ->
             """
-            <item>
-                <title>News $i</title>
-                <description>Description $i</description>
-                <link>https://example.com/$i</link>
-                <pubDate>Wed, 06 Nov 2025 12:00:00 +0900</pubDate>
-            </item>
-            """.trimIndent()
+                <item>
+                    <title>News $i</title>
+                    <description>Description $i</description>
+                    <link>https://example.com/$i</link>
+                    <pubDate>Wed, 06 Nov 2025 12:00:00 +0900</pubDate>
+                </item>""".trimIndent()
         }.joinToString("\n")
 
-        val rssXml = """
-            <?xml version="1.0" encoding="UTF-8"?>
-            <rss version="2.0">
-                <channel>
-                    $items
-                </channel>
-            </rss>
-        """.trimIndent()
+        val rssXml = """<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+$items
+    </channel>
+</rss>"""
 
         val inputStream = ByteArrayInputStream(rssXml.toByteArray())
 

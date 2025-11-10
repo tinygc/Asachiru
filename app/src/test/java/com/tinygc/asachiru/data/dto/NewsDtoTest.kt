@@ -8,10 +8,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should convert NewsDto to News entity`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com/news/123",
             title = "テストニュース",
             description = "テスト説明文",
-            link = "https://example.com/news/123",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -28,10 +27,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should use link as ID`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://unique-link.com/article/456",
             title = "タイトル",
             description = "説明",
-            link = "https://unique-link.com/article/456",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -45,10 +43,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should parse valid RFC 822 date`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = "タイトル",
             description = "説明",
-            link = "https://example.com",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -62,10 +59,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should handle invalid date format gracefully`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = "タイトル",
             description = "説明",
-            link = "https://example.com",
             pubDate = "invalid date format"
         )
 
@@ -79,10 +75,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should handle empty date string`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = "タイトル",
             description = "説明",
-            link = "https://example.com",
             pubDate = ""
         )
 
@@ -98,10 +93,9 @@ class NewsDtoTest {
         // Arrange
         val title = "特殊文字を含む「タイトル」・test"
         val description = "改行\nタブ\t含む説明文"
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = title,
             description = description,
-            link = "https://example.com",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -123,10 +117,9 @@ class NewsDtoTest {
         )
 
         dates.forEach { pubDate ->
-            val newsDto = NewsDto(
+            val newsDto = NewsDto(link = "https://example.com", 
                 title = "タイトル",
                 description = "説明",
-                link = "https://example.com",
                 pubDate = pubDate
             )
 
@@ -143,10 +136,9 @@ class NewsDtoTest {
         // Arrange
         val longTitle = "あ".repeat(500)
         val longDescription = "い".repeat(1000)
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = longTitle,
             description = longDescription,
-            link = "https://example.com",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -162,10 +154,9 @@ class NewsDtoTest {
     fun `toEntity should handle URL with query parameters`() {
         // Arrange
         val linkWithParams = "https://example.com/news?id=123&category=sports"
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = linkWithParams,
             title = "タイトル",
             description = "説明",
-            link = linkWithParams,
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
@@ -179,10 +170,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should create News with correct structure`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = "ニュースタイトル",
             description = "ニュース説明",
-            link = "https://www3.nhk.or.jp/news/html/20251106/k10012345678.html",
             pubDate = "Wed, 06 Nov 2025 15:30:00 +0900"
         )
 
@@ -200,10 +190,9 @@ class NewsDtoTest {
     @Test
     fun `toEntity should handle empty title and description`() {
         // Arrange
-        val newsDto = NewsDto(
+        val newsDto = NewsDto(link = "https://example.com", 
             title = "",
             description = "",
-            link = "https://example.com",
             pubDate = "Wed, 06 Nov 2025 12:00:00 +0900"
         )
 
