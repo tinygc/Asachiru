@@ -5,12 +5,14 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.tinygc.asachiru.databinding.ActivitySetupBinding
+import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import com.tinygc.asachiru.presentation.main.MainActivity
 import kotlinx.coroutines.launch
 
@@ -33,8 +35,8 @@ class SetupActivity : AppCompatActivity() {
         binding = ActivitySetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // TODO: ViewModelFactoryを使用してViewModelを生成
-        // viewModel = ViewModelProvider(this, ViewModelFactory())[SetupViewModel::class.java]
+        // ViewModelFactoryを使用してViewModelを生成
+        viewModel = ViewModelProvider(this, ViewModelFactory(applicationContext))[SetupViewModel::class.java]
 
         setupViews()
         observeViewModel()
@@ -49,8 +51,7 @@ class SetupActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // TODO: ViewModelの実装後に有効化
-                // viewModel.updatePostalCode(s?.toString() ?: "")
+                viewModel.updatePostalCode(s?.toString() ?: "")
             }
 
             override fun afterTextChanged(s: Editable?) {}
@@ -60,8 +61,7 @@ class SetupActivity : AppCompatActivity() {
         binding.newsIntervalSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 binding.newsIntervalTextView.text = "$progress 分"
-                // TODO: ViewModelの実装後に有効化
-                // viewModel.updateNewsInterval(progress)
+                viewModel.updateNewsInterval(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
@@ -70,8 +70,7 @@ class SetupActivity : AppCompatActivity() {
 
         // 保存ボタン
         binding.saveButton.setOnClickListener {
-            // TODO: ViewModelの実装後に有効化
-            // viewModel.saveSettings()
+            viewModel.saveSettings()
         }
     }
 
@@ -79,8 +78,6 @@ class SetupActivity : AppCompatActivity() {
      * ViewModelの状態を監視してUIを更新
      */
     private fun observeViewModel() {
-        // TODO: ViewModelの実装後に有効化
-        /*
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
@@ -88,7 +85,6 @@ class SetupActivity : AppCompatActivity() {
                 }
             }
         }
-        */
     }
 
     /**
@@ -98,8 +94,10 @@ class SetupActivity : AppCompatActivity() {
      */
     private fun updateUI(state: SetupUiState) {
         // バリデーションエラー表示
-        if (!state.isPostalCodeValid) {
+        if (!state.isPostalCodeValid && state.postalCode.isNotEmpty()) {
             binding.postalCodeEditText.error = "郵便番号は7桁の数字で入力してください"
+        } else {
+            binding.postalCodeEditText.error = null
         }
 
         // 保存中はボタンを無効化
@@ -107,7 +105,7 @@ class SetupActivity : AppCompatActivity() {
 
         // エラーメッセージ表示
         state.saveError?.let {
-            // TODO: Toastなどでエラー表示
+            Toast.makeText(this, "保存に失敗しました: $it", Toast.LENGTH_LONG).show()
         }
 
         // 保存完了したらメイン画面へ遷移
