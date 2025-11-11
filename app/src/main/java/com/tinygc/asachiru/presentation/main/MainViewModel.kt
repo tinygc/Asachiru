@@ -11,12 +11,14 @@ import com.tinygc.asachiru.domain.usecase.news.GetLatestNewsUseCase
 import com.tinygc.asachiru.domain.usecase.news.ReadNewsUseCase
 import com.tinygc.asachiru.domain.usecase.weather.GetWeatherUseCase
 import com.tinygc.asachiru.domain.usecase.weather.RefreshWeatherUseCase
+import com.tinygc.asachiru.presentation.util.FlowTimer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 /**
@@ -33,34 +35,39 @@ class MainViewModel(
     private val readNewsUseCase: ReadNewsUseCase,
     private val playMusicUseCase: PlayMusicUseCase,
     private val getCurrentTrackUseCase: GetCurrentTrackUseCase,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    // テスト用のパラメータ（デフォルト値は本番用）
+    private val clockUpdateIntervalMs: Long = 1000L,
+    private val trackUpdateIntervalMs: Long = 1000L,
+    private val weatherRefreshIntervalMs: Long = 30 * 60 * 1000L,
+    // テスト時にinitブロックの自動起動をスキップするフラグ
+    private val skipAutoStart: Boolean = false
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
-        startClockUpdate()
-        loadWeather()
-        startWeatherAutoRefresh()
-        startNewsReading()
-        startMusicPlayback()
-        startTrackInfoUpdate()
+        if (!skipAutoStart) {
+            startClockUpdate()
+            loadWeather()
+            startWeatherAutoRefresh()
+            startNewsReading()
+            startMusicPlayback()
+            startTrackInfoUpdate()
+        }
     }
 
     /**
-     * 時計の定期更新を開始（1秒ごと）
+     * 時計の定期更新を開始
      */
     private fun startClockUpdate() {
-        viewModelScope.launch {
-            while (isActive) {
+        FlowTimer.ticker(intervalMillis = clockUpdateIntervalMs)
+            .onEach {
                 val dateTime = getCurrentDateTimeUseCase()
-                _uiState.update { currentState ->
-                    currentState.copy(dateTime = dateTime)
-                }
-                delay(1000) // 1秒ごと
+                _uiState.update { it.copy(dateTime = dateTime) }
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     /**
@@ -93,15 +100,15 @@ class MainViewModel(
     }
 
     /**
-     * 天気情報の自動更新を開始（30分ごと）
+     * 天気情報の自動更新を開始
      */
     private fun startWeatherAutoRefresh() {
-        viewModelScope.launch {
-            while (isActive) {
-                delay(30 * 60 * 1000L) // 30分
-                refreshWeather()
-            }
-        }
+        FlowTimer.ticker(
+            intervalMillis = weatherRefreshIntervalMs,
+            initialDelayMillis = weatherRefreshIntervalMs
+        )
+            .onEach { refreshWeather() }
+            .launchIn(viewModelScope)
     }
 
     /**
@@ -142,14 +149,13 @@ class MainViewModel(
             // 初回は10秒待機
             delay(10_000L)
 
-            while (isActive) {
-                readNews()
+            // 設定された間隔を取得
+            val settings = settingsRepository.getSettings()
+            val intervalMs = settings.newsIntervalMinutes * 60 * 1000L
 
-                // 設定された間隔で待機
-                val settings = settingsRepository.getSettings()
-                val intervalMs = settings.newsIntervalMinutes * 60 * 1000L
-                delay(intervalMs)
-            }
+            FlowTimer.ticker(intervalMillis = intervalMs)
+                .onEach { readNews() }
+                .launchIn(this) // viewModelScope.launch内なので、thisを使用
         }
     }
 
@@ -199,16 +205,15 @@ class MainViewModel(
     }
 
     /**
-     * 曲情報の定期更新（1秒ごと）
+     * 曲情報の定期更新
      */
     private fun startTrackInfoUpdate() {
-        viewModelScope.launch {
-            while (isActive) {
+        FlowTimer.ticker(intervalMillis = trackUpdateIntervalMs)
+            .onEach {
                 val currentTrack = getCurrentTrackUseCase()
                 _uiState.update { it.copy(currentTrack = currentTrack) }
-                delay(1000L) // 1秒ごと
             }
-        }
+            .launchIn(viewModelScope)
     }
 
     /**
