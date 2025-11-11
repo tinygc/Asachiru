@@ -23,7 +23,18 @@
       "Bash($env:JAVA_HOME=\"C:\\Program Files\\Android\\Android Studio\\jbr\")",
       "Bash(test_all.log)",
       "Bash(./gradlew:*)",
-      "Bash(test_turbine_final.log)"
+      "Bash(test_turbine_final.log)",
+      "Bash(xargs cat:*)",
+      "Bash(taskkill:*)",
+      "Bash(tee:*)",
+      "Bash(find:*)",
+      "Bash(for i in {12..29})",
+      "Bash(do gh issue close $i --comment \"実装完了。Unit Testも全てパス。\")",
+      "Bash(done)",
+      "Bash(gh issue list:*)",
+      "Bash(for:*)",
+      "Bash(git show:*)",
+      "Bash(gh issue close:*)"
     ],
     "deny": [],
     "ask": []

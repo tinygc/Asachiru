@@ -5,6 +5,8 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import com.tinygc.asachiru.R
+import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import com.tinygc.asachiru.presentation.main.MainActivity
 import com.tinygc.asachiru.presentation.setup.SetupActivity
 import kotlinx.coroutines.launch
@@ -24,12 +26,14 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_splash)
 
-        // TODO: ViewModelFactoryを使用してViewModelを生成
-        // viewModel = ViewModelProvider(this, ViewModelFactory())[SplashViewModel::class.java]
+        // ViewModelFactoryを使用してViewModelを生成
+        val factory = ViewModelFactory(this)
+        viewModel = ViewModelProvider(this, factory)[SplashViewModel::class.java]
 
-        // 仮実装: すぐにチェック処理を実行
-        // checkSettings()
+        // 設定チェック処理を実行
+        checkSettings()
     }
 
     /**
@@ -37,9 +41,7 @@ class SplashActivity : AppCompatActivity() {
      */
     private fun checkSettings() {
         lifecycleScope.launch {
-            // TODO: ViewModelの実装後に有効化
-            // val hasSettings = viewModel.checkSettings()
-            val hasSettings = false // 仮の値
+            val hasSettings = viewModel.checkSettings()
 
             if (hasSettings) {
                 navigateToMain()
