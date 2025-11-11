@@ -16,6 +16,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- パーティクルアニメーション -->
+    <com.tinygc.asachiru.presentation.main.views.ParticleView
+        android:id="@+id/particle_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- ビジュアライザー（背景として全画面） -->
     <com.tinygc.asachiru.presentation.main.views.VisualizerView
         android:id="@+id/visualizer_view"
