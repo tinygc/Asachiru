@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.tinygc.asachiru.databinding.ActivityMainBinding
+import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import kotlinx.coroutines.launch
 
 /**
@@ -28,12 +29,8 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // TODO: ViewModelFactoryを使用してViewModelを生成
-        // 現在は仮実装
-        // viewModel = ViewModelProvider(this, ViewModelFactory())[MainViewModel::class.java]
-
-        // 仮のViewModel生成（実際のFactoryは別Issueで実装）
-        // setupViewModel()
+        // ViewModelFactoryを使用してViewModelを生成
+        viewModel = ViewModelProvider(this, ViewModelFactory(applicationContext))[MainViewModel::class.java]
 
         observeViewModel()
     }
@@ -42,8 +39,6 @@ class MainActivity : AppCompatActivity() {
      * ViewModelの状態を監視してUIを更新
      */
     private fun observeViewModel() {
-        // TODO: ViewModelの実装後に有効化
-        /*
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
@@ -68,12 +63,10 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        */
     }
 
     override fun onResume() {
         super.onResume()
-        // TODO: ViewModelの実装後に有効化
-        // viewModel.onResume()
+        viewModel.onResume()
     }
 }
