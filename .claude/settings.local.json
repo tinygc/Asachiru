@@ -21,7 +21,9 @@
       "Bash(./gradlew assembleDebug:*)",
       "Bash(cat:*)",
       "Bash($env:JAVA_HOME=\"C:\\Program Files\\Android\\Android Studio\\jbr\")",
-      "Bash(test_all.log)"
+      "Bash(test_all.log)",
+      "Bash(./gradlew:*)",
+      "Bash(test_turbine_final.log)"
     ],
     "deny": [],
     "ask": []
