@@ -27,13 +27,13 @@ class ClockView @JvmOverloads constructor(
     private var currentDateTime: DateTime = DateTime.EMPTY
 
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 80f
+        textSize = 120f
         color = Color.WHITE
         typeface = Typeface.MONOSPACE
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 32f
+        textSize = 48f
         typeface = Typeface.MONOSPACE
     }
 

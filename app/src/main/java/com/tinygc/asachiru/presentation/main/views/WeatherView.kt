@@ -25,17 +25,17 @@ class WeatherView @JvmOverloads constructor(
     private var errorMessage: String? = null
 
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 64f
+        textSize = 96f
         color = Color.WHITE
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 24f
+        textSize = 36f
         color = Color.WHITE
     }
 
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 24f
+        textSize = 36f
         color = Color.RED
     }
 

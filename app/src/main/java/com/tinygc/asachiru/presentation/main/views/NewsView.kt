@@ -24,7 +24,7 @@ class NewsView @JvmOverloads constructor(
     private var errorMessage: String? = null
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 20f
+        textSize = 32f
         color = Color.WHITE
     }
 
