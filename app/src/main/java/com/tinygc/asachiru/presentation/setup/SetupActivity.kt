@@ -60,12 +60,18 @@ class SetupActivity : AppCompatActivity() {
         // ニュース読み上げ間隔
         binding.newsIntervalSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                // ドラッグ中は表示だけ更新（ViewModelは更新しない）
                 binding.newsIntervalTextView.text = "$progress 分"
-                viewModel.updateNewsInterval(progress)
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                // ドラッグ終了時にViewModelを更新
+                seekBar?.let {
+                    viewModel.updateNewsInterval(it.progress)
+                }
+            }
         })
 
         // 保存ボタン
