@@ -20,7 +20,10 @@ data class ForecastDto(
     val telop: String, // "晴れ", "曇り", "雨"など
 
     @SerializedName("temperature")
-    val temperature: TemperatureDto
+    val temperature: TemperatureDto,
+
+    @SerializedName("chanceOfRain")
+    val chanceOfRain: ChanceOfRainDto?
 )
 
 data class TemperatureDto(
@@ -36,17 +39,44 @@ data class TemperatureValueDto(
     val celsius: String
 )
 
+data class ChanceOfRainDto(
+    @SerializedName("T00_06")
+    val t00_06: String?, // 0-6時
+
+    @SerializedName("T06_12")
+    val t06_12: String?, // 6-12時
+
+    @SerializedName("T12_18")
+    val t12_18: String?, // 12-18時
+
+    @SerializedName("T18_24")
+    val t18_24: String?  // 18-24時
+)
+
 /**
  * WeatherDtoからWeatherエンティティへ変換
  */
-fun ForecastDto.toEntity(currentTemp: Int, precipProb: Int): Weather {
+fun ForecastDto.toEntity(): Weather {
     val condition = parseWeatherCondition(telop)
+
+    // 現在気温は最高気温と最低気温の平均を使用
+    val maxTemp = temperature.max?.celsius?.toIntOrNull() ?: 0
+    val minTemp = temperature.min?.celsius?.toIntOrNull() ?: 0
+    val currentTemp = if (maxTemp > 0 || minTemp > 0) (maxTemp + minTemp) / 2 else 0
+
+    // 降水確率は日中（6-18時）の最大値を使用
+    val precipProb = chanceOfRain?.let { rain ->
+        listOfNotNull(
+            rain.t06_12?.removeSuffix("%")?.toIntOrNull(),
+            rain.t12_18?.removeSuffix("%")?.toIntOrNull()
+        ).maxOrNull() ?: 0
+    } ?: 0
 
     return Weather(
         condition = condition,
         currentTemperature = currentTemp,
-        maxTemperature = temperature.max?.celsius?.toIntOrNull() ?: 0,
-        minTemperature = temperature.min?.celsius?.toIntOrNull() ?: 0,
+        maxTemperature = maxTemp,
+        minTemperature = minTemp,
         precipitationProbability = precipProb
     )
 }

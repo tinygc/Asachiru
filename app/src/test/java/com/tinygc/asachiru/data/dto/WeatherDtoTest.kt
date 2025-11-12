@@ -15,18 +15,24 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = TemperatureValueDto("15"),
                 max = TemperatureValueDto("25")
+            ),
+            chanceOfRain = ChanceOfRainDto(
+                t00_06 = "10%",
+                t06_12 = "20%",
+                t12_18 = "30%",
+                t18_24 = "15%"
             )
         )
 
         // Act
-        val weather = forecastDto.toEntity(currentTemp = 20, precipProb = 10)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.SUNNY, weather.condition)
-        assertEquals(20, weather.currentTemperature)
+        assertEquals(20, weather.currentTemperature) // (25 + 15) / 2
         assertEquals(25, weather.maxTemperature)
         assertEquals(15, weather.minTemperature)
-        assertEquals(10, weather.precipitationProbability)
+        assertEquals(30, weather.precipitationProbability) // max of t06_12(20%) and t12_18(30%)
     }
 
     @Test
@@ -35,11 +41,12 @@ class WeatherDtoTest {
         val forecastDto = ForecastDto(
             date = "2025-11-07",
             telop = "晴れ",
-            temperature = TemperatureDto(null, null)
+            temperature = TemperatureDto(null, null),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(0, 0)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.SUNNY, weather.condition)
@@ -51,11 +58,12 @@ class WeatherDtoTest {
         val forecastDto = ForecastDto(
             date = "2025-11-07",
             telop = "曇り",
-            temperature = TemperatureDto(null, null)
+            temperature = TemperatureDto(null, null),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(0, 0)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.CLOUDY, weather.condition)
@@ -67,11 +75,12 @@ class WeatherDtoTest {
         val forecastDto = ForecastDto(
             date = "2025-11-07",
             telop = "雨",
-            temperature = TemperatureDto(null, null)
+            temperature = TemperatureDto(null, null),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(0, 0)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.RAINY, weather.condition)
@@ -83,11 +92,12 @@ class WeatherDtoTest {
         val forecastDto = ForecastDto(
             date = "2025-11-07",
             telop = "雪",
-            temperature = TemperatureDto(null, null)
+            temperature = TemperatureDto(null, null),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(0, 0)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.SNOWY, weather.condition)
@@ -99,11 +109,12 @@ class WeatherDtoTest {
         val forecastDto = ForecastDto(
             date = "2025-11-07",
             telop = "その他の天気",
-            temperature = TemperatureDto(null, null)
+            temperature = TemperatureDto(null, null),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(0, 0)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(WeatherCondition.OTHER, weather.condition)
@@ -118,11 +129,17 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = null,
                 max = TemperatureValueDto("25")
+            ),
+            chanceOfRain = ChanceOfRainDto(
+                t00_06 = "10%",
+                t06_12 = "20%",
+                t12_18 = "30%",
+                t18_24 = "15%"
             )
         )
 
         // Act
-        val weather = forecastDto.toEntity(20, 10)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(0, weather.minTemperature)
@@ -138,11 +155,17 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = TemperatureValueDto("15"),
                 max = null
+            ),
+            chanceOfRain = ChanceOfRainDto(
+                t00_06 = "10%",
+                t06_12 = "20%",
+                t12_18 = "30%",
+                t18_24 = "15%"
             )
         )
 
         // Act
-        val weather = forecastDto.toEntity(20, 10)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(15, weather.minTemperature)
@@ -158,11 +181,12 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = TemperatureValueDto("invalid"),
                 max = TemperatureValueDto("not_a_number")
-            )
+            ),
+            chanceOfRain = null
         )
 
         // Act
-        val weather = forecastDto.toEntity(20, 10)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(0, weather.minTemperature)
@@ -184,11 +208,12 @@ class WeatherDtoTest {
             val forecastDto = ForecastDto(
                 date = "2025-11-07",
                 telop = telop,
-                temperature = TemperatureDto(null, null)
+                temperature = TemperatureDto(null, null),
+                chanceOfRain = null
             )
 
             // Act
-            val weather = forecastDto.toEntity(0, 0)
+            val weather = forecastDto.toEntity()
 
             // Assert
             assertEquals("Telop: $telop", expectedCondition, weather.condition)
@@ -204,15 +229,21 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = TemperatureValueDto("10"),
                 max = TemperatureValueDto("30")
+            ),
+            chanceOfRain = ChanceOfRainDto(
+                t00_06 = "40%",
+                t06_12 = "70%",
+                t12_18 = "80%",
+                t18_24 = "60%"
             )
         )
 
         // Act
-        val weather = forecastDto.toEntity(currentTemp = 22, precipProb = 80)
+        val weather = forecastDto.toEntity()
 
         // Assert
-        assertEquals(22, weather.currentTemperature)
-        assertEquals(80, weather.precipitationProbability)
+        assertEquals(20, weather.currentTemperature) // (10 + 30) / 2
+        assertEquals(80, weather.precipitationProbability) // max of t06_12(70%) and t12_18(80%)
     }
 
     @Test
@@ -224,15 +255,22 @@ class WeatherDtoTest {
             temperature = TemperatureDto(
                 min = TemperatureValueDto("-5"),
                 max = TemperatureValueDto("2")
+            ),
+            chanceOfRain = ChanceOfRainDto(
+                t00_06 = "80%",
+                t06_12 = "90%",
+                t12_18 = "85%",
+                t18_24 = "75%"
             )
         )
 
         // Act
-        val weather = forecastDto.toEntity(currentTemp = -2, precipProb = 90)
+        val weather = forecastDto.toEntity()
 
         // Assert
         assertEquals(-5, weather.minTemperature)
         assertEquals(2, weather.maxTemperature)
-        assertEquals(-2, weather.currentTemperature)
+        assertEquals(-1, weather.currentTemperature) // (-5 + 2) / 2 = -1
+        assertEquals(90, weather.precipitationProbability) // max of t06_12(90%) and t12_18(85%)
     }
 }

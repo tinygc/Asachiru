@@ -29,10 +29,7 @@ class WeatherRepositoryImpl(
                 ?: throw IOException("No forecast data available")
 
             // DTOをEntityに変換
-            // 注: 現在気温と降水確率はAPIレスポンスに含まれない場合があるため、
-            //     ここでは簡易的に最高気温を現在気温、降水確率を0%としている
-            val currentTemp = todayForecast.temperature.max?.celsius?.toIntOrNull() ?: 0
-            val weather = todayForecast.toEntity(currentTemp, 0)
+            val weather = todayForecast.toEntity()
 
             Result.Success(weather)
         } catch (e: IOException) {
