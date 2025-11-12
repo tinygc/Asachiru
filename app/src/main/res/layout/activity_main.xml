@@ -66,6 +66,16 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- 音楽トラック名（中央） -->
+    <com.tinygc.asachiru.presentation.main.views.MusicTrackView
+        android:id="@+id/music_track_view"
+        android:layout_width="600dp"
+        android:layout_height="150dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <!-- ニュース（左下） -->
     <com.tinygc.asachiru.presentation.main.views.NewsView
         android:id="@+id/news_view"
