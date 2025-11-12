@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
@@ -17,6 +18,8 @@ import com.tinygc.asachiru.domain.entity.DateTime
  * - 日曜: 赤
  * - 土曜: 青
  * - 平日: 黒
+ *
+ * Glassmorphism効果で半透明の背景と境界線を追加しています。
  */
 class ClockView @JvmOverloads constructor(
     context: Context,
@@ -25,6 +28,23 @@ class ClockView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var currentDateTime: DateTime = DateTime.EMPTY
+
+    // Glassmorphism背景用
+    private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        alpha = (255 * 0.15f).toInt() // 15%の不透明度
+        style = Paint.Style.FILL
+    }
+
+    // Glassmorphism境界線用
+    private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        alpha = (255 * 0.3f).toInt() // 30%の不透明度
+        style = Paint.Style.STROKE
+        strokeWidth = 2f
+    }
+
+    private val backgroundRect = RectF()
 
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 120f
@@ -50,12 +70,37 @@ class ClockView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        // Glassmorphism背景を描画
+        drawGlassmorphismBackground(canvas)
+
         if (currentDateTime == DateTime.EMPTY) {
             return // 初期値の場合は何も描画しない
         }
 
         drawTime(canvas)
         drawDate(canvas)
+    }
+
+    /**
+     * Glassmorphism背景を描画（角丸の半透明背景＋境界線）
+     */
+    private fun drawGlassmorphismBackground(canvas: Canvas) {
+        // 少し内側に描画（パディング）
+        val padding = 10f
+        backgroundRect.set(
+            padding,
+            padding,
+            width.toFloat() - padding,
+            height.toFloat() - padding
+        )
+
+        val cornerRadius = 24f // 角丸の半径
+
+        // 半透明背景
+        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
+
+        // 境界線
+        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, borderPaint)
     }
 
     /**
