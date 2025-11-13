@@ -41,7 +41,8 @@ class GetWeatherUseCaseTest {
             currentTemperature = 20,
             maxTemperature = 25,
             minTemperature = 15,
-            precipitationProbability = 10
+            precipitationProbability = 10,
+            dateLabel = "今日"
         )
 
         whenever(settingsRepository.getSettings()).thenReturn(settings)
@@ -99,7 +100,8 @@ class GetWeatherUseCaseTest {
             currentTemperature = 18,
             maxTemperature = 22,
             minTemperature = 16,
-            precipitationProbability = 80
+            precipitationProbability = 80,
+            dateLabel = "今日"
         )
 
         whenever(settingsRepository.getSettings()).thenReturn(settings)
@@ -177,7 +179,8 @@ class GetWeatherUseCaseTest {
                 currentTemperature = 20,
                 maxTemperature = 25,
                 minTemperature = 15,
-                precipitationProbability = 30
+                precipitationProbability = 30,
+                dateLabel = "今日"
             )
 
             whenever(settingsRepository.getSettings()).thenReturn(settings)

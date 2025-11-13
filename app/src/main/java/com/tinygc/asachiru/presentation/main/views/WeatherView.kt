@@ -58,6 +58,12 @@ class WeatherView @JvmOverloads constructor(
         color = Color.RED
     }
 
+    private val dateLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 28f
+        color = Color.WHITE
+        alpha = (255 * 0.8f).toInt() // 少し薄く表示
+    }
+
     /**
      * 天気情報を更新
      * @param weather 表示する天気情報（nullの場合は非表示）
@@ -90,6 +96,7 @@ class WeatherView @JvmOverloads constructor(
         }
 
         weather?.let {
+            drawDateLabel(canvas, it)
             drawWeatherIcon(canvas, it)
             drawTemperature(canvas, it)
             drawPrecipitation(canvas, it)
@@ -129,7 +136,17 @@ class WeatherView @JvmOverloads constructor(
     }
 
     /**
-     * 天気アイコンを描画
+     * 日付ラベル（今日/明日）を描画（左上）
+     */
+    private fun drawDateLabel(canvas: Canvas, weather: Weather) {
+        canvas.drawText(
+            weather.dateLabel,
+            40f, 40f, dateLabelPaint
+        )
+    }
+
+    /**
+     * 天気アイコンを描画（左側中央）
      */
     private fun drawWeatherIcon(canvas: Canvas, weather: Weather) {
         val icon = when (weather.condition) {
@@ -140,37 +157,39 @@ class WeatherView @JvmOverloads constructor(
             WeatherCondition.OTHER -> "?"
         }
 
-        canvas.drawText(icon, 50f, 80f, iconPaint)
+        // 左側の中央に配置
+        canvas.drawText(icon, 40f, 120f, iconPaint)
     }
 
     /**
-     * 気温情報を描画
+     * 気温情報を描画（右側に縦に配置）
      */
     private fun drawTemperature(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.WHITE
 
+        // 右側に縦に配置、45px間隔
         canvas.drawText(
             "現在: ${weather.currentTemperature}°C",
-            150f, 50f, textPaint
+            180f, 50f, textPaint
         )
         canvas.drawText(
             "最高: ${weather.maxTemperature}°C",
-            150f, 80f, textPaint
+            180f, 95f, textPaint
         )
         canvas.drawText(
             "最低: ${weather.minTemperature}°C",
-            150f, 110f, textPaint
+            180f, 140f, textPaint
         )
     }
 
     /**
-     * 降水確率を描画
+     * 降水確率を描画（右側下部）
      */
     private fun drawPrecipitation(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.CYAN
         canvas.drawText(
             "降水確率: ${weather.precipitationProbability}%",
-            150f, 140f, textPaint
+            180f, 185f, textPaint
         )
     }
 }

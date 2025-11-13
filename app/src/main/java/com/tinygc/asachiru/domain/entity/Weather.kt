@@ -8,7 +8,8 @@ data class Weather(
     val currentTemperature: Int,
     val maxTemperature: Int,
     val minTemperature: Int,
-    val precipitationProbability: Int
+    val precipitationProbability: Int,
+    val dateLabel: String // "今日" or "明日"
 ) {
     companion object {
         /**
@@ -19,7 +20,8 @@ data class Weather(
             currentTemperature = 0,
             maxTemperature = 0,
             minTemperature = 0,
-            precipitationProbability = 0
+            precipitationProbability = 0,
+            dateLabel = "今日"
         )
     }
 }

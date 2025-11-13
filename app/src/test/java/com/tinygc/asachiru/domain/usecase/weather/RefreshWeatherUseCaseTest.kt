@@ -33,7 +33,8 @@ class RefreshWeatherUseCaseTest {
             currentTemperature = 20,
             maxTemperature = 25,
             minTemperature = 15,
-            precipitationProbability = 10
+            precipitationProbability = 10,
+            dateLabel = "今日"
         )
 
         whenever(getWeatherUseCase()).thenReturn(Result.Success(expectedWeather))
@@ -68,7 +69,8 @@ class RefreshWeatherUseCaseTest {
             currentTemperature = 18,
             maxTemperature = 22,
             minTemperature = 14,
-            precipitationProbability = 30
+            precipitationProbability = 30,
+            dateLabel = "今日"
         )
         whenever(getWeatherUseCase()).thenReturn(Result.Success(weather))
 
@@ -130,7 +132,8 @@ class RefreshWeatherUseCaseTest {
                 currentTemperature = 20,
                 maxTemperature = 25,
                 minTemperature = 15,
-                precipitationProbability = 20
+                precipitationProbability = 20,
+                dateLabel = "今日"
             )
             whenever(getWeatherUseCase()).thenReturn(Result.Success(weather))
 
@@ -151,14 +154,16 @@ class RefreshWeatherUseCaseTest {
             currentTemperature = 25,
             maxTemperature = 30,
             minTemperature = 20,
-            precipitationProbability = 0
+            precipitationProbability = 0,
+            dateLabel = "今日"
         )
         val weather2 = Weather(
             condition = WeatherCondition.RAINY,
             currentTemperature = 18,
             maxTemperature = 20,
             minTemperature = 15,
-            precipitationProbability = 80
+            precipitationProbability = 80,
+            dateLabel = "今日"
         )
 
         whenever(getWeatherUseCase())

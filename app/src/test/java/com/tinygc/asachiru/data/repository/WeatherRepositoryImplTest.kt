@@ -54,6 +54,19 @@ class WeatherRepositoryImplTest {
                         t12_18 = "0%",
                         t18_24 = "5%"
                     )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "25"),
+                        min = TemperatureValueDto(celsius = "15")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "5%",
+                        t12_18 = "0%",
+                        t18_24 = "5%"
+                    )
                 )
             )
         )
@@ -70,6 +83,8 @@ class WeatherRepositoryImplTest {
         assertEquals(25, weather.maxTemperature)
         assertEquals(15, weather.minTemperature)
         assertEquals(5, weather.precipitationProbability) // max of t06_12(5%) and t12_18(0%)
+        // 日付ラベルは「今日」または「明日」のいずれか
+        assertTrue(weather.dateLabel == "今日" || weather.dateLabel == "明日")
     }
 
     @Test
@@ -79,6 +94,19 @@ class WeatherRepositoryImplTest {
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
                 ForecastDto(date = "2024-01-01",
+                    telop = "曇り",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "20"),
+                        min = TemperatureValueDto(celsius = "10")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "20%",
+                        t06_12 = "30%",
+                        t12_18 = "40%",
+                        t18_24 = "25%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
                     telop = "曇り",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "20"),
@@ -122,6 +150,19 @@ class WeatherRepositoryImplTest {
                         t12_18 = "80%",
                         t18_24 = "65%"
                     )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "雨",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "18"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "60%",
+                        t06_12 = "70%",
+                        t12_18 = "80%",
+                        t18_24 = "65%"
+                    )
                 )
             )
         )
@@ -154,6 +195,19 @@ class WeatherRepositoryImplTest {
                         t12_18 = "85%",
                         t18_24 = "75%"
                     )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "雪",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "5"),
+                        min = TemperatureValueDto(celsius = "-2")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "80%",
+                        t06_12 = "90%",
+                        t12_18 = "85%",
+                        t18_24 = "75%"
+                    )
                 )
             )
         )
@@ -175,6 +229,14 @@ class WeatherRepositoryImplTest {
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
                 ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = null,
+                        min = null
+                    ),
+                    chanceOfRain = null
+                ),
+                ForecastDto(date = "2024-01-02",
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = null,
@@ -279,6 +341,19 @@ class WeatherRepositoryImplTest {
                         t12_18 = "20%",
                         t18_24 = "10%"
                     )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "22"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "15%",
+                        t12_18 = "20%",
+                        t18_24 = "10%"
+                    )
                 )
             )
         )
@@ -334,7 +409,8 @@ class WeatherRepositoryImplTest {
         // Then
         assertTrue(result is Result.Success)
         val weather = (result as Result.Success).data
-        assertEquals(WeatherCondition.SUNNY, weather.condition) // Should use first forecast
+        // 時刻によって forecasts[0] or forecasts[1] が選ばれる
+        assertTrue(weather.condition == WeatherCondition.SUNNY || weather.condition == WeatherCondition.RAINY)
     }
 
     @Test
@@ -344,6 +420,14 @@ class WeatherRepositoryImplTest {
         val mockResponse = WeatherApiResponse(
             forecasts = listOf(
                 ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "invalid"),
+                        min = TemperatureValueDto(celsius = "also invalid")
+                    ),
+                    chanceOfRain = null
+                ),
+                ForecastDto(date = "2024-01-02",
                     telop = "晴れ",
                     temperature = TemperatureDto(
                         max = TemperatureValueDto(celsius = "invalid"),

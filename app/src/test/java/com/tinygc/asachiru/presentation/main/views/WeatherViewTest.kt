@@ -26,7 +26,8 @@ class WeatherViewTest {
         currentTemperature = 25,
         maxTemperature = 28,
         minTemperature = 18,
-        precipitationProbability = 10
+        precipitationProbability = 10,
+        dateLabel = "今日"
     )
 
     private val cloudyWeather = Weather(
@@ -34,7 +35,8 @@ class WeatherViewTest {
         currentTemperature = 20,
         maxTemperature = 22,
         minTemperature = 15,
-        precipitationProbability = 30
+        precipitationProbability = 30,
+        dateLabel = "今日"
     )
 
     private val rainyWeather = Weather(
@@ -42,7 +44,8 @@ class WeatherViewTest {
         currentTemperature = 18,
         maxTemperature = 20,
         minTemperature = 14,
-        precipitationProbability = 80
+        precipitationProbability = 80,
+        dateLabel = "今日"
     )
 
     private val snowyWeather = Weather(
@@ -50,7 +53,8 @@ class WeatherViewTest {
         currentTemperature = -2,
         maxTemperature = 0,
         minTemperature = -5,
-        precipitationProbability = 90
+        precipitationProbability = 90,
+        dateLabel = "今日"
     )
 
     @Before
@@ -150,7 +154,8 @@ class WeatherViewTest {
             currentTemperature = -40,
             maxTemperature = -30,
             minTemperature = -50,
-            precipitationProbability = 100
+            precipitationProbability = 100,
+            dateLabel = "今日"
         )
 
         // When & Then (例外が発生しないことを確認)
@@ -165,7 +170,8 @@ class WeatherViewTest {
             currentTemperature = 40,
             maxTemperature = 42,
             minTemperature = 35,
-            precipitationProbability = 0
+            precipitationProbability = 0,
+            dateLabel = "今日"
         )
 
         // When & Then (例外が発生しないことを確認)
@@ -180,7 +186,8 @@ class WeatherViewTest {
             currentTemperature = 25,
             maxTemperature = 28,
             minTemperature = 20,
-            precipitationProbability = 0
+            precipitationProbability = 0,
+            dateLabel = "今日"
         )
 
         // When & Then (例外が発生しないことを確認)
@@ -195,7 +202,8 @@ class WeatherViewTest {
             currentTemperature = 15,
             maxTemperature = 18,
             minTemperature = 12,
-            precipitationProbability = 100
+            precipitationProbability = 100,
+            dateLabel = "今日"
         )
 
         // When & Then (例外が発生しないことを確認)
@@ -243,7 +251,8 @@ class WeatherViewTest {
             currentTemperature = 20,
             maxTemperature = 20,
             minTemperature = 20,
-            precipitationProbability = 50
+            precipitationProbability = 50,
+            dateLabel = "今日"
         )
 
         // When & Then (例外が発生しないことを確認)

@@ -55,8 +55,9 @@ data class ChanceOfRainDto(
 
 /**
  * WeatherDtoからWeatherエンティティへ変換
+ * @param dateLabel 日付ラベル（"今日" or "明日"）
  */
-fun ForecastDto.toEntity(): Weather {
+fun ForecastDto.toEntity(dateLabel: String = "今日"): Weather {
     val condition = parseWeatherCondition(telop)
 
     // 現在気温は最高気温と最低気温の平均を使用
@@ -77,7 +78,8 @@ fun ForecastDto.toEntity(): Weather {
         currentTemperature = currentTemp,
         maxTemperature = maxTemp,
         minTemperature = minTemp,
-        precipitationProbability = precipProb
+        precipitationProbability = precipProb,
+        dateLabel = dateLabel
     )
 }
 

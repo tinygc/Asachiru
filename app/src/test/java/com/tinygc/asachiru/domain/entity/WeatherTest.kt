@@ -13,7 +13,8 @@ class WeatherTest {
             currentTemperature = 20,
             maxTemperature = 25,
             minTemperature = 15,
-            precipitationProbability = 10
+            precipitationProbability = 10,
+            dateLabel = "今日"
         )
 
         // Assert
@@ -45,21 +46,24 @@ class WeatherTest {
             currentTemperature = 18,
             maxTemperature = 20,
             minTemperature = 16,
-            precipitationProbability = 80
+            precipitationProbability = 80,
+            dateLabel = "今日"
         )
         val weather2 = Weather(
             condition = WeatherCondition.RAINY,
             currentTemperature = 18,
             maxTemperature = 20,
             minTemperature = 16,
-            precipitationProbability = 80
+            precipitationProbability = 80,
+            dateLabel = "今日"
         )
         val weather3 = Weather(
             condition = WeatherCondition.SUNNY,
             currentTemperature = 25,
             maxTemperature = 28,
             minTemperature = 22,
-            precipitationProbability = 0
+            precipitationProbability = 0,
+            dateLabel = "今日"
         )
 
         // Assert
@@ -75,7 +79,8 @@ class WeatherTest {
             currentTemperature = -5,
             maxTemperature = 0,
             minTemperature = -10,
-            precipitationProbability = 100
+            precipitationProbability = 100,
+            dateLabel = "今日"
         )
 
         // Assert
@@ -102,7 +107,8 @@ class WeatherTest {
                 currentTemperature = 20,
                 maxTemperature = 25,
                 minTemperature = 15,
-                precipitationProbability = 30
+                precipitationProbability = 30,
+                dateLabel = "今日"
             )
             assertEquals(condition, weather.condition)
         }
