@@ -26,22 +26,38 @@ class WeatherView @JvmOverloads constructor(
     private var weather: Weather? = null
     private var errorMessage: String? = null
 
-    // Glassmorphism背景用
+    // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.5f).toInt() // 50%の不透明度（背景色に関係なく見やすくするため増加）
+        alpha = (255 * 0.6f).toInt() // 60%の不透明度（モダンデザイン対応）
         style = Paint.Style.FILL
     }
 
-    // Glassmorphism境界線用
+    // Neumorphism外側の影用
+    private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.BLACK
+        alpha = (255 * 0.15f).toInt() // 15%の薄い影
+        style = Paint.Style.FILL
+    }
+
+    // Neumorphism内側のハイライト用
+    private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        alpha = (255 * 0.4f).toInt() // 40%の明るいハイライト
+        style = Paint.Style.FILL
+    }
+
+    // 境界線用（エレベーション表現）
     private val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.3f).toInt() // 30%の不透明度
+        alpha = (255 * 0.5f).toInt() // 50%の不透明度（強調）
         style = Paint.Style.STROKE
-        strokeWidth = 4f // 視認性向上のため太く
+        strokeWidth = 2f // より繊細に
     }
 
     private val backgroundRect = RectF()
+    private val shadowRect = RectF()
+    private val highlightRect = RectF()
 
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 192f // Android TV (4K)用に2倍に拡大
@@ -108,22 +124,40 @@ class WeatherView @JvmOverloads constructor(
     }
 
     /**
-     * Glassmorphism背景を描画（角丸の半透明背景＋境界線）
+     * Material Design 3 + Neumorphism背景を描画
      */
     private fun drawGlassmorphismBackground(canvas: Canvas) {
-        // 少し内側に描画（パディング）
-        val padding = 10f
+        val padding = 24f
+        val cornerRadius = 48f
+        val shadowOffset = 8f
+
+        // 外側の影
+        shadowRect.set(
+            padding + shadowOffset,
+            padding + shadowOffset,
+            width.toFloat() - padding + shadowOffset,
+            height.toFloat() - padding + shadowOffset
+        )
+        canvas.drawRoundRect(shadowRect, cornerRadius, cornerRadius, shadowPaint)
+
+        // メイン背景
         backgroundRect.set(
             padding,
             padding,
             width.toFloat() - padding,
             height.toFloat() - padding
         )
-
-        val cornerRadius = 24f // 角丸の半径
-
-        // 半透明背景
         canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
+
+        // 内側のハイライト
+        val highlightInset = 4f
+        highlightRect.set(
+            padding + highlightInset,
+            padding + highlightInset,
+            width.toFloat() - padding - highlightInset * 8,
+            height.toFloat() - padding - highlightInset * 8
+        )
+        canvas.drawRoundRect(highlightRect, cornerRadius - highlightInset, cornerRadius - highlightInset, highlightPaint)
 
         // 境界線
         canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, borderPaint)
