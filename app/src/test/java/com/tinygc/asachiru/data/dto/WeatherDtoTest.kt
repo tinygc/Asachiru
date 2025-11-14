@@ -142,7 +142,7 @@ class WeatherDtoTest {
         val weather = forecastDto.toEntity()
 
         // Assert
-        assertEquals(0, weather.minTemperature)
+        assertNull(weather.minTemperature) // データなしの場合はnull
         assertEquals(25, weather.maxTemperature)
     }
 
@@ -169,7 +169,7 @@ class WeatherDtoTest {
 
         // Assert
         assertEquals(15, weather.minTemperature)
-        assertEquals(0, weather.maxTemperature)
+        assertNull(weather.maxTemperature) // データなしの場合はnull
     }
 
     @Test
@@ -189,8 +189,8 @@ class WeatherDtoTest {
         val weather = forecastDto.toEntity()
 
         // Assert
-        assertEquals(0, weather.minTemperature)
-        assertEquals(0, weather.maxTemperature)
+        assertNull(weather.minTemperature) // パース失敗の場合はnull
+        assertNull(weather.maxTemperature) // パース失敗の場合はnull
     }
 
     @Test

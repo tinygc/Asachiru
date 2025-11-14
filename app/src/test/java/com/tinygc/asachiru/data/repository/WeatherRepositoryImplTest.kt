@@ -82,7 +82,7 @@ class WeatherRepositoryImplTest {
         assertEquals(20, weather.currentTemperature) // (25 + 15) / 2
         assertEquals(25, weather.maxTemperature)
         assertEquals(15, weather.minTemperature)
-        assertEquals(5, weather.precipitationProbability) // max of t06_12(5%) and t12_18(0%)
+        assertEquals(10, weather.precipitationProbability) // max of all time periods (t00_06=10%)
         // 日付ラベルは「今日」または「明日」のいずれか
         assertTrue(weather.dateLabel == "今日" || weather.dateLabel == "明日")
     }
@@ -255,8 +255,8 @@ class WeatherRepositoryImplTest {
         assertTrue(result is Result.Success)
         val weather = (result as Result.Success).data
         assertEquals(0, weather.currentTemperature)
-        assertEquals(0, weather.maxTemperature)
-        assertEquals(0, weather.minTemperature)
+        assertNull(weather.maxTemperature) // データなしの場合はnull
+        assertNull(weather.minTemperature) // データなしの場合はnull
     }
 
     @Test
@@ -446,7 +446,7 @@ class WeatherRepositoryImplTest {
         assertTrue(result is Result.Success)
         val weather = (result as Result.Success).data
         assertEquals(0, weather.currentTemperature)
-        assertEquals(0, weather.maxTemperature)
-        assertEquals(0, weather.minTemperature)
+        assertNull(weather.maxTemperature) // パース失敗の場合はnull
+        assertNull(weather.minTemperature) // パース失敗の場合はnull
     }
 }

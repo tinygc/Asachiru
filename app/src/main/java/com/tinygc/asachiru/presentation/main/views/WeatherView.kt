@@ -29,7 +29,7 @@ class WeatherView @JvmOverloads constructor(
     // Glassmorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.15f).toInt() // 15%の不透明度
+        alpha = (255 * 0.35f).toInt() // 35%の不透明度（視認性向上のため増加）
         style = Paint.Style.FILL
     }
 
@@ -38,30 +38,34 @@ class WeatherView @JvmOverloads constructor(
         color = Color.WHITE
         alpha = (255 * 0.3f).toInt() // 30%の不透明度
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 4f // 視認性向上のため太く
     }
 
     private val backgroundRect = RectF()
 
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 96f
+        textSize = 192f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
+        setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 36f
+        textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 36f
+        textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.RED
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val dateLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 28f
+        textSize = 56f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 少し薄く表示
+        setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -129,36 +133,43 @@ class WeatherView @JvmOverloads constructor(
      * エラーメッセージを描画
      */
     private fun drawError(canvas: Canvas) {
-        canvas.drawText(
-            "Error: $errorMessage",
-            50f, 50f, errorPaint
-        )
+        val text = "Error: $errorMessage"
+        val textWidth = errorPaint.measureText(text)
+        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
+        val availableWidth = width - (paddingX * 2) // 左右パディング考慮
+
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, paddingX, 0f)
+        }
+
+        canvas.drawText(text, paddingX, height * 0.5f, errorPaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 
     /**
      * 日付ラベル（今日/明日）を描画（左上）
      */
     private fun drawDateLabel(canvas: Canvas, weather: Weather) {
-        canvas.drawText(
-            weather.dateLabel,
-            40f, 40f, dateLabelPaint
-        )
+        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
+        val y = height * 0.15f // Viewの高さの15%位置
+        canvas.drawText(weather.dateLabel, paddingX, y, dateLabelPaint)
     }
 
     /**
      * 天気アイコンを描画（左側中央）
      */
     private fun drawWeatherIcon(canvas: Canvas, weather: Weather) {
-        val icon = when (weather.condition) {
-            WeatherCondition.SUNNY -> "☀"
-            WeatherCondition.CLOUDY -> "☁"
-            WeatherCondition.RAINY -> "☂"
-            WeatherCondition.SNOWY -> "⛄"
-            WeatherCondition.OTHER -> "?"
-        }
+        // iconTextをそのまま使用（例：「☀のち☁」）
+        val icon = weather.iconText
 
-        // 左側の中央に配置
-        canvas.drawText(icon, 40f, 120f, iconPaint)
+        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
+        val y = height * 0.5f // Viewの高さの50%位置（中央）
+        canvas.drawText(icon, paddingX, y, iconPaint)
     }
 
     /**
@@ -167,19 +178,17 @@ class WeatherView @JvmOverloads constructor(
     private fun drawTemperature(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.WHITE
 
-        // 右側に縦に配置、45px間隔
-        canvas.drawText(
-            "現在: ${weather.currentTemperature}°C",
-            180f, 50f, textPaint
-        )
-        canvas.drawText(
-            "最高: ${weather.maxTemperature}°C",
-            180f, 95f, textPaint
-        )
-        canvas.drawText(
-            "最低: ${weather.minTemperature}°C",
-            180f, 140f, textPaint
-        )
+        val x = width * 0.55f // Viewの幅の55%位置（中央やや右）
+        val baseY = height * 0.3f // Viewの高さの30%位置から開始
+        val lineSpacing = height * 0.15f // 行間をViewの高さの15%
+
+        // 気温データがnullの場合は「--」を表示
+        val maxTempText = weather.maxTemperature?.let { "${it}°C" } ?: "--"
+        val minTempText = weather.minTemperature?.let { "${it}°C" } ?: "--"
+
+        canvas.drawText("現在: ${weather.currentTemperature}°C", x, baseY, textPaint)
+        canvas.drawText("最高: $maxTempText", x, baseY + lineSpacing, textPaint)
+        canvas.drawText("最低: $minTempText", x, baseY + lineSpacing * 2, textPaint)
     }
 
     /**
@@ -187,9 +196,8 @@ class WeatherView @JvmOverloads constructor(
      */
     private fun drawPrecipitation(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.CYAN
-        canvas.drawText(
-            "降水確率: ${weather.precipitationProbability}%",
-            180f, 185f, textPaint
-        )
+        val x = width * 0.55f // Viewの幅の55%位置（中央やや右）
+        val y = height * 0.8f // Viewの高さの80%位置
+        canvas.drawText("降水確率: ${weather.precipitationProbability}%", x, y, textPaint)
     }
 }

@@ -9,6 +9,7 @@ import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.Weather
 import com.tinygc.asachiru.domain.repository.WeatherRepository
 import java.io.IOException
+import java.util.TimeZone
 
 /**
  * WeatherRepositoryの実装
@@ -33,21 +34,48 @@ class WeatherRepositoryImpl(
             val apiResponse = weatherApiDataSource.fetchWeather(areaCode)
             Log.d(TAG, "getWeather: API response received, forecasts count=${apiResponse.forecasts.size}")
 
-            // 現在時刻を取得
-            val currentHour = java.util.Calendar.getInstance().get(java.util.Calendar.HOUR_OF_DAY)
-            Log.d(TAG, "getWeather: currentHour=$currentHour")
+            // 現在の日付を日本時間（JST）で取得（YYYY-MM-DD形式）
+            // 天気APIは日本の天気情報を日本時間で返すため、日付判定もJSTで行う
+            val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+            val calendar = java.util.Calendar.getInstance(jstTimeZone)
+            val currentDate = String.format(
+                "%04d-%02d-%02d",
+                calendar.get(java.util.Calendar.YEAR),
+                calendar.get(java.util.Calendar.MONTH) + 1,
+                calendar.get(java.util.Calendar.DAY_OF_MONTH)
+            )
+            val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+            Log.d(TAG, "getWeather: currentDate=$currentDate (JST), currentHour=$currentHour (JST)")
 
-            // 17時以降は明日の天気を表示、それ以外は今日の天気を表示
+            // forecasts[0]とforecasts[1]の日付を確認
+            val todayForecast = apiResponse.forecasts.getOrNull(0)
+            val tomorrowForecast = apiResponse.forecasts.getOrNull(1)
+
+            Log.d(TAG, "getWeather: forecast[0].date=${todayForecast?.date}")
+            Log.d(TAG, "getWeather: forecast[1].date=${tomorrowForecast?.date}")
+
+            // 17時以降は明日の天気、それ以外は今日の天気を表示
             val (forecast, dateLabel) = if (currentHour >= 17) {
-                // 明日の予報を取得（forecasts[1]）
-                val tomorrowForecast = apiResponse.forecasts.getOrNull(1)
-                    ?: throw IOException("No tomorrow forecast data available")
-                Pair(tomorrowForecast, "明日")
+                // forecasts[1]が明日の日付か確認
+                if (tomorrowForecast != null) {
+                    Pair(tomorrowForecast, "明日")
+                } else {
+                    Log.w(TAG, "getWeather: No tomorrow forecast, using today's")
+                    Pair(todayForecast ?: throw IOException("No forecast data available"), "今日")
+                }
             } else {
-                // 今日の予報を取得（forecasts[0]）
-                val todayForecast = apiResponse.forecasts.getOrNull(0)
-                    ?: throw IOException("No forecast data available")
-                Pair(todayForecast, "今日")
+                // forecasts[0]が今日の日付か確認
+                if (todayForecast != null && todayForecast.date == currentDate) {
+                    Pair(todayForecast, "今日")
+                } else if (tomorrowForecast != null && tomorrowForecast.date == currentDate) {
+                    // forecasts[0]が昨日のデータの場合、forecasts[1]を使用
+                    Log.w(TAG, "getWeather: forecast[0] is not today, using forecast[1]")
+                    Pair(tomorrowForecast, "今日")
+                } else {
+                    // どちらも今日でない場合は最初の予報を使用
+                    Log.w(TAG, "getWeather: Neither forecast matches today, using forecast[0]")
+                    Pair(todayForecast ?: throw IOException("No forecast data available"), "今日")
+                }
             }
 
             Log.d(TAG, "getWeather: dateLabel=$dateLabel")

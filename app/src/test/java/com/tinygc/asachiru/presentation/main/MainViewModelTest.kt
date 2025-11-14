@@ -56,7 +56,8 @@ class MainViewModelTest {
         maxTemperature = 28,
         minTemperature = 18,
         precipitationProbability = 10,
-        dateLabel = "今日"
+        dateLabel = "今日",
+        iconText = "☀"
     )
     private val testSettings = Settings("1000001", 30)
     private val testMusic = Music("1", "Test Track", "Test Artist", 1, 180_000L)

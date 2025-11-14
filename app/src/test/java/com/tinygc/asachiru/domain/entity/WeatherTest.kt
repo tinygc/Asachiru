@@ -14,7 +14,8 @@ class WeatherTest {
             maxTemperature = 25,
             minTemperature = 15,
             precipitationProbability = 10,
-            dateLabel = "今日"
+            dateLabel = "今日",
+            iconText = "☀"
         )
 
         // Assert
@@ -33,8 +34,8 @@ class WeatherTest {
         // Assert
         assertEquals(WeatherCondition.OTHER, empty.condition)
         assertEquals(0, empty.currentTemperature)
-        assertEquals(0, empty.maxTemperature)
-        assertEquals(0, empty.minTemperature)
+        assertNull(empty.maxTemperature) // データなしの場合はnull
+        assertNull(empty.minTemperature) // データなしの場合はnull
         assertEquals(0, empty.precipitationProbability)
     }
 
@@ -47,7 +48,8 @@ class WeatherTest {
             maxTemperature = 20,
             minTemperature = 16,
             precipitationProbability = 80,
-            dateLabel = "今日"
+            dateLabel = "今日",
+            iconText = "☂"
         )
         val weather2 = Weather(
             condition = WeatherCondition.RAINY,
@@ -55,7 +57,8 @@ class WeatherTest {
             maxTemperature = 20,
             minTemperature = 16,
             precipitationProbability = 80,
-            dateLabel = "今日"
+            dateLabel = "今日",
+            iconText = "☂"
         )
         val weather3 = Weather(
             condition = WeatherCondition.SUNNY,
@@ -63,7 +66,8 @@ class WeatherTest {
             maxTemperature = 28,
             minTemperature = 22,
             precipitationProbability = 0,
-            dateLabel = "今日"
+            dateLabel = "今日",
+            iconText = "☀"
         )
 
         // Assert
@@ -80,7 +84,8 @@ class WeatherTest {
             maxTemperature = 0,
             minTemperature = -10,
             precipitationProbability = 100,
-            dateLabel = "今日"
+            dateLabel = "今日",
+            iconText = "⛄"
         )
 
         // Assert
@@ -108,7 +113,8 @@ class WeatherTest {
                 maxTemperature = 25,
                 minTemperature = 15,
                 precipitationProbability = 30,
-                dateLabel = "今日"
+                dateLabel = "今日",
+                iconText = "☀"
             )
             assertEquals(condition, weather.condition)
         }
