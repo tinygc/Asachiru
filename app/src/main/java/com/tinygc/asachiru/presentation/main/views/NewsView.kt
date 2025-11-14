@@ -30,7 +30,7 @@ class NewsView @JvmOverloads constructor(
     // Glassmorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.35f).toInt() // 35%の不透明度（視認性向上のため増加）
+        alpha = (255 * 0.5f).toInt() // 50%の不透明度（背景色に関係なく見やすくするため増加）
         style = Paint.Style.FILL
     }
 
