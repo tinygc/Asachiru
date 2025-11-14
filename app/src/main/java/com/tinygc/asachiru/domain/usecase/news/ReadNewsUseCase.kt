@@ -29,9 +29,10 @@ class ReadNewsUseCase(
                 delay(2000L)
             }
 
-            // 現在時刻を取得（日本時間）
+            // 記事の公開時刻を取得（日本時間）
             val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
             val calendar = Calendar.getInstance(jstTimeZone)
+            calendar.timeInMillis = news.publishedAt // 記事の公開時刻を設定
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
             val minute = calendar.get(Calendar.MINUTE)
 
