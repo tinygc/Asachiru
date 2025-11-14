@@ -4,6 +4,7 @@ import com.tinygc.asachiru.data.dto.NewsDto
 import com.tinygc.asachiru.data.util.RssParser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.CacheControl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.IOException
@@ -28,6 +29,7 @@ open class NewsRssDataSource(
     suspend fun fetchLatestNews(): List<NewsDto> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .url(RSS_URL)
+            .cacheControl(CacheControl.FORCE_NETWORK) // 常に最新のRSSを取得（キャッシュ無視）
             .get()
             .build()
 

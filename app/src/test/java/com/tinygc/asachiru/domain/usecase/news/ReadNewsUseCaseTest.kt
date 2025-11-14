@@ -87,10 +87,20 @@ class ReadNewsUseCaseTest {
         )
 
         // Assert
+        // すべてのニュースの前に時刻アナウンス
         val inOrder = inOrder(ttsManager)
+        // 1つ目のニュース（「次は、」なし）
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat { contains("時") && contains("分のニュースです。") && !contains("次は、") })
+        inOrder.verify(ttsManager).waitUntilDone()
         inOrder.verify(ttsManager).speak("ニュース1。説明1")
         inOrder.verify(ttsManager).waitUntilDone()
+        // 2つ目のニュース（「次は、」あり）
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat { contains("次は、") && contains("時") && contains("分のニュースです。") })
+        inOrder.verify(ttsManager).waitUntilDone()
         inOrder.verify(ttsManager).speak("ニュース2。説明2")
+        inOrder.verify(ttsManager).waitUntilDone()
+        // 3つ目のニュース（「次は、」あり）
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat { contains("次は、") && contains("時") && contains("分のニュースです。") })
         inOrder.verify(ttsManager).waitUntilDone()
         inOrder.verify(ttsManager).speak("ニュース3。説明3")
         inOrder.verify(ttsManager).waitUntilDone()
@@ -111,8 +121,9 @@ class ReadNewsUseCaseTest {
         )
 
         // Assert
-        verify(ttsManager, times(1)).speak("ニュース1。説明1")
-        verify(ttsManager, times(1)).waitUntilDone()
+        // 時刻アナウンス1回 + ニュース1回 = 2回のspeak/waitUntilDone
+        verify(ttsManager, times(2)).speak(org.mockito.kotlin.any())
+        verify(ttsManager, times(2)).waitUntilDone()
     }
 
     @Test
@@ -148,6 +159,8 @@ class ReadNewsUseCaseTest {
         )
 
         // Assert
+        // 時刻アナウンス + ニュースの2回speak()が呼ばれる
+        verify(ttsManager).speak(org.mockito.kotlin.argThat { contains("時") && contains("分のニュースです。") })
         verify(ttsManager).speak("タイトル。説明文")
     }
 
@@ -173,8 +186,9 @@ class ReadNewsUseCaseTest {
         // Assert
         assertEquals(5, processedNews.size)
         assertEquals(newsList, processedNews)
-        verify(ttsManager, times(5)).speak(org.mockito.kotlin.any())
-        verify(ttsManager, times(5)).waitUntilDone()
+        // 5つのニュース + 5回の時刻アナウンス（すべてのニュースの前） = 10回のspeak/waitUntilDone
+        verify(ttsManager, times(10)).speak(org.mockito.kotlin.any())
+        verify(ttsManager, times(10)).waitUntilDone()
     }
 
     @Test
@@ -215,5 +229,86 @@ class ReadNewsUseCaseTest {
 
         // Assert
         verify(ttsManager).speak("特殊文字「」『』・：。改行\nタブ\t含む")
+    }
+
+    @Test
+    fun `invoke should announce time before all news items`() = runTest {
+        // Arrange
+        val newsList = listOf(
+            News("1", "ニュース1", "説明1", 1000L),
+            News("2", "ニュース2", "説明2", 2000L)
+        )
+
+        // Act
+        useCase(
+            newsList = newsList,
+            onNewsChanged = {},
+            onComplete = {}
+        )
+
+        // Assert
+        // すべてのニュースの前に時刻アナウンス
+        val inOrder = inOrder(ttsManager)
+        // 1つ目のニュース（「次は、」なし）
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat {
+            contains("時") && contains("分のニュースです。") && !contains("次は、")
+        })
+        inOrder.verify(ttsManager).waitUntilDone()
+        inOrder.verify(ttsManager).speak("ニュース1。説明1")
+        inOrder.verify(ttsManager).waitUntilDone()
+        // 2つ目のニュース（「次は、」あり）
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat {
+            contains("次は、") && contains("時") && contains("分のニュースです。")
+        })
+        inOrder.verify(ttsManager).waitUntilDone()
+        inOrder.verify(ttsManager).speak("ニュース2。説明2")
+        inOrder.verify(ttsManager).waitUntilDone()
+    }
+
+    @Test
+    fun `invoke should announce time without prefix for first news item`() = runTest {
+        // Arrange
+        val newsList = listOf(
+            News("1", "ニュース1", "説明1", 1000L)
+        )
+
+        // Act
+        useCase(
+            newsList = newsList,
+            onNewsChanged = {},
+            onComplete = {}
+        )
+
+        // Assert
+        // 1つ目のニュースは「次は、」なしの時刻アナウンス
+        val inOrder = inOrder(ttsManager)
+        inOrder.verify(ttsManager).speak(org.mockito.kotlin.argThat {
+            contains("時") && contains("分のニュースです。") && !contains("次は、")
+        })
+        inOrder.verify(ttsManager).waitUntilDone()
+        inOrder.verify(ttsManager).speak("ニュース1。説明1")
+        inOrder.verify(ttsManager).waitUntilDone()
+    }
+
+    @Test
+    fun `invoke should announce time in JST timezone`() = runTest {
+        // Arrange
+        val newsList = listOf(
+            News("1", "ニュース1", "説明1", 1000L),
+            News("2", "ニュース2", "説明2", 2000L)
+        )
+
+        // Act
+        useCase(
+            newsList = newsList,
+            onNewsChanged = {},
+            onComplete = {}
+        )
+
+        // Assert
+        // 時刻アナウンスのフォーマットが正しいことを確認
+        verify(ttsManager).speak(org.mockito.kotlin.argThat {
+            matches(Regex("次は、\\d{1,2}時\\d{1,2}分のニュースです。"))
+        })
     }
 }

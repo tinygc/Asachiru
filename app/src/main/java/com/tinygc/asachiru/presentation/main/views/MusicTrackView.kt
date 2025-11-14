@@ -28,7 +28,7 @@ class MusicTrackView @JvmOverloads constructor(
     // Glassmorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.15f).toInt() // 15%の不透明度
+        alpha = (255 * 0.35f).toInt() // 35%の不透明度（視認性向上のため増加）
         style = Paint.Style.FILL
     }
 
@@ -37,32 +37,35 @@ class MusicTrackView @JvmOverloads constructor(
         color = Color.WHITE
         alpha = (255 * 0.3f).toInt() // 30%の不透明度
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 4f // 視認性向上のため太く
     }
 
     private val backgroundRect = RectF()
 
     // トラック名用
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 56f
+        textSize = 112f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
+        setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     // アーティスト名用
     private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 36f
+        textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 80%の不透明度
         textAlign = Paint.Align.CENTER
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     // エラーメッセージ用
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 36f
+        textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.RED
         textAlign = Paint.Align.CENTER
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -131,11 +134,21 @@ class MusicTrackView @JvmOverloads constructor(
     private fun drawError(canvas: Canvas) {
         val centerX = width / 2f
         val centerY = height / 2f
+        val text = "Error: $errorMessage"
+        val textWidth = errorPaint.measureText(text)
+        val availableWidth = width - 100f // 左右パディング50fずつ
 
-        canvas.drawText(
-            "Error: $errorMessage",
-            centerX, centerY, errorPaint
-        )
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, centerX, centerY)
+        }
+
+        canvas.drawText(text, centerX, centerY, errorPaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 
     /**
@@ -146,15 +159,36 @@ class MusicTrackView @JvmOverloads constructor(
         val centerY = height / 2f
 
         // トラック名（中央より少し上）
-        canvas.drawText(
-            "🎵 ${music.title}",
-            centerX, centerY - 20f, titlePaint
-        )
+        val titleText = "🎵 ${music.title}"
+        val titleWidth = titlePaint.measureText(titleText)
+        val availableWidth = width - 100f
+
+        if (titleWidth > availableWidth) {
+            val scale = availableWidth / titleWidth
+            canvas.save()
+            canvas.scale(scale, scale, centerX, centerY - 20f)
+        }
+
+        canvas.drawText(titleText, centerX, centerY - 20f, titlePaint)
+
+        if (titleWidth > availableWidth) {
+            canvas.restore()
+        }
 
         // アーティスト名（中央より少し下）
-        canvas.drawText(
-            music.artist,
-            centerX, centerY + 40f, artistPaint
-        )
+        val artistText = music.artist
+        val artistWidth = artistPaint.measureText(artistText)
+
+        if (artistWidth > availableWidth) {
+            val scale = availableWidth / artistWidth
+            canvas.save()
+            canvas.scale(scale, scale, centerX, centerY + 40f)
+        }
+
+        canvas.drawText(artistText, centerX, centerY + 40f, artistPaint)
+
+        if (artistWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 }

@@ -2,6 +2,9 @@ package com.tinygc.asachiru.domain.usecase.news
 
 import com.tinygc.asachiru.domain.common.ITtsManager
 import com.tinygc.asachiru.domain.entity.News
+import kotlinx.coroutines.delay
+import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * ニュースを読み上げるユースケース
@@ -20,7 +23,31 @@ class ReadNewsUseCase(
         onNewsChanged: (News) -> Unit,
         onComplete: () -> Unit
     ) {
-        newsList.forEach { news ->
+        newsList.forEachIndexed { index, news ->
+            // 2つ目以降のニュースの前に間隔を空ける（2秒）
+            if (index > 0) {
+                delay(2000L)
+            }
+
+            // 現在時刻を取得（日本時間）
+            val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+            val calendar = Calendar.getInstance(jstTimeZone)
+            val hour = calendar.get(Calendar.HOUR_OF_DAY)
+            val minute = calendar.get(Calendar.MINUTE)
+
+            // 時刻アナウンスを読み上げ
+            val timeAnnouncement = if (index == 0) {
+                "${hour}時${minute}分のニュースです。"
+            } else {
+                "次は、${hour}時${minute}分のニュースです。"
+            }
+            ttsManager.speak(timeAnnouncement)
+            ttsManager.waitUntilDone()
+
+            // アナウンス後の間隔（1秒）
+            delay(1000L)
+
+            // ニュースを表示・読み上げ
             onNewsChanged(news)
             ttsManager.speak(news.getSpeechText())
             ttsManager.waitUntilDone()

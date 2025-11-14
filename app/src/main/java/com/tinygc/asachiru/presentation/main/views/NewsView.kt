@@ -28,7 +28,7 @@ class NewsView @JvmOverloads constructor(
     // Glassmorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.15f).toInt() // 15%の不透明度
+        alpha = (255 * 0.35f).toInt() // 35%の不透明度（視認性向上のため増加）
         style = Paint.Style.FILL
     }
 
@@ -37,14 +37,15 @@ class NewsView @JvmOverloads constructor(
         color = Color.WHITE
         alpha = (255 * 0.3f).toInt() // 30%の不透明度
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 4f // 視認性向上のため太く
     }
 
     private val backgroundRect = RectF()
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 32f
+        textSize = 96f // Android TV (4K)用に3倍に拡大（視認性向上）
         color = Color.WHITE
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -110,10 +111,21 @@ class NewsView @JvmOverloads constructor(
      */
     private fun drawError(canvas: Canvas) {
         textPaint.color = Color.RED
-        canvas.drawText(
-            "Error: $errorMessage",
-            50f, height - 50f, textPaint
-        )
+        val text = "Error: $errorMessage"
+        val textWidth = textPaint.measureText(text)
+        val availableWidth = width - 100f // 左右パディング50fずつ
+
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, 50f, 0f)
+        }
+
+        canvas.drawText(text, 50f, height - 50f, textPaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 
     /**
@@ -121,9 +133,20 @@ class NewsView @JvmOverloads constructor(
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
         textPaint.color = Color.WHITE
-        canvas.drawText(
-            "📰 ${news.title}",
-            50f, height - 50f, textPaint
-        )
+        val text = "📰 ${news.title}"
+        val textWidth = textPaint.measureText(text)
+        val availableWidth = width - 100f // 左右パディング50fずつ
+
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, 50f, 0f)
+        }
+
+        canvas.drawText(text, 50f, height - 50f, textPaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 }

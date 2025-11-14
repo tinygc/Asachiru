@@ -32,7 +32,7 @@ class ClockView @JvmOverloads constructor(
     // Glassmorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        alpha = (255 * 0.15f).toInt() // 15%の不透明度
+        alpha = (255 * 0.35f).toInt() // 35%の不透明度（視認性向上のため増加）
         style = Paint.Style.FILL
     }
 
@@ -41,20 +41,22 @@ class ClockView @JvmOverloads constructor(
         color = Color.WHITE
         alpha = (255 * 0.3f).toInt() // 30%の不透明度
         style = Paint.Style.STROKE
-        strokeWidth = 2f
+        strokeWidth = 4f // 視認性向上のため太く
     }
 
     private val backgroundRect = RectF()
 
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 120f
+        textSize = 240f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         typeface = Typeface.MONOSPACE
+        setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 48f
+        textSize = 96f // Android TV (4K)用に2倍に拡大
         typeface = Typeface.MONOSPACE
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -107,22 +109,52 @@ class ClockView @JvmOverloads constructor(
      * 時刻を描画
      */
     private fun drawTime(canvas: Canvas) {
-        val x = 50f
-        val y = 100f
+        val text = currentDateTime.timeString
+        val textWidth = timePaint.measureText(text)
 
-        canvas.drawText(currentDateTime.timeString, x, y, timePaint)
+        // Viewの幅に対してテキストが大きすぎる場合はスケーリング
+        val availableWidth = width - 100f // 左右パディング50fずつ
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, 50f, 0f)
+        }
+
+        val x = 50f
+        val y = height * 0.4f // Viewの高さの40%の位置に配置
+
+        canvas.drawText(text, x, y, timePaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 
     /**
      * 日付を描画（曜日の色分けあり）
      */
     private fun drawDate(canvas: Canvas) {
+        val text = currentDateTime.dateString
+        val textWidth = datePaint.measureText(text)
+
+        // Viewの幅に対してテキストが大きすぎる場合はスケーリング
+        val availableWidth = width - 100f // 左右パディング50fずつ
+        if (textWidth > availableWidth) {
+            val scale = availableWidth / textWidth
+            canvas.save()
+            canvas.scale(scale, scale, 50f, 0f)
+        }
+
         val x = 50f
-        val y = 150f
+        val y = height * 0.7f // Viewの高さの70%の位置に配置
 
         // 曜日の色を設定
         datePaint.color = currentDateTime.dayOfWeek.getColor()
 
-        canvas.drawText(currentDateTime.dateString, x, y, datePaint)
+        canvas.drawText(text, x, y, datePaint)
+
+        if (textWidth > availableWidth) {
+            canvas.restore()
+        }
     }
 }

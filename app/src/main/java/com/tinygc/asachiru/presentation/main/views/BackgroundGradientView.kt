@@ -1,5 +1,7 @@
 package com.tinygc.asachiru.presentation.main.views
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
@@ -62,15 +64,15 @@ class BackgroundGradientView @JvmOverloads constructor(
         repeatCount = ValueAnimator.INFINITE
         addUpdateListener { animation ->
             animationProgress = animation.animatedValue as Float
-
-            // アニメーションが完了したら次のグラデーションへ
-            if (animationProgress >= 0.99f) {
+            invalidate() // 再描画
+        }
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationRepeat(animation: Animator) {
+                // アニメーションがリピートする際に次のグラデーションへ切り替え
                 currentGradientIndex = nextGradientIndex
                 nextGradientIndex = (nextGradientIndex + 1) % gradientColors.size
             }
-
-            invalidate() // 再描画
-        }
+        })
     }
 
     override fun onAttachedToWindow() {

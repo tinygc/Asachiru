@@ -69,4 +69,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         viewModel.onResume()
     }
+
+    override fun onPause() {
+        super.onPause()
+        // Android TVアプリとして、バックグラウンドに移行したら終了する
+        // ホームボタンや他のアプリへの切り替え時に呼ばれる
+        finish()
+    }
 }
