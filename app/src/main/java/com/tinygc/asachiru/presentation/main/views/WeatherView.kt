@@ -162,6 +162,7 @@ class WeatherView @JvmOverloads constructor(
 
     /**
      * 天気アイコンを描画（左側中央）
+     * 複数アイコンで長い場合は動的にスケーリング
      */
     private fun drawWeatherIcon(canvas: Canvas, weather: Weather) {
         // iconTextをそのまま使用（例：「☀のち☁」）
@@ -169,7 +170,22 @@ class WeatherView @JvmOverloads constructor(
 
         val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
         val y = height * 0.5f // Viewの高さの50%位置（中央）
-        canvas.drawText(icon, paddingX, y, iconPaint)
+
+        // アイコンが使用できる最大幅（気温表示エリアとの間に余裕を持たせる）
+        // 気温表示は55%位置から始まるので、10%～50%の範囲（40%）を使用可能
+        val maxIconWidth = width * 0.40f
+        val iconWidth = iconPaint.measureText(icon)
+
+        // アイコンが最大幅を超える場合はスケーリング
+        if (iconWidth > maxIconWidth) {
+            val scale = maxIconWidth / iconWidth
+            canvas.save()
+            canvas.scale(scale, scale, paddingX, y)
+            canvas.drawText(icon, paddingX, y, iconPaint)
+            canvas.restore()
+        } else {
+            canvas.drawText(icon, paddingX, y, iconPaint)
+        }
     }
 
     /**
