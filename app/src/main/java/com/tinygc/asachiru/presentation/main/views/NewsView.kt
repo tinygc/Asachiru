@@ -8,6 +8,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import com.tinygc.asachiru.domain.entity.News
+import java.util.Calendar
+import java.util.TimeZone
 
 /**
  * ニューステキストを表示するカスタムビュー
@@ -46,6 +48,14 @@ class NewsView @JvmOverloads constructor(
         textSize = 96f // Android TV (4K)用に3倍に拡大（視認性向上）
         color = Color.WHITE
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+    }
+
+    // 時刻表示用（タイトルより小さめ）
+    private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = 64f // タイトルより小さめ
+        color = Color.WHITE
+        alpha = (255 * 0.8f).toInt() // 少し薄く表示
+        setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -129,24 +139,61 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
-     * ニュースタイトルを描画（画面左下）
+     * ニュースタイトルと時刻を描画（画面左下）
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
-        textPaint.color = Color.WHITE
-        val text = "📰 ${news.title}"
-        val textWidth = textPaint.measureText(text)
-        val availableWidth = width - 100f // 左右パディング50fずつ
+        val paddingX = 50f
+        val paddingBottom = 50f
+        val lineSpacing = 20f // 時刻とタイトルの間隔
 
-        if (textWidth > availableWidth) {
-            val scale = availableWidth / textWidth
+        // 記事の公開時刻を取得
+        val timeText = formatPublishTime(news.publishedAt)
+
+        // タイトルのY位置（画面下部）
+        val titleY = height - paddingBottom
+
+        // 時刻のY位置（タイトルの上）
+        val timeY = titleY - textPaint.textSize - lineSpacing
+
+        // 時刻を描画
+        val timeWidth = timePaint.measureText(timeText)
+        val availableWidth = width - (paddingX * 2)
+
+        if (timeWidth > availableWidth) {
+            val scale = availableWidth / timeWidth
             canvas.save()
-            canvas.scale(scale, scale, 50f, 0f)
-        }
-
-        canvas.drawText(text, 50f, height - 50f, textPaint)
-
-        if (textWidth > availableWidth) {
+            canvas.scale(scale, scale, paddingX, 0f)
+            canvas.drawText(timeText, paddingX, timeY, timePaint)
             canvas.restore()
+        } else {
+            canvas.drawText(timeText, paddingX, timeY, timePaint)
         }
+
+        // タイトルを描画
+        textPaint.color = Color.WHITE
+        val titleText = "📰 ${news.title}"
+        val titleWidth = textPaint.measureText(titleText)
+
+        if (titleWidth > availableWidth) {
+            val scale = availableWidth / titleWidth
+            canvas.save()
+            canvas.scale(scale, scale, paddingX, 0f)
+            canvas.drawText(titleText, paddingX, titleY, textPaint)
+            canvas.restore()
+        } else {
+            canvas.drawText(titleText, paddingX, titleY, textPaint)
+        }
+    }
+
+    /**
+     * 公開時刻をフォーマット（例：「15時30分」）
+     */
+    private fun formatPublishTime(publishedAt: Long): String {
+        val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
+        val calendar = Calendar.getInstance(jstTimeZone)
+        calendar.timeInMillis = publishedAt
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+        return "${hour}時${minute}分"
     }
 }
