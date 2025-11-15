@@ -65,6 +65,7 @@ class MusicTrackView @JvmOverloads constructor(
         color = Color.WHITE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
@@ -74,6 +75,7 @@ class MusicTrackView @JvmOverloads constructor(
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 80%の不透明度
         textAlign = Paint.Align.CENTER
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
@@ -82,6 +84,7 @@ class MusicTrackView @JvmOverloads constructor(
         textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.RED
         textAlign = Paint.Align.CENTER
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 

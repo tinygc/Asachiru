@@ -64,6 +64,7 @@ class NewsView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 96f // Android TV (4K)用に3倍に拡大（視認性向上）
         color = Color.WHITE
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
@@ -72,6 +73,7 @@ class NewsView @JvmOverloads constructor(
         textSize = 64f // タイトルより小さめ
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 少し薄く表示
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 

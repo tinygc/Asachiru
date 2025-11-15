@@ -67,12 +67,14 @@ class ClockView @JvmOverloads constructor(
         textSize = 240f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         typeface = Typeface.MONOSPACE
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 96f // Android TV (4K)用に2倍に拡大
         typeface = Typeface.MONOSPACE
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 

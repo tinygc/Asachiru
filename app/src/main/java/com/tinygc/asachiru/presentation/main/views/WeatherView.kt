@@ -69,12 +69,14 @@ class WeatherView @JvmOverloads constructor(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 72f // Android TV (4K)用に2倍に拡大
         color = Color.RED
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
@@ -82,6 +84,7 @@ class WeatherView @JvmOverloads constructor(
         textSize = 56f // Android TV (4K)用に2倍に拡大
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 少し薄く表示
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
