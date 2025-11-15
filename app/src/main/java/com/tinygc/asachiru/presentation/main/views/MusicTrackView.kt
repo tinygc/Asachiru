@@ -167,14 +167,17 @@ class MusicTrackView @JvmOverloads constructor(
     }
 
     /**
-     * エラーメッセージを描画
+     * エラーメッセージを描画（Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawError(canvas: Canvas) {
         val centerX = width / 2f
         val centerY = height / 2f
         val text = "Error: $errorMessage"
         val textWidth = errorPaint.measureText(text)
-        val availableWidth = width - 100f // 左右パディング50fずつ
+
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2) // 左右パディング
 
         if (textWidth > availableWidth) {
             val scale = availableWidth / textWidth
@@ -190,16 +193,19 @@ class MusicTrackView @JvmOverloads constructor(
     }
 
     /**
-     * トラック情報を描画（中央に配置）
+     * トラック情報を描画（中央に配置 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawTrackInfo(canvas: Canvas, music: Music) {
         val centerX = width / 2f
         val centerY = height / 2f
 
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2) // 左右パディング
+
         // トラック名（中央より少し上）
         val titleText = "🎵 ${music.title}"
         val titleWidth = titlePaint.measureText(titleText)
-        val availableWidth = width - 100f
 
         if (titleWidth > availableWidth) {
             val scale = availableWidth / titleWidth

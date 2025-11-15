@@ -164,21 +164,23 @@ class WeatherView @JvmOverloads constructor(
     }
 
     /**
-     * エラーメッセージを描画
+     * エラーメッセージを描画（Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawError(canvas: Canvas) {
         val text = "Error: $errorMessage"
         val textWidth = errorPaint.measureText(text)
-        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
-        val availableWidth = width - (paddingX * 2) // 左右パディング考慮
+
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2) // 左右パディング考慮
 
         if (textWidth > availableWidth) {
             val scale = availableWidth / textWidth
             canvas.save()
-            canvas.scale(scale, scale, paddingX, 0f)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
         }
 
-        canvas.drawText(text, paddingX, height * 0.5f, errorPaint)
+        canvas.drawText(text, paddingHorizontal, height * 0.5f, errorPaint)
 
         if (textWidth > availableWidth) {
             canvas.restore()
@@ -186,49 +188,52 @@ class WeatherView @JvmOverloads constructor(
     }
 
     /**
-     * 日付ラベル（今日/明日）を描画（左上）
+     * 日付ラベル（今日/明日）を描画（左上 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawDateLabel(canvas: Canvas, weather: Weather) {
-        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
         val y = height * 0.15f // Viewの高さの15%位置
-        canvas.drawText(weather.dateLabel, paddingX, y, dateLabelPaint)
+        canvas.drawText(weather.dateLabel, paddingHorizontal, y, dateLabelPaint)
     }
 
     /**
-     * 天気アイコンを描画（左側中央）
+     * 天気アイコンを描画（左側中央 - Material Design 3 - 8dpグリッド準拠）
      * 複数アイコンで長い場合は動的にスケーリング
      */
     private fun drawWeatherIcon(canvas: Canvas, weather: Weather) {
         // iconTextをそのまま使用（例：「☀のち☁」）
         val icon = weather.iconText
 
-        val paddingX = width * 0.1f // Viewの幅の10%位置（左パディング）
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
         val y = height * 0.5f // Viewの高さの50%位置（中央）
 
-        // アイコンが使用できる最大幅（気温表示エリアとの間に余裕を持たせる）
-        // 気温表示は55%位置から始まるので、10%～50%の範囲（40%）を使用可能
-        val maxIconWidth = width * 0.40f
+        // アイコンが使用できる最大幅
+        // 画面中央まで使用可能、右側にマージン（32f = 4 × 8dp）を確保
+        val maxIconWidth = (width / 2) - paddingHorizontal - 32f
         val iconWidth = iconPaint.measureText(icon)
 
         // アイコンが最大幅を超える場合はスケーリング
         if (iconWidth > maxIconWidth) {
             val scale = maxIconWidth / iconWidth
             canvas.save()
-            canvas.scale(scale, scale, paddingX, y)
-            canvas.drawText(icon, paddingX, y, iconPaint)
+            canvas.scale(scale, scale, paddingHorizontal, y)
+            canvas.drawText(icon, paddingHorizontal, y, iconPaint)
             canvas.restore()
         } else {
-            canvas.drawText(icon, paddingX, y, iconPaint)
+            canvas.drawText(icon, paddingHorizontal, y, iconPaint)
         }
     }
 
     /**
-     * 気温情報を描画（右側に縦に配置）
+     * 気温情報を描画（右側に縦に配置 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawTemperature(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.WHITE
 
-        val x = width * 0.55f // Viewの幅の55%位置（中央やや右）
+        // 8dpグリッド準拠の配置（画面中央から32f右 = 4 × 8dp）
+        val x = width / 2 + 32f
         val baseY = height * 0.3f // Viewの高さの30%位置から開始
         val lineSpacing = height * 0.15f // 行間をViewの高さの15%
 
@@ -242,11 +247,13 @@ class WeatherView @JvmOverloads constructor(
     }
 
     /**
-     * 降水確率を描画（右側下部）
+     * 降水確率を描画（右側下部 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawPrecipitation(canvas: Canvas, weather: Weather) {
         textPaint.color = Color.CYAN
-        val x = width * 0.55f // Viewの幅の55%位置（中央やや右）
+
+        // 8dpグリッド準拠の配置（画面中央から32f右 = 4 × 8dp）
+        val x = width / 2 + 32f
         val y = height * 0.8f // Viewの高さの80%位置
         canvas.drawText("降水確率: ${weather.precipitationProbability}%", x, y, textPaint)
     }

@@ -155,21 +155,24 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
-     * エラーメッセージを描画（画面左下）
+     * エラーメッセージを描画（画面左下 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawError(canvas: Canvas) {
         textPaint.color = Color.RED
         val text = "Error: $errorMessage"
         val textWidth = textPaint.measureText(text)
-        val availableWidth = width - 100f // 左右パディング50fずつ
+
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2) // 左右パディング
 
         if (textWidth > availableWidth) {
             val scale = availableWidth / textWidth
             canvas.save()
-            canvas.scale(scale, scale, 50f, 0f)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
         }
 
-        canvas.drawText(text, 50f, height - 50f, textPaint)
+        canvas.drawText(text, paddingHorizontal, height - paddingHorizontal, textPaint)
 
         if (textWidth > availableWidth) {
             canvas.restore()
@@ -177,34 +180,34 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
-     * ニュースタイトルと時刻を描画（画面左下）
+     * ニュースタイトルと時刻を描画（画面左下 - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
-        val paddingX = 50f
-        val paddingBottom = 50f
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
         val lineSpacing = 20f // 時刻とタイトルの間隔
 
         // 記事の公開時刻を取得
         val timeText = formatPublishTime(news.publishedAt)
 
         // タイトルのY位置（画面下部）
-        val titleY = height - paddingBottom
+        val titleY = height - paddingHorizontal
 
         // 時刻のY位置（タイトルの上）
         val timeY = titleY - textPaint.textSize - lineSpacing
 
         // 時刻を描画
         val timeWidth = timePaint.measureText(timeText)
-        val availableWidth = width - (paddingX * 2)
+        val availableWidth = width - (paddingHorizontal * 2)
 
         if (timeWidth > availableWidth) {
             val scale = availableWidth / timeWidth
             canvas.save()
-            canvas.scale(scale, scale, paddingX, 0f)
-            canvas.drawText(timeText, paddingX, timeY, timePaint)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
+            canvas.drawText(timeText, paddingHorizontal, timeY, timePaint)
             canvas.restore()
         } else {
-            canvas.drawText(timeText, paddingX, timeY, timePaint)
+            canvas.drawText(timeText, paddingHorizontal, timeY, timePaint)
         }
 
         // タイトルを描画
@@ -215,11 +218,11 @@ class NewsView @JvmOverloads constructor(
         if (titleWidth > availableWidth) {
             val scale = availableWidth / titleWidth
             canvas.save()
-            canvas.scale(scale, scale, paddingX, 0f)
-            canvas.drawText(titleText, paddingX, titleY, textPaint)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
+            canvas.drawText(titleText, paddingHorizontal, titleY, textPaint)
             canvas.restore()
         } else {
-            canvas.drawText(titleText, paddingX, titleY, textPaint)
+            canvas.drawText(titleText, paddingHorizontal, titleY, textPaint)
         }
     }
 

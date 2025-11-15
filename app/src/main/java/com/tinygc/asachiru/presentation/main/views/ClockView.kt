@@ -145,21 +145,23 @@ class ClockView @JvmOverloads constructor(
     }
 
     /**
-     * 時刻を描画
+     * 時刻を描画（Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawTime(canvas: Canvas) {
         val text = currentDateTime.timeString
         val textWidth = timePaint.measureText(text)
 
-        // Viewの幅に対してテキストが大きすぎる場合はスケーリング
-        val availableWidth = width - 100f // 左右パディング50fずつ
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2)
+
         if (textWidth > availableWidth) {
             val scale = availableWidth / textWidth
             canvas.save()
-            canvas.scale(scale, scale, 50f, 0f)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
         }
 
-        val x = 50f
+        val x = paddingHorizontal
         val y = height * 0.4f // Viewの高さの40%の位置に配置
 
         canvas.drawText(text, x, y, timePaint)
@@ -170,21 +172,23 @@ class ClockView @JvmOverloads constructor(
     }
 
     /**
-     * 日付を描画（曜日の色分けあり）
+     * 日付を描画（曜日の色分けあり - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawDate(canvas: Canvas) {
         val text = currentDateTime.dateString
         val textWidth = datePaint.measureText(text)
 
-        // Viewの幅に対してテキストが大きすぎる場合はスケーリング
-        val availableWidth = width - 100f // 左右パディング50fずつ
+        // 8dpグリッド準拠のパディング（48dp = 48f）
+        val paddingHorizontal = 48f
+        val availableWidth = width - (paddingHorizontal * 2)
+
         if (textWidth > availableWidth) {
             val scale = availableWidth / textWidth
             canvas.save()
-            canvas.scale(scale, scale, 50f, 0f)
+            canvas.scale(scale, scale, paddingHorizontal, 0f)
         }
 
-        val x = 50f
+        val x = paddingHorizontal
         val y = height * 0.7f // Viewの高さの70%の位置に配置
 
         // 曜日の色を設定
