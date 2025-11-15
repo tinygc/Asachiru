@@ -1,0 +1,452 @@
+package com.tinygc.asachiru.data.repository
+
+import com.tinygc.asachiru.data.datasource.remote.WeatherApiDataSource
+import com.tinygc.asachiru.data.dto.ChanceOfRainDto
+import com.tinygc.asachiru.data.dto.ForecastDto
+import com.tinygc.asachiru.data.dto.TemperatureDto
+import com.tinygc.asachiru.data.dto.TemperatureValueDto
+import com.tinygc.asachiru.data.dto.WeatherApiResponse
+import com.tinygc.asachiru.data.util.PostalCodeConverter
+import com.tinygc.asachiru.domain.common.AppException
+import com.tinygc.asachiru.domain.common.Result
+import com.tinygc.asachiru.domain.entity.WeatherCondition
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.*
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.kotlin.*
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import java.io.IOException
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
+class WeatherRepositoryImplTest {
+
+    private lateinit var weatherApiDataSource: WeatherApiDataSource
+    private lateinit var repository: WeatherRepositoryImpl
+
+    @Before
+    fun setUp() {
+        PostalCodeConverter.initializeForTest()
+        weatherApiDataSource = mock()
+        repository = WeatherRepositoryImpl(weatherApiDataSource)
+    }
+
+    @Test
+    fun `getWeather should return Success with valid postal code`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "25"),
+                        min = TemperatureValueDto(celsius = "15")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "5%",
+                        t12_18 = "0%",
+                        t18_24 = "5%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "25"),
+                        min = TemperatureValueDto(celsius = "15")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "5%",
+                        t12_18 = "0%",
+                        t18_24 = "5%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(WeatherCondition.SUNNY, weather.condition)
+        assertEquals(20, weather.currentTemperature) // (25 + 15) / 2
+        assertEquals(25, weather.maxTemperature)
+        assertEquals(15, weather.minTemperature)
+        assertEquals(10, weather.precipitationProbability) // max of all time periods (t00_06=10%)
+        // 日付ラベルは「今日」または「明日」のいずれか
+        assertTrue(weather.dateLabel == "今日" || weather.dateLabel == "明日")
+    }
+
+    @Test
+    fun `getWeather should convert cloudy weather condition correctly`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "曇り",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "20"),
+                        min = TemperatureValueDto(celsius = "10")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "20%",
+                        t06_12 = "30%",
+                        t12_18 = "40%",
+                        t18_24 = "25%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "曇り",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "20"),
+                        min = TemperatureValueDto(celsius = "10")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "20%",
+                        t06_12 = "30%",
+                        t12_18 = "40%",
+                        t18_24 = "25%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(WeatherCondition.CLOUDY, weather.condition)
+    }
+
+    @Test
+    fun `getWeather should convert rainy weather condition correctly`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "雨",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "18"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "60%",
+                        t06_12 = "70%",
+                        t12_18 = "80%",
+                        t18_24 = "65%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "雨",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "18"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "60%",
+                        t06_12 = "70%",
+                        t12_18 = "80%",
+                        t18_24 = "65%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(WeatherCondition.RAINY, weather.condition)
+    }
+
+    @Test
+    fun `getWeather should convert snowy weather condition correctly`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "雪",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "5"),
+                        min = TemperatureValueDto(celsius = "-2")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "80%",
+                        t06_12 = "90%",
+                        t12_18 = "85%",
+                        t18_24 = "75%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "雪",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "5"),
+                        min = TemperatureValueDto(celsius = "-2")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "80%",
+                        t06_12 = "90%",
+                        t12_18 = "85%",
+                        t18_24 = "75%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(WeatherCondition.SNOWY, weather.condition)
+    }
+
+    @Test
+    fun `getWeather should handle null temperature values`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = null,
+                        min = null
+                    ),
+                    chanceOfRain = null
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = null,
+                        min = null
+                    ),
+                    chanceOfRain = null
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(0, weather.currentTemperature)
+        assertNull(weather.maxTemperature) // データなしの場合はnull
+        assertNull(weather.minTemperature) // データなしの場合はnull
+    }
+
+    @Test
+    fun `getWeather should return NetworkException on IOException`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        whenever(weatherApiDataSource.fetchWeather(any())).thenAnswer {
+            throw IOException("Network error")
+        }
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Error)
+        val exception = (result as Result.Error).exception
+        assertTrue(exception is AppException.NetworkException)
+        assertEquals("Network error", exception.message)
+    }
+
+    @Test
+    fun `getWeather should return ApiException on invalid postal code`() = runTest {
+        // Given
+        val invalidPostalCode = "0000000"
+
+        // When
+        val result = repository.getWeather(invalidPostalCode)
+
+        // Then
+        assertTrue(result is Result.Error)
+        val exception = (result as Result.Error).exception
+        assertTrue(exception is AppException.ApiException)
+    }
+
+    @Test
+    fun `getWeather should return NetworkException when no forecast data available`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(forecasts = emptyList())
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Error)
+        val exception = (result as Result.Error).exception
+        assertTrue(exception is AppException.NetworkException)
+    }
+
+    @Test
+    fun `getWeather should return ParseException on generic Exception`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        whenever(weatherApiDataSource.fetchWeather(any())).thenThrow(RuntimeException("Parse error"))
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Error)
+        val exception = (result as Result.Error).exception
+        assertTrue(exception is AppException.ParseException)
+        assertEquals("Parse error", exception.message)
+    }
+
+    @Test
+    fun `getWeather should convert postal code to area code correctly`() = runTest {
+        // Given
+        val postalCode = "0600000"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "22"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "15%",
+                        t12_18 = "20%",
+                        t18_24 = "10%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "22"),
+                        min = TemperatureValueDto(celsius = "12")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "15%",
+                        t12_18 = "20%",
+                        t18_24 = "10%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("016000")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        verify(weatherApiDataSource).fetchWeather("016000")
+    }
+
+    @Test
+    fun `getWeather should use first forecast from response`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "25"),
+                        min = TemperatureValueDto(celsius = "15")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "10%",
+                        t06_12 = "5%",
+                        t12_18 = "0%",
+                        t18_24 = "5%"
+                    )
+                ),
+                ForecastDto(date = "2024-01-01",
+                    telop = "雨",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "20"),
+                        min = TemperatureValueDto(celsius = "10")
+                    ),
+                    chanceOfRain = ChanceOfRainDto(
+                        t00_06 = "60%",
+                        t06_12 = "70%",
+                        t12_18 = "80%",
+                        t18_24 = "65%"
+                    )
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        // 時刻によって forecasts[0] or forecasts[1] が選ばれる
+        assertTrue(weather.condition == WeatherCondition.SUNNY || weather.condition == WeatherCondition.RAINY)
+    }
+
+    @Test
+    fun `getWeather should handle invalid temperature format`() = runTest {
+        // Given
+        val postalCode = "1000001"
+        val mockResponse = WeatherApiResponse(
+            forecasts = listOf(
+                ForecastDto(date = "2024-01-01",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "invalid"),
+                        min = TemperatureValueDto(celsius = "also invalid")
+                    ),
+                    chanceOfRain = null
+                ),
+                ForecastDto(date = "2024-01-02",
+                    telop = "晴れ",
+                    temperature = TemperatureDto(
+                        max = TemperatureValueDto(celsius = "invalid"),
+                        min = TemperatureValueDto(celsius = "also invalid")
+                    ),
+                    chanceOfRain = null
+                )
+            )
+        )
+        whenever(weatherApiDataSource.fetchWeather("130010")).thenReturn(mockResponse)
+
+        // When
+        val result = repository.getWeather(postalCode)
+
+        // Then
+        assertTrue(result is Result.Success)
+        val weather = (result as Result.Success).data
+        assertEquals(0, weather.currentTemperature)
+        assertNull(weather.maxTemperature) // パース失敗の場合はnull
+        assertNull(weather.minTemperature) // パース失敗の場合はnull
+    }
+}
