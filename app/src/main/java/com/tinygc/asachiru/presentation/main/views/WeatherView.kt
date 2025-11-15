@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.Weather
 import com.tinygc.asachiru.domain.entity.WeatherCondition
 
@@ -86,12 +87,26 @@ class WeatherView @JvmOverloads constructor(
 
     /**
      * 天気情報を更新
+     * 初回表示時はフェードインアニメーションで表示されます。
      * @param weather 表示する天気情報（nullの場合は非表示）
      */
     fun updateWeather(weather: Weather?) {
+        val shouldAnimate = this.weather == null && weather != null
         this.weather = weather
         this.errorMessage = null
-        invalidate()
+
+        if (shouldAnimate) {
+            // 初回表示時はフェードインアニメーション（Material Design 3準拠）
+            alpha = 0f
+            invalidate()
+            animate()
+                .alpha(1f)
+                .setDuration(300) // 300ms
+                .setInterpolator(FastOutSlowInInterpolator())
+                .start()
+        } else {
+            invalidate()
+        }
     }
 
     /**

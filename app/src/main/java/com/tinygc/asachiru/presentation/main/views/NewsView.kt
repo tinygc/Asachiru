@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.News
 import java.util.Calendar
 import java.util.TimeZone
@@ -76,12 +77,26 @@ class NewsView @JvmOverloads constructor(
 
     /**
      * ニュースを更新
+     * 初回表示時はフェードインアニメーションで表示されます。
      * @param news 表示するニュース（nullの場合は非表示）
      */
     fun updateNews(news: News?) {
+        val shouldAnimate = this.currentNews == null && news != null
         this.currentNews = news
         this.errorMessage = null
-        invalidate()
+
+        if (shouldAnimate) {
+            // 初回表示時はフェードインアニメーション（Material Design 3準拠）
+            alpha = 0f
+            invalidate()
+            animate()
+                .alpha(1f)
+                .setDuration(300) // 300ms
+                .setInterpolator(FastOutSlowInInterpolator())
+                .start()
+        } else {
+            invalidate()
+        }
     }
 
     /**

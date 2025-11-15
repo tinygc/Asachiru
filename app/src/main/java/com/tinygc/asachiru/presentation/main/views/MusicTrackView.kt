@@ -8,6 +8,7 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.Music
 
 /**
@@ -86,12 +87,26 @@ class MusicTrackView @JvmOverloads constructor(
 
     /**
      * 音楽情報を更新
+     * 初回表示時はフェードインアニメーションで表示されます。
      * @param music 表示する音楽情報（nullの場合は非表示）
      */
     fun updateMusic(music: Music?) {
+        val shouldAnimate = this.currentMusic == null && music != null && music != Music.EMPTY
         this.currentMusic = music
         this.errorMessage = null
-        invalidate()
+
+        if (shouldAnimate) {
+            // 初回表示時はフェードインアニメーション（Material Design 3準拠）
+            alpha = 0f
+            invalidate()
+            animate()
+                .alpha(1f)
+                .setDuration(300) // 300ms
+                .setInterpolator(FastOutSlowInInterpolator())
+                .start()
+        } else {
+            invalidate()
+        }
     }
 
     /**

@@ -8,6 +8,7 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.DateTime
 
 /**
@@ -77,12 +78,25 @@ class ClockView @JvmOverloads constructor(
 
     /**
      * 日時を更新
-     * 即座に再描画が行われます。
+     * 初回表示時はフェードインアニメーションで表示されます。
      * @param dateTime 表示する日時
      */
     fun updateDateTime(dateTime: DateTime) {
+        val shouldAnimate = this.currentDateTime == DateTime.EMPTY && dateTime != DateTime.EMPTY
         this.currentDateTime = dateTime
-        invalidate() // 再描画をリクエスト
+
+        if (shouldAnimate) {
+            // 初回表示時はフェードインアニメーション（Material Design 3準拠）
+            alpha = 0f
+            invalidate()
+            animate()
+                .alpha(1f)
+                .setDuration(300) // 300ms
+                .setInterpolator(FastOutSlowInInterpolator())
+                .start()
+        } else {
+            invalidate() // 再描画をリクエスト
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
