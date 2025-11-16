@@ -17,7 +17,10 @@ class GetLatestNewsUseCase(
      */
     suspend operator fun invoke(count: Int = 10): Result<List<News>> {
         return try {
-            newsRepository.getLatestNews(count)
+            when (val result = newsRepository.getLatestNews(count)) {
+                is Result.Success -> Result.Success(result.data.sortedBy { it.publishedAt })
+                is Result.Error -> result
+            }
         } catch (e: Exception) {
             Result.Error(e)
         }

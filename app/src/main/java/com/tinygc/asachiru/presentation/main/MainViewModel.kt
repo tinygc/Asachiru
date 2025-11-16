@@ -47,6 +47,9 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
+    // セッション内の既読ニュースIDを保持（idはlinkを想定）
+    private val readNewsIds = mutableSetOf<String>()
+
     init {
         if (!skipAutoStart) {
             startClockUpdate()
@@ -167,6 +170,21 @@ class MainViewModel(
 
         when (val result = getLatestNewsUseCase(10)) {
             is Result.Success -> {
+                // 既読を除外
+                val unread = result.data.filter { it.id !in readNewsIds }
+
+                if (unread.isEmpty()) {
+                    // 未読なし
+                    _uiState.update {
+                        it.copy(
+                            isNewsLoading = false,
+                            newsError = null,
+                            currentNews = null
+                        )
+                    }
+                    return
+                }
+
                 _uiState.update {
                     it.copy(
                         isNewsLoading = false,
@@ -174,10 +192,11 @@ class MainViewModel(
                     )
                 }
 
-                // 読み上げ実行
+                // 読み上げ実行（onNewsChangedで既読登録）
                 readNewsUseCase(
-                    newsList = result.data,
+                    newsList = unread,
                     onNewsChanged = { news ->
+                        readNewsIds += news.id
                         _uiState.update { it.copy(currentNews = news) }
                     },
                     onComplete = {
