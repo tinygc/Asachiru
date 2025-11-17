@@ -13,11 +13,7 @@ class MusicLocalDataSource {
      */
     fun getAllTracks(): List<Music> {
         // TODO: Add actual music files to res/raw/ directory
-        // For now, return empty list until music resources are added
-        return emptyList()
-
         // Uncomment when music files are added to res/raw/
-        /*
         return listOf(
             Music(
                 id = "lofi_01",
@@ -41,6 +37,5 @@ class MusicLocalDataSource {
                 durationMs = 190_000L // 3分10秒
             )
         )
-        */
     }
 }
