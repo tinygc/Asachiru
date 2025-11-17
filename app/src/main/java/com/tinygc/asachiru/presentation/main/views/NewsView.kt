@@ -30,8 +30,7 @@ class NewsView @JvmOverloads constructor(
 
     // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
-        alpha = (255 * 0.6f).toInt() // 60%の不透明度（モダンデザイン対応）
+        color = 0x50202020.toInt() // 暗めの半透明（白文字の視認性確保）
         style = Paint.Style.FILL
     }
 
