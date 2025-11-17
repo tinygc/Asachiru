@@ -34,7 +34,7 @@ data class Settings(
          */
         val DEFAULT = Settings(
             postalCode = "",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 5
         )
     }
 }
