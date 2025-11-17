@@ -83,6 +83,6 @@ class DataSourceFactory(private val context: Context) {
      * MusicLocalDataSourceのインスタンスを生成
      */
     fun createMusicLocalDataSource(): MusicLocalDataSource {
-        return MusicLocalDataSource()
+        return MusicLocalDataSource(context)
     }
 }
