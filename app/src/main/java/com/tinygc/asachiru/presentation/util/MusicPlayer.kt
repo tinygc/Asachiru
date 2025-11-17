@@ -179,7 +179,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      * オーディオセッションIDを取得（ビジュアライザー用）
      * @return オーディオセッションID
      */
-    fun getAudioSessionId(): Int {
+    override fun getAudioSessionId(): Int {
         return currentPlayer?.audioSessionId ?: 0
     }
 
@@ -198,5 +198,17 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
     override fun setVolume(volume: Float) {
         baseVolume = volume.coerceIn(0f, 1f)
         currentPlayer?.setVolume(baseVolume, baseVolume)
+    }
+
+    /**
+     * 再生中かどうかを取得
+     * @return 再生中ならtrue
+     */
+    override fun isPlaying(): Boolean {
+        return try {
+            currentPlayer?.isPlaying == true
+        } catch (e: IllegalStateException) {
+            false
+        }
     }
 }

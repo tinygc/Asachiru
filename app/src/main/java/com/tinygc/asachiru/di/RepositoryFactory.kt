@@ -21,16 +21,19 @@ class RepositoryFactory(private val context: Context) {
 
     private val dataSourceFactory = DataSourceFactory(context)
 
-    // MusicPlayerのシングルトンインスタンス
-    @Volatile
-    private var musicPlayer: IMusicPlayer? = null
+    companion object {
+        // 全アプリで共有するMusicPlayer（VisualizerとTTSの連携用に完全シングルトン化）
+        @Volatile
+        private var sharedMusicPlayer: IMusicPlayer? = null
+    }
 
     /**
-     * MusicPlayerのシングルトンインスタンスを取得
+     * MusicPlayerのグローバルシングルトン取得
+     * 複数のFactory生成時も同一インスタンスを返す
      */
     fun getMusicPlayer(): IMusicPlayer {
-        return musicPlayer ?: synchronized(this) {
-            musicPlayer ?: MusicPlayer(context).also { musicPlayer = it }
+        return sharedMusicPlayer ?: synchronized(RepositoryFactory::class.java) {
+            sharedMusicPlayer ?: MusicPlayer(context).also { sharedMusicPlayer = it }
         }
     }
 

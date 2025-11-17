@@ -6,6 +6,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.core.content.ContextCompat
+import androidx.core.app.ActivityCompat
 import com.tinygc.asachiru.databinding.ActivityMainBinding
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import kotlinx.coroutines.launch
@@ -22,6 +24,12 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var viewModel: MainViewModel
+    private lateinit var viewModelFactory: com.tinygc.asachiru.presentation.common.ViewModelFactory
+    // MusicPlayerへのアクセス（Visualizer用 - RepositoryFactoryグローバルシングルトン）
+    private val musicPlayer by lazy { viewModelFactory.let { com.tinygc.asachiru.di.RepositoryFactory(applicationContext).getMusicPlayer() } }
+    private var lastVisualizerSessionId: Int = -1
+    private val audioPermission = android.Manifest.permission.RECORD_AUDIO
+    private val requestCodeAudio = 1001
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,10 +37,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // ViewModelFactoryを生成して保持
+        viewModelFactory = ViewModelFactory(applicationContext)
         // ViewModelFactoryを使用してViewModelを生成
-        viewModel = ViewModelProvider(this, ViewModelFactory(applicationContext))[MainViewModel::class.java]
+        viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
         observeViewModel()
+        checkAudioPermission()
     }
 
     /**
@@ -65,7 +76,30 @@ class MainActivity : AppCompatActivity() {
                         state.debugLastFetchTime
                     )
 
-                    // ビジュアライザーは音楽再生時に自動的に動作
+                    // ビジュアライザー起動ロジック
+                    val sessionId = musicPlayer.getAudioSessionId()
+                    val isPlaying = musicPlayer.isPlaying()
+                    if (state.currentTrack != null && hasAudioPermission()) {
+                        if (sessionId != 0 && isPlaying && sessionId != lastVisualizerSessionId) {
+                            android.util.Log.d("Visualizer", "startVisualizer audioSessionId=$sessionId track=${state.currentTrack.title} isPlaying=$isPlaying")
+                            binding.visualizerView.startVisualizer(sessionId)
+                            lastVisualizerSessionId = sessionId
+                            // 1秒後に状態確認
+                            binding.visualizerView.postDelayed({
+                                android.util.Log.d("Visualizer", "Status check: isFallback=${binding.visualizerView.isUsingFallback()} sessionId=$sessionId")
+                            }, 1000)
+                        } else if (sessionId == 0) {
+                            android.util.Log.d("Visualizer", "audioSessionId=0 (MediaPlayer未初期化) currentTrack=${state.currentTrack.title} isPlaying=$isPlaying")
+                        } else if (!isPlaying) {
+                            android.util.Log.d("Visualizer", "音楽が再生されていないためVisualizerスキップ sessionId=$sessionId track=${state.currentTrack.title}")
+                        }
+                    } else if (lastVisualizerSessionId != -1 && state.currentTrack == null) {
+                        android.util.Log.d("Visualizer", "stopVisualizer lastSession=$lastVisualizerSessionId")
+                        binding.visualizerView.stopVisualizer()
+                        lastVisualizerSessionId = -1
+                    } else if (state.currentTrack != null && !hasAudioPermission()) {
+                        android.util.Log.d("Visualizer", "RECORD_AUDIO未許可のためVisualizer起動スキップ")
+                    }
                 }
             }
         }
@@ -78,8 +112,37 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        // Android TVアプリとして、バックグラウンドに移行したら終了する
-        // ホームボタンや他のアプリへの切り替え時に呼ばれる
-        finish()
+        // 権限ダイアログや一時的なフォーカス喪失でも呼ばれるため強制finishを廃止
+    }
+
+    private fun hasAudioPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, audioPermission) == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun checkAudioPermission() {
+        if (!hasAudioPermission()) {
+            ActivityCompat.requestPermissions(this, arrayOf(audioPermission), requestCodeAudio)
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == requestCodeAudio) {
+            if (hasAudioPermission()) {
+                android.util.Log.d("Visualizer", "RECORD_AUDIO許可取得。次のtrack更新でVisualizer初期化予定")
+                // 現在トラック再生中なら即再初期化試行
+                val current = viewModel.uiState.value.currentTrack
+                if (current != null) {
+                    val sessionId = musicPlayer.getAudioSessionId()
+                    if (sessionId != 0 && musicPlayer.isPlaying()) {
+                        android.util.Log.d("Visualizer", "permissionResult -> startVisualizer audioSessionId=$sessionId track=${current.title}")
+                        binding.visualizerView.startVisualizer(sessionId)
+                        lastVisualizerSessionId = sessionId
+                    }
+                }
+            } else {
+                android.util.Log.d("Visualizer", "RECORD_AUDIO拒否。フェイク表示継続")
+            }
+        }
     }
 }
