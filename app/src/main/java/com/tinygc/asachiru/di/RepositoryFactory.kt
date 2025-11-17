@@ -28,7 +28,7 @@ class RepositoryFactory(private val context: Context) {
     /**
      * MusicPlayerのシングルトンインスタンスを取得
      */
-    private fun getMusicPlayer(): IMusicPlayer {
+    fun getMusicPlayer(): IMusicPlayer {
         return musicPlayer ?: synchronized(this) {
             musicPlayer ?: MusicPlayer(context).also { musicPlayer = it }
         }

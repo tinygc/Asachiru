@@ -22,4 +22,10 @@ interface IMusicPlayer {
      * @return 現在再生中の曲（再生していない場合null）
      */
     fun getCurrentTrack(): Music?
+
+    /**
+     * ボリュームを設定
+     * @param volume ボリューム（0.0～1.0）
+     */
+    fun setVolume(volume: Float)
 }
