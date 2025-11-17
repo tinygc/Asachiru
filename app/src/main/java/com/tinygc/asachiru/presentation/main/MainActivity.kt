@@ -59,6 +59,12 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.updateNews(state.currentNews)
                     }
 
+                    // デバッグ情報の更新
+                    binding.newsDebugView.updateDebugInfo(
+                        state.debugNewsList,
+                        state.debugLastFetchTime
+                    )
+
                     // ビジュアライザーは音楽再生時に自動的に動作
                 }
             }

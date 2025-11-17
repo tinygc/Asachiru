@@ -26,5 +26,9 @@ data class MainUiState(
 
     // 音楽
     val currentTrack: Music? = null,
-    val isMusicPlaying: Boolean = false
+    val isMusicPlaying: Boolean = false,
+
+    // デバッグ情報
+    val debugNewsList: List<News> = emptyList(),
+    val debugLastFetchTime: Long = 0L
 )
