@@ -196,7 +196,7 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
-     * ニュースタイトルと時刻を描画（画面左下 - Material Design 3 - 8dpグリッド準拠）
+     * ニュースタイトルと時刻を描画（垂直方向中央寄せ - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
         // 8dpグリッド準拠のパディング（48dp = 48f）
@@ -206,11 +206,17 @@ class NewsView @JvmOverloads constructor(
         // 記事の公開時刻を取得
         val timeText = formatPublishTime(news.publishedAt)
 
-        // タイトルのY位置（画面下部）
-        val titleY = height - paddingHorizontal
+        // 全体の高さを計算
+        val totalTextHeight = timePaint.textSize + lineSpacing + textPaint.textSize
 
-        // 時刻のY位置（タイトルの上）
-        val timeY = titleY - textPaint.textSize - lineSpacing
+        // 垂直方向の中央位置を計算
+        val centerY = height / 2f
+
+        // 時刻のY位置（中央から上にオフセット）
+        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+
+        // タイトルのY位置（時刻の下）
+        val titleY = timeY + lineSpacing + textPaint.textSize
 
         // 時刻を描画
         val timeWidth = timePaint.measureText(timeText)
