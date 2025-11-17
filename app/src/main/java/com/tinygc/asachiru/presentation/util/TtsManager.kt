@@ -54,7 +54,15 @@ class TtsManager(
             // TTS初期化失敗
             return
         }
-
+        // 読み上げ開始前に音楽をダッキング（最初の一回だけ）
+        if (musicPlayer != null) {
+            // activeUtterancesが0なら新しい読み上げシーケンス開始とみなし音量を下げる
+            if (activeUtterances == 0) {
+                originalVolume = 1.0f // 現状は常に1.0想定（将来getter導入で置き換え）
+                musicPlayer.setVolume(0.3f) // 30%までダッキング（以前20%だったが自然さ優先）
+            }
+            activeUtterances++
+        }
         tts?.speak(text, TextToSpeech.QUEUE_ADD, null, text.hashCode().toString())
     }
 
@@ -66,27 +74,23 @@ class TtsManager(
     override suspend fun waitUntilDone() = suspendCancellableCoroutine<Unit> { continuation ->
         val listener = object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String?) {
-                // 読み上げ開始：音楽ボリュームを下げる
-                musicPlayer?.setVolume(0.5f)
+                // onStartでは既にダッキング済みなので何もしない
             }
 
             override fun onDone(utteranceId: String?) {
-                // 読み上げ完了：音楽ボリュームを戻す
-                musicPlayer?.setVolume(1.0f)
+                restoreVolumeIfNeeded()
                 continuation.resume(Unit)
             }
 
             override fun onError(utteranceId: String?) {
-                // エラー発生時も音楽ボリュームを戻す
-                musicPlayer?.setVolume(1.0f)
+                restoreVolumeIfNeeded()
                 continuation.resume(Unit)
             }
 
             @Deprecated("Deprecated in Java")
             @Suppress("OVERRIDE_DEPRECATION")
             override fun onError(utteranceId: String?, errorCode: Int) {
-                // エラー発生時も音楽ボリュームを戻す
-                musicPlayer?.setVolume(1.0f)
+                restoreVolumeIfNeeded()
                 continuation.resume(Unit)
             }
         }
@@ -95,8 +99,8 @@ class TtsManager(
 
         continuation.invokeOnCancellation {
             tts?.stop()
-            // キャンセル時も音楽ボリュームを戻す
-            musicPlayer?.setVolume(1.0f)
+            // キャンセル時もカウンタ調整して必要なら音量復帰
+            restoreVolumeIfNeeded()
         }
     }
 
@@ -114,5 +118,20 @@ class TtsManager(
     fun shutdown() {
         tts?.shutdown()
         tts = null
+    }
+
+    // 読み上げ中管理用（同時読み上げキュー対応）
+    private var activeUtterances: Int = 0
+    private var originalVolume: Float? = null
+
+    private fun restoreVolumeIfNeeded() {
+        if (musicPlayer != null && activeUtterances > 0) {
+            activeUtterances--
+            if (activeUtterances == 0) {
+                // 全ての読み上げが完了したので音量を元に戻す
+                musicPlayer.setVolume(originalVolume ?: 1.0f)
+                originalVolume = null
+            }
+        }
     }
 }
