@@ -14,6 +14,9 @@ class SettingsLocalDataSource(
     companion object {
         private const val KEY_POSTAL_CODE = "postal_code"
         private const val KEY_NEWS_INTERVAL = "news_interval"
+        private const val KEY_RSS_URL = "rss_url"
+        private const val KEY_ENABLE_TTS = "enable_tts"
+        private const val KEY_RSS_PRESET = "rss_preset"
     }
 
     /**
@@ -23,10 +26,16 @@ class SettingsLocalDataSource(
     suspend fun loadSettings(): Settings = withContext(Dispatchers.IO) {
         val postalCode = sharedPreferences.getString(KEY_POSTAL_CODE, "") ?: ""
         val newsInterval = sharedPreferences.getInt(KEY_NEWS_INTERVAL, 30)
+        val rssUrl = sharedPreferences.getString(KEY_RSS_URL, null)
+        val enableTts = sharedPreferences.getBoolean(KEY_ENABLE_TTS, false)
+        val rssPreset = sharedPreferences.getString(KEY_RSS_PRESET, null)
 
         Settings(
             postalCode = postalCode,
-            newsIntervalMinutes = newsInterval
+            newsIntervalMinutes = newsInterval,
+            rssUrl = rssUrl,
+            enableTts = enableTts,
+            rssPreset = rssPreset
         )
     }
 
@@ -38,6 +47,9 @@ class SettingsLocalDataSource(
         sharedPreferences.edit()
             .putString(KEY_POSTAL_CODE, settings.postalCode)
             .putInt(KEY_NEWS_INTERVAL, settings.newsIntervalMinutes)
+            .putString(KEY_RSS_URL, settings.rssUrl)
+            .putBoolean(KEY_ENABLE_TTS, settings.enableTts)
+            .putString(KEY_RSS_PRESET, settings.rssPreset)
             .apply()
     }
 
