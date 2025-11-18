@@ -28,8 +28,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE
-        alpha = (255 * 0.6f).toInt() // 60%の不透明度（モダンデザイン対応）
+        color = 0x50202020.toInt() // 暗めの半透明（白文字の視認性確保）
         style = Paint.Style.FILL
     }
 
@@ -61,7 +60,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // トラック名用
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 112f // Android TV (4K)用に2倍に拡大
+        textSize = 72f // Android TV (4K)用に少し控えめなサイズ
         color = Color.WHITE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
@@ -71,7 +70,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // アーティスト名用
     private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 72f // Android TV (4K)用に2倍に拡大
+        textSize = 48f // タイトルより小さめの控えめなサイズ
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 80%の不透明度
         textAlign = Paint.Align.CENTER
@@ -138,6 +137,19 @@ class MusicTrackView @JvmOverloads constructor(
                 drawTrackInfo(canvas, it)
             }
         }
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+
+        // タイトル + アーティスト + 余白分を目安に高さ上限を決める
+        val desiredHeight = titlePaint.textSize + artistPaint.textSize + 72f
+        val maxHeight = desiredHeight.toInt()
+
+        val measuredWidth = measuredWidth
+        val measuredHeight = measuredHeight.coerceAtMost(maxHeight)
+
+        setMeasuredDimension(measuredWidth, measuredHeight)
     }
 
     /**

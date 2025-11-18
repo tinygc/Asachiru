@@ -74,7 +74,8 @@
       "Bash(powershell.exe -ExecutionPolicy Bypass -File run_weather_tests.ps1)",
       "Bash(powershell.exe -ExecutionPolicy Bypass -File run_news_tests.ps1)",
       "Bash(powershell.exe:*)",
-      "Bash(Select-String -Pattern \"FAILED|error|Error\" -Context 1,1)"
+      "Bash(Select-String -Pattern \"FAILED|error|Error\" -Context 1,1)",
+      "Bash(screenshot_layout_fix.png)"
     ],
     "deny": [],
     "ask": []

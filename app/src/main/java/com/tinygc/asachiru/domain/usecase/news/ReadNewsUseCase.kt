@@ -24,9 +24,9 @@ class ReadNewsUseCase(
         onComplete: () -> Unit
     ) {
         newsList.forEachIndexed { index, news ->
-            // 2つ目以降のニュースの前に間隔を空ける（2秒）
+            // 2つ目以降のニュースの前に間隔を空ける（5秒）
             if (index > 0) {
-                delay(2000L)
+                delay(5000L)
             }
 
             // 記事の公開時刻を取得（日本時間）

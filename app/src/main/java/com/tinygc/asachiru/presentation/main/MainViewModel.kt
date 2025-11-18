@@ -170,6 +170,14 @@ class MainViewModel(
 
         when (val result = getLatestNewsUseCase(10)) {
             is Result.Success -> {
+                // デバッグ情報を更新
+                _uiState.update {
+                    it.copy(
+                        debugNewsList = result.data,
+                        debugLastFetchTime = System.currentTimeMillis()
+                    )
+                }
+
                 // 既読を除外
                 val unread = result.data.filter { it.id !in readNewsIds }
 

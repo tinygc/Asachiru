@@ -32,7 +32,10 @@ class UseCaseFactory(private val context: Context) {
      */
     private fun getTtsManager(): ITtsManager {
         return ttsManager ?: synchronized(this) {
-            ttsManager ?: TtsManager(context).also { ttsManager = it }
+            ttsManager ?: TtsManager(
+                context = context,
+                musicPlayer = repositoryFactory.getMusicPlayer()
+            ).also { ttsManager = it }
         }
     }
 

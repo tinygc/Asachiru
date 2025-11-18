@@ -22,4 +22,23 @@ interface IMusicPlayer {
      * @return 現在再生中の曲（再生していない場合null）
      */
     fun getCurrentTrack(): Music?
+
+    /**
+     * ボリュームを設定
+     * @param volume ボリューム（0.0～1.0）
+     */
+    fun setVolume(volume: Float)
+
+    /**
+     * オーディオセッションIDを取得
+     * Visualizer等のエフェクト連携に使用
+     * @return audioSessionId（未初期化時は0）
+     */
+    fun getAudioSessionId(): Int
+
+    /**
+     * 再生中かどうかを取得
+     * @return 再生中ならtrue
+     */
+    fun isPlaying(): Boolean
 }

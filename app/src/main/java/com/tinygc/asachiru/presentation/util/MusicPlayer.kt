@@ -26,6 +26,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
     private var trackList: List<Music> = emptyList()
     private var currentTrackIndex = 0
     private val handler = Handler(Looper.getMainLooper())
+    private var baseVolume = 1.0f // 基本音量
 
     /**
      * トラックリストを設定
@@ -47,6 +48,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         currentTrackIndex = trackList.indexOf(music)
 
         currentPlayer = MediaPlayer.create(context, music.resourceId)?.apply {
+            setVolume(baseVolume, baseVolume)
             setOnCompletionListener {
                 playNext()
             }
@@ -87,6 +89,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         currentTrack = trackList.getOrNull(currentTrackIndex)
 
         currentPlayer?.apply {
+            setVolume(baseVolume, baseVolume)
             setOnCompletionListener {
                 playNext()
             }
@@ -176,7 +179,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      * オーディオセッションIDを取得（ビジュアライザー用）
      * @return オーディオセッションID
      */
-    fun getAudioSessionId(): Int {
+    override fun getAudioSessionId(): Int {
         return currentPlayer?.audioSessionId ?: 0
     }
 
@@ -186,5 +189,26 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      */
     fun release() {
         stop()
+    }
+
+    /**
+     * ボリュームを設定
+     * @param volume ボリューム（0.0～1.0）
+     */
+    override fun setVolume(volume: Float) {
+        baseVolume = volume.coerceIn(0f, 1f)
+        currentPlayer?.setVolume(baseVolume, baseVolume)
+    }
+
+    /**
+     * 再生中かどうかを取得
+     * @return 再生中ならtrue
+     */
+    override fun isPlaying(): Boolean {
+        return try {
+            currentPlayer?.isPlaying == true
+        } catch (e: IllegalStateException) {
+            false
+        }
     }
 }
