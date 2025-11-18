@@ -55,7 +55,12 @@ class SetupViewModel(
      * RSS URLを更新
      */
     fun updateRssUrl(url: String) {
-        _uiState.update { it.copy(rssUrl = url) }
+        _uiState.update { 
+            it.copy(
+                rssUrl = url,
+                isRssUrlValid = validateRssUrl(url)
+            ) 
+        }
     }
 
     /**
@@ -81,7 +86,7 @@ class SetupViewModel(
         val currentState = _uiState.value
 
         // バリデーションチェック
-        if (!currentState.isPostalCodeValid || !currentState.isNewsIntervalValid) {
+        if (!currentState.isPostalCodeValid || !currentState.isNewsIntervalValid || !currentState.isRssUrlValid) {
             return
         }
 
@@ -136,5 +141,15 @@ class SetupViewModel(
      */
     private fun validateNewsInterval(interval: Int): Boolean {
         return interval in 1..60
+    }
+
+    /**
+     * RSS URLのバリデーション
+     *
+     * @param url RSS URL
+     * @return 空でない場合true
+     */
+    private fun validateRssUrl(url: String): Boolean {
+        return url.isNotBlank()
     }
 }

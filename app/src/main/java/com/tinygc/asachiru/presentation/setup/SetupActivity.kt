@@ -158,8 +158,18 @@ class SetupActivity : AppCompatActivity() {
             binding.postalCodeEditText.error = null
         }
 
-        // 保存中はボタンを無効化
-        binding.saveButton.isEnabled = !state.isSaving
+        // RSS URLのバリデーションエラー表示
+        if (!state.isRssUrlValid && state.rssUrl.isEmpty() && binding.rssCustomUrlEditText.visibility == View.VISIBLE) {
+            binding.rssCustomUrlEditText.error = "URLを入力してください"
+        } else {
+            binding.rssCustomUrlEditText.error = null
+        }
+
+        // 保存ボタンの有効/無効（全バリデーション通過時のみ有効）
+        binding.saveButton.isEnabled = !state.isSaving && 
+            state.isPostalCodeValid && 
+            state.isNewsIntervalValid && 
+            state.isRssUrlValid
 
         // エラーメッセージ表示
         state.saveError?.let {

@@ -27,6 +27,9 @@ data class SetupUiState(
     /** ニュース読み上げ間隔のバリデーション結果 */
     val isNewsIntervalValid: Boolean = true,
 
+    /** RSS URLのバリデーション結果 */
+    val isRssUrlValid: Boolean = false,
+
     /** 保存処理中フラグ */
     val isSaving: Boolean = false,
 

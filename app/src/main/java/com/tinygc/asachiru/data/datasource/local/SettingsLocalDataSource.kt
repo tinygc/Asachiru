@@ -55,9 +55,12 @@ class SettingsLocalDataSource(
 
     /**
      * 設定が存在するかチェック
+     * 郵便番号とRSS URLの両方が設定されている場合のみtrue
      * @return 設定が存在する場合true
      */
     suspend fun hasSettings(): Boolean = withContext(Dispatchers.IO) {
-        sharedPreferences.contains(KEY_POSTAL_CODE)
+        val hasPostalCode = sharedPreferences.contains(KEY_POSTAL_CODE)
+        val hasRssUrl = sharedPreferences.contains(KEY_RSS_URL)
+        hasPostalCode && hasRssUrl
     }
 }
