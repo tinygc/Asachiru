@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
+    android:fillViewport="true">
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:padding="48dp">
 
     <!-- タイトル -->
@@ -15,30 +20,27 @@
         android:textColor="#FFFFFF"
         android:textSize="48sp"
         android:textStyle="bold"
+        android:layout_marginBottom="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/postal_code_label"
-        app:layout_constraintVertical_chainStyle="spread_inside" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 郵便番号ラベル -->
+    <!-- 左カラム: 郵便番号 -->
     <TextView
         android:id="@+id/postal_code_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="郵便番号（7桁）"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="28sp"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_text_view"
-        app:layout_constraintBottom_toTopOf="@id/postal_code_edit_text" />
+        app:layout_constraintTop_toBottomOf="@id/title_text_view" />
 
-    <!-- 郵便番号入力 -->
     <EditText
         android:id="@+id/postal_code_edit_text"
-        android:layout_width="400dp"
-        android:layout_height="80dp"
+        android:layout_width="350dp"
+        android:layout_height="60dp"
         android:background="#333333"
         android:gravity="center"
         android:hint="例: 1000001"
@@ -46,83 +48,78 @@
         android:maxLength="7"
         android:textColor="#FFFFFF"
         android:textColorHint="#888888"
-        android:textSize="32sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="28sp"
+        android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/postal_code_label"
-        app:layout_constraintBottom_toTopOf="@id/news_interval_label" />
+        app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
 
-    <!-- ニュース読み上げ間隔ラベル -->
+    <!-- 右カラム: ニュース間隔 -->
     <TextView
         android:id="@+id/news_interval_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ニュース読み上げ間隔"
+        android:text="ニュース間隔"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text"
-        app:layout_constraintBottom_toTopOf="@id/news_interval_text_view" />
+        android:textSize="28sp"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="32dp"
+        app:layout_constraintStart_toEndOf="@id/postal_code_label"
+        app:layout_constraintTop_toBottomOf="@id/title_text_view" />
 
-    <!-- ニュース読み上げ間隔表示 -->
     <TextView
         android:id="@+id/news_interval_text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="30 分"
         android:textColor="#FFFFFF"
-        android:textSize="36sp"
+        android:textSize="32sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_label"
-        app:layout_constraintBottom_toTopOf="@id/news_interval_seek_bar" />
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_label" />
 
-    <!-- ニュース読み上げ間隔スライダー -->
     <SeekBar
         android:id="@+id/news_interval_seek_bar"
-        android:layout_width="600dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:max="60"
         android:min="1"
         android:progress="30"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_text_view"
-        app:layout_constraintBottom_toTopOf="@id/rss_preset_label" />
+        app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_text_view" />
 
-    <!-- RSS URLプリセットラベル -->
+    <!-- RSS配信元（フル幅） -->
     <TextView
         android:id="@+id/rss_preset_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="RSS配信元"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:textSize="28sp"
+        android:layout_marginTop="32dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_seek_bar"
-        app:layout_constraintBottom_toTopOf="@id/rss_preset_spinner" />
+        app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text" />
 
-    <!-- RSSプリセット選択 -->
     <Spinner
         android:id="@+id/rss_preset_spinner"
-        android:layout_width="600dp"
-        android:layout_height="60dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
         android:background="#333333"
         android:padding="12dp"
         android:popupBackground="#333333"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rss_preset_label"
-        app:layout_constraintBottom_toTopOf="@id/rss_custom_url_edit_text" />
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_label" />
 
-    <!-- カスタムURL入力 -->
     <EditText
         android:id="@+id/rss_custom_url_edit_text"
-        android:layout_width="600dp"
-        android:layout_height="60dp"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
         android:background="#333333"
         android:gravity="center_vertical"
         android:hint="カスタムURL入力"
@@ -130,53 +127,53 @@
         android:padding="12dp"
         android:textColor="#FFFFFF"
         android:textColorHint="#888888"
-        android:textSize="24sp"
+        android:textSize="22sp"
         android:visibility="gone"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner"
-        app:layout_constraintBottom_toTopOf="@id/enable_tts_checkbox" />
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner" />
 
-    <!-- TTS有効化チェックボックス -->
+    <!-- TTS設定 -->
     <CheckBox
         android:id="@+id/enable_tts_checkbox"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="読み上げ機能を有効にする"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
+        android:textSize="24sp"
         android:checked="false"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text"
-        app:layout_constraintBottom_toTopOf="@id/tts_copyright_notice" />
+        app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text" />
 
-    <!-- 著作権注意 -->
     <TextView
         android:id="@+id/tts_copyright_notice"
-        android:layout_width="600dp"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="※著作権は各コンテンツ提供者に帰属します"
         android:textColor="#FFCC00"
-        android:textSize="20sp"
-        android:gravity="center"
+        android:textSize="18sp"
+        android:gravity="start"
+        android:layout_marginTop="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox"
-        app:layout_constraintBottom_toTopOf="@id/save_button" />
+        app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox" />
 
     <!-- 保存ボタン -->
     <Button
         android:id="@+id/save_button"
         android:layout_width="300dp"
-        android:layout_height="80dp"
+        android:layout_height="70dp"
         android:backgroundTint="#4CAF50"
         android:text="保存"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
+        android:textSize="28sp"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="32dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_seek_bar"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>
