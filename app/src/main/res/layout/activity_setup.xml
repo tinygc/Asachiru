@@ -25,7 +25,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 左カラム: 郵便番号 -->
+    <!-- 郵便番号 -->
     <TextView
         android:id="@+id/postal_code_label"
         android:layout_width="wrap_content"
@@ -45,7 +45,7 @@
 
     <EditText
         android:id="@+id/postal_code_edit_text"
-        android:layout_width="320dp"
+        android:layout_width="0dp"
         android:layout_height="52dp"
         android:background="@drawable/input_bg_selector"
         android:elevation="4dp"
@@ -54,64 +54,16 @@
         android:gravity="center"
         android:hint="例: 1000001"
         android:inputType="number"
+        android:imeOptions="actionDone"
         android:maxLength="7"
         android:padding="12dp"
         android:textColor="#FFFFFF"
         android:textColorHint="#999999"
         android:textSize="22sp"
         android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
-
-    <!-- 右カラム: ニュース間隔 -->
-    <TextView
-        android:id="@+id/news_interval_label"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="⏰ ニュース間隔"
-        android:textColor="#E0E0E0"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.03"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:layout_marginTop="14dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintStart_toEndOf="@id/postal_code_label"
-        app:layout_constraintTop_toBottomOf="@id/title_text_view" />
-
-    <TextView
-        android:id="@+id/news_interval_text_view"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="30 分"
-        android:textColor="#4CAF50"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:letterSpacing="0.05"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="3"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_label" />
-
-    <SeekBar
-        android:id="@+id/news_interval_seek_bar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:max="60"
-        android:min="1"
-        android:progress="30"
-        android:layout_marginTop="6dp"
-        android:layout_marginStart="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
-        app:layout_constraintTop_toBottomOf="@id/news_interval_text_view" />
 
     <!-- RSS配信元（フル幅） -->
     <TextView
@@ -127,7 +79,7 @@
         android:shadowDx="1"
         android:shadowDy="1"
         android:shadowRadius="2"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="24dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text" />
 
@@ -157,6 +109,7 @@
         android:gravity="center_vertical"
         android:hint="🔗 カスタムURL入力"
         android:inputType="textUri"
+        android:imeOptions="actionDone"
         android:padding="12dp"
         android:textColor="#FFFFFF"
         android:textColorHint="#999999"
@@ -179,6 +132,8 @@
         android:letterSpacing="0.02"
         android:focusable="true"
         android:focusableInTouchMode="true"
+        android:background="@drawable/checkbox_focus_bg"
+        android:padding="12dp"
         android:checked="false"
         android:layout_marginTop="14dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -223,4 +178,4 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>

@@ -37,19 +37,8 @@ class SetupViewModel(
         }
     }
 
-    /**
-     * ニュース読み上げ間隔を更新
-     *
-     * @param interval ニュース読み上げ間隔（1～60分）
-     */
-    fun updateNewsInterval(interval: Int) {
-        _uiState.update {
-            it.copy(
-                newsInterval = interval,
-                isNewsIntervalValid = validateNewsInterval(interval)
-            )
-        }
-    }
+    // ニュース読み上げ間隔は画面から削除したため、
+    // ViewModel側ではデフォルト値を保持するのみとし、明示的な更新は行わない
 
     /**
      * RSS URLを更新
@@ -85,8 +74,8 @@ class SetupViewModel(
     fun saveSettings() {
         val currentState = _uiState.value
 
-        // バリデーションチェック
-        if (!currentState.isPostalCodeValid || !currentState.isNewsIntervalValid || !currentState.isRssUrlValid) {
+        // バリデーションチェック（ニュース間隔はデフォルト値を使用するためUIではチェックしない）
+        if (!currentState.isPostalCodeValid || !currentState.isRssUrlValid) {
             return
         }
 

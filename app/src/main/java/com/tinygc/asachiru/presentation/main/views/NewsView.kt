@@ -1,6 +1,7 @@
 package com.tinygc.asachiru.presentation.main.views
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -8,6 +9,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.qrcode.QRCodeWriter
 import com.tinygc.asachiru.domain.entity.News
 import java.util.Calendar
 import java.util.TimeZone
@@ -29,6 +32,10 @@ class NewsView @JvmOverloads constructor(
     private var errorMessage: String? = null
     private var showDetail: Boolean = false
     private var enableTts: Boolean = false
+    
+    // QRコードキャッシュ
+    private var qrCodeBitmap: Bitmap? = null
+    private var qrCodeUrl: String? = null
 
     // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -290,86 +297,200 @@ class NewsView @JvmOverloads constructor(
     private fun drawDetailPopup(canvas: Canvas) {
         val news = currentNews ?: return
 
-        // 半透明黒背景
+        // ダークな半透明背景（ぼかし風）
         val overlayPaint = Paint().apply {
-            color = Color.argb(200, 0, 0, 0)
+            color = Color.argb(240, 10, 10, 15)
             style = Paint.Style.FILL
         }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
 
-        // 白い背景カード
-        val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-        }
-        val cardPadding = 100f
-        val cardCornerRadius = 48f
+        // モダンなグラデーションカード背景
+        val cardPadding = 80f
+        val cardCornerRadius = 32f
         val cardRect = RectF(
             cardPadding,
             cardPadding,
             width.toFloat() - cardPadding,
             height.toFloat() - cardPadding
         )
-        canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, cardPaint)
+        
+        // カードの影（深いエレベーション）
+        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(100, 0, 0, 0)
+            style = Paint.Style.FILL
+        }
+        val shadowRect = RectF(
+            cardPadding + 12f,
+            cardPadding + 12f,
+            width.toFloat() - cardPadding + 12f,
+            height.toFloat() - cardPadding + 12f
+        )
+        canvas.drawRoundRect(shadowRect, cardCornerRadius, cardCornerRadius, shadowPaint)
+        
+        // グラデーション背景（ダークモード風）
+        val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            shader = android.graphics.LinearGradient(
+                cardRect.left, cardRect.top,
+                cardRect.right, cardRect.bottom,
+                intArrayOf(
+                    Color.argb(250, 30, 35, 45),   // 濃いダークブルー
+                    Color.argb(250, 20, 25, 35)    // より暗いダークブルー
+                ),
+                null,
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            style = Paint.Style.FILL
+        }
+        canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, gradientPaint)
+        
+        // 境界線（アクセントカラー）
+        val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(180, 100, 120, 255) // 薄い青紫
+            style = Paint.Style.STROKE
+            strokeWidth = 3f
+        }
+        canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
-        // テキストペイント（黒）
+        // テキストペイント（明るい白）
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 80f
-            color = Color.BLACK
-            letterSpacing = 0.02f
+            textSize = 72f
+            color = Color.argb(240, 240, 245, 255)
+            letterSpacing = 0.03f
+            setShadowLayer(4f, 2f, 2f, Color.argb(100, 0, 0, 0)) // テキストに影
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 100f
-            color = Color.BLACK
+            textSize = 92f
+            color = Color.argb(255, 255, 255, 255)
             letterSpacing = 0.02f
             isFakeBoldText = true
+            setShadowLayer(6f, 3f, 3f, Color.argb(150, 0, 0, 0))
         }
 
-        val ttsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = 60f
-            color = if (enableTts) Color.GREEN else Color.GRAY
-            letterSpacing = 0.02f
-        }
-
-        // タイトル、概要、TTS状態を描画
-        val startX = cardPadding + 60f
-        var currentY = cardPadding + 150f
-
-        // TTS状態表示
-        val ttsText = "TTS: ${if (enableTts) "ON" else "OFF"}"
-        canvas.drawText(ttsText, startX, currentY, ttsPaint)
-        currentY += 120f
+        // タイトル、概要を描画
+        val startX = cardPadding + 50f
+        var currentY = cardPadding + 140f
 
         // タイトル
-        canvas.drawText(news.title, startX, currentY, detailTitlePaint)
-        currentY += 150f
+        val titleLines = wrapText(news.title, detailTitlePaint, width - (cardPadding + 50f) * 2)
+        titleLines.forEach { line ->
+            canvas.drawText(line, startX, currentY, detailTitlePaint)
+            currentY += 110f
+        }
+        
+        currentY += 30f
 
         // 概要（descriptionがあれば表示、なければtitleを再表示）
         val description = news.description.ifBlank { news.title }
-        val maxWidth = width - (cardPadding + 60f) * 2
+        val maxWidth = width - (cardPadding + 50f) * 2
         val lines = wrapText(description, detailTextPaint, maxWidth)
 
         lines.forEach { line ->
             canvas.drawText(line, startX, currentY, detailTextPaint)
-            currentY += 100f
+            currentY += 90f
+        }
+        
+        // QRコード表示（右下）
+        drawQRCode(canvas, news.id, cardRect)
+        
+        // フッター情報（閉じるヒント）
+        val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 48f
+            color = Color.argb(150, 180, 185, 200)
+            letterSpacing = 0.02f
+        }
+        val hintText = "🔙 戻るキーで閉じる"
+        val hintY = height.toFloat() - cardPadding - 40f
+        canvas.drawText(hintText, startX, hintY, hintPaint)
+    }
+
+    /**
+     * QRコードを生成して描画
+     */
+    private fun drawQRCode(canvas: Canvas, url: String, cardRect: RectF) {
+        // URLが変わった場合のみQRコードを再生成
+        if (qrCodeUrl != url || qrCodeBitmap == null) {
+            qrCodeUrl = url
+            qrCodeBitmap = generateQRCode(url, 300)
+        }
+        
+        val bitmap = qrCodeBitmap ?: return
+        
+        // QRコードを右下に配置（画面端から十分なマージン）
+        val qrSize = 300f
+        val qrPadding = 100f  // カード端からのマージンを広めに
+        val qrLeft = cardRect.right - qrSize - qrPadding
+        val qrTop = cardRect.bottom - qrSize - qrPadding
+        
+        // 白い背景
+        val qrBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+        val qrBgRect = RectF(
+            qrLeft - 20f,
+            qrTop - 20f,
+            qrLeft + qrSize + 20f,
+            qrTop + qrSize + 20f
+        )
+        canvas.drawRoundRect(qrBgRect, 16f, 16f, qrBgPaint)
+        
+        // QRコード描画
+        canvas.drawBitmap(
+            bitmap,
+            null,
+            RectF(qrLeft, qrTop, qrLeft + qrSize, qrTop + qrSize),
+            null
+        )
+        
+        // QRコードの説明テキスト
+        val qrLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 40f
+            color = Color.argb(200, 200, 205, 220)
+            letterSpacing = 0.02f
+        }
+        val labelText = "記事URL"
+        val labelWidth = qrLabelPaint.measureText(labelText)
+        val labelX = qrLeft + (qrSize - labelWidth) / 2
+        val labelY = qrTop - 30f
+        canvas.drawText(labelText, labelX, labelY, qrLabelPaint)
+    }
+    
+    /**
+     * QRコードBitmapを生成
+     */
+    private fun generateQRCode(text: String, size: Int): Bitmap? {
+        return try {
+            val writer = QRCodeWriter()
+            val bitMatrix = writer.encode(text, BarcodeFormat.QR_CODE, size, size)
+            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+            
+            for (x in 0 until size) {
+                for (y in 0 until size) {
+                    bitmap.setPixel(x, y, if (bitMatrix[x, y]) Color.BLACK else Color.WHITE)
+                }
+            }
+            
+            bitmap
+        } catch (e: Exception) {
+            null
         }
     }
 
     /**
-     * テキストを指定幅で折り返す
+     * テキストを指定幅で折り返す（文字単位で折り返し）
      */
     private fun wrapText(text: String, paint: Paint, maxWidth: Float): List<String> {
         val lines = mutableListOf<String>()
         var currentLine = ""
 
-        text.split(" ", "、", "。", "！", "？").forEach { word ->
-            val testLine = if (currentLine.isEmpty()) word else "$currentLine$word"
+        text.forEach { char ->
+            val testLine = currentLine + char
             val testWidth = paint.measureText(testLine)
 
             if (testWidth > maxWidth && currentLine.isNotEmpty()) {
                 lines.add(currentLine)
-                currentLine = word
+                currentLine = char.toString()
             } else {
                 currentLine = testLine
             }

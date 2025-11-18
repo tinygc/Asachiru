@@ -8,7 +8,7 @@ object RssPresets {
      * プリセット名とURL のマッピング
      */
     val PRESETS = mapOf(
-        "NHK" to "https://www.nhk.or.jp/rss/news/cat0.xml",
+        "NHK" to "https://www3.nhk.or.jp/rss/news/cat0.xml",
         "Yahoo!ニュース" to "https://news.yahoo.co.jp/rss/topics/top-picks.xml",
         "毎日新聞" to "https://mainichi.jp/rss/etc/mainichi-flash.rss"
     )

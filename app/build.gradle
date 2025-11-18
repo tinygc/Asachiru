@@ -75,6 +75,9 @@ dependencies {
     // AndroidX Media (for music playback)
     implementation 'androidx.media:media:1.7.0'
 
+    // QR Code Generator
+    implementation 'com.google.zxing:core:3.5.3'
+
     // Unit Test
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.20'

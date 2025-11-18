@@ -12,6 +12,50 @@ import java.util.TimeZone
 class ReadNewsUseCase(
     private val ttsManager: ITtsManager
 ) {
+    // ポップアップ表示中は一時停止フラグ
+    @Volatile
+    private var isPaused = false
+
+    /**
+     * ニュース送りを一時停止
+     */
+    fun pause() {
+        isPaused = true
+    }
+
+    /**
+     * ニュース送りを再開
+     */
+    fun resume() {
+        isPaused = false
+    }
+
+    /**
+     * 読み上げを停止
+     */
+    fun stopReading() {
+        ttsManager.stop()
+    }
+
+    /**
+     * 一時停止可能なdelay（外部からも使用可能）
+     */
+    suspend fun pauseableDelay(milliseconds: Long) {
+        val checkIntervalMs = 100L
+        var remainingMs = milliseconds
+        
+        while (remainingMs > 0) {
+            if (isPaused) {
+                // ポップアップ表示中は100msごとにチェック
+                delay(checkIntervalMs)
+            } else {
+                // 通常時は指定時間待機
+                val delayMs = minOf(checkIntervalMs, remainingMs)
+                delay(delayMs)
+                remainingMs -= delayMs
+            }
+        }
+    }
     /**
      * ニュースを読み上げる
      * @param newsList 読み上げるニュースリスト
@@ -24,9 +68,9 @@ class ReadNewsUseCase(
         onComplete: () -> Unit
     ) {
         newsList.forEachIndexed { index, news ->
-            // 2つ目以降のニュースの前に間隔を空ける（5秒）
+            // 2つ目以降のニュースの前に間隔を空ける（5秒、一時停止可能）
             if (index > 0) {
-                delay(5000L)
+                pauseableDelay(5000L)
             }
 
             // 記事の公開時刻を取得（日本時間）
@@ -45,8 +89,8 @@ class ReadNewsUseCase(
             ttsManager.speak(timeAnnouncement)
             ttsManager.waitUntilDone()
 
-            // アナウンス後の間隔（1秒）
-            delay(1000L)
+            // アナウンス後の間隔（1秒、一時停止可能）
+            pauseableDelay(1000L)
 
             // ニュースを表示・読み上げ
             onNewsChanged(news)

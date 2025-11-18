@@ -7,7 +7,7 @@ import android.text.TextWatcher
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
-import android.widget.SeekBar
+import com.tinygc.asachiru.R
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
@@ -56,41 +56,43 @@ class SetupActivity : AppCompatActivity() {
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 viewModel.updatePostalCode(s?.toString() ?: "")
+                // 入力中はエラー表示をクリア
+                binding.postalCodeEditText.error = null
             }
 
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // ニュース読み上げ間隔
-        binding.newsIntervalSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                // ドラッグ中は表示だけ更新（ViewModelは更新しない）
-                binding.newsIntervalTextView.text = "$progress 分"
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // ドラッグ終了時にViewModelを更新
-                seekBar?.let {
-                    viewModel.updateNewsInterval(it.progress)
+        // 郵便番号入力欄のフォーカス変更時にバリデーション
+        binding.postalCodeEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val currentState = viewModel.uiState.value
+                if (!currentState.isPostalCodeValid && currentState.postalCode.isNotEmpty()) {
+                    binding.postalCodeEditText.error = "郵便番号は7桁の数字で入力してください"
                 }
             }
-        })
+        }
 
-        // RSSプリセットSpinner
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, RssPresets.PRESET_NAMES)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        // ニュース間隔設定は一旦UIから削除
+
+        // RSSプリセットSpinner（カスタムレイアウトで白文字表示）
+        val adapter = ArrayAdapter(this, R.layout.item_rss_preset_spinner, RssPresets.PRESET_NAMES)
+        adapter.setDropDownViewResource(R.layout.item_rss_preset_dropdown)
         binding.rssPresetSpinner.adapter = adapter
 
         binding.rssPresetSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selected = RssPresets.PRESET_NAMES[position]
                 
-                // "カスタムURL入力"選択時はEditTextを表示
+                // "カスタムURL入力"選択時はEditTextを表示してフォーカス
                 if (selected == RssPresets.CUSTOM_URL) {
                     binding.rssCustomUrlEditText.visibility = View.VISIBLE
                     viewModel.updateRssPreset(selected)
+                    viewModel.updateRssUrl("") // カスタムURLは空から始める
+                    // フォーカス移動は少し遅延させる
+                    binding.rssCustomUrlEditText.postDelayed({
+                        binding.rssCustomUrlEditText.requestFocus()
+                    }, 100)
                 } else if (selected != "選択してください") {
                     binding.rssCustomUrlEditText.visibility = View.GONE
                     val url = RssPresets.getUrl(selected)
@@ -151,12 +153,8 @@ class SetupActivity : AppCompatActivity() {
      * @param state UI状態
      */
     private fun updateUI(state: SetupUiState) {
-        // バリデーションエラー表示
-        if (!state.isPostalCodeValid && state.postalCode.isNotEmpty()) {
-            binding.postalCodeEditText.error = "郵便番号は7桁の数字で入力してください"
-        } else {
-            binding.postalCodeEditText.error = null
-        }
+        // 郵便番号バリデーションエラーは、フォーカス変更時にのみ表示するため、
+        // ここでは何もしない（入力中に表示されないようにするため）
 
         // RSS URLのバリデーションエラー表示
         if (!state.isRssUrlValid && state.rssUrl.isEmpty() && binding.rssCustomUrlEditText.visibility == View.VISIBLE) {
@@ -165,10 +163,9 @@ class SetupActivity : AppCompatActivity() {
             binding.rssCustomUrlEditText.error = null
         }
 
-        // 保存ボタンの有効/無効（全バリデーション通過時のみ有効）
-        binding.saveButton.isEnabled = !state.isSaving && 
-            state.isPostalCodeValid && 
-            state.isNewsIntervalValid && 
+        // 保存ボタンの有効/無効（ニュース間隔はデフォルト値固定のためチェック対象外）
+        binding.saveButton.isEnabled = !state.isSaving &&
+            state.isPostalCodeValid &&
             state.isRssUrlValid
 
         // エラーメッセージ表示

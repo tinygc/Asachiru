@@ -9,8 +9,6 @@ data class SetupUiState(
     /** 郵便番号（7桁、ハイフンなし） */
     val postalCode: String = "",
 
-    /** ニュース読み上げ間隔（1～60分） */
-    val newsInterval: Int = 30,
 
     /** RSS URL */
     val rssUrl: String = "",
@@ -24,7 +22,10 @@ data class SetupUiState(
     /** 郵便番号のバリデーション結果 */
     val isPostalCodeValid: Boolean = true,
 
-    /** ニュース読み上げ間隔のバリデーション結果 */
+    /** ニュース読み上げ間隔（1～60分）: 画面からは削除済みだが、Settings互換のため保持 */
+    val newsInterval: Int = 30,
+
+    /** ニュース読み上げ間隔のバリデーション結果: UIでは使用しない */
     val isNewsIntervalValid: Boolean = true,
 
     /** RSS URLのバリデーション結果 */

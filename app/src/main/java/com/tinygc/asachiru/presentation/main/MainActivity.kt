@@ -71,13 +71,10 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.updateNews(state.currentNews)
                         binding.newsView.setShowDetail(state.showNewsDetail)
                         binding.newsView.setEnableTts(state.enableTts)
+                        
+                        // 詳細表示時はNewsViewを全画面表示にする
+                        updateNewsViewLayout(state.showNewsDetail)
                     }
-
-                    // デバッグ情報の更新
-                    binding.newsDebugView.updateDebugInfo(
-                        state.debugNewsList,
-                        state.debugLastFetchTime
-                    )
 
                     // ビジュアライザー起動ロジック
                     val sessionId = musicPlayer.getAudioSessionId()
@@ -107,6 +104,43 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    
+    /**
+     * NewsViewのレイアウトを詳細表示状態に応じて切り替え
+     */
+    private fun updateNewsViewLayout(isDetailShown: Boolean) {
+        val layoutParams = binding.newsView.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        
+        if (isDetailShown) {
+            // 詳細表示時: 全画面表示
+            layoutParams.width = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
+            layoutParams.height = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
+            layoutParams.setMargins(0, 0, 0, 0)
+            
+            // 最前面に表示
+            binding.newsView.bringToFront()
+            // 親Viewの再描画を強制
+            (binding.newsView.parent as? android.view.ViewGroup)?.invalidate()
+        } else {
+            // 通常時: 画面下部に配置
+            layoutParams.width = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
+            layoutParams.height = resources.displayMetrics.density.toInt() * 100 // 100dp
+            layoutParams.setMargins(
+                (50 * resources.displayMetrics.density).toInt(),
+                0,
+                (50 * resources.displayMetrics.density).toInt(),
+                (50 * resources.displayMetrics.density).toInt()
+            )
+            
+            // ConstraintLayoutの制約を再設定
+            layoutParams.bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            layoutParams.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+        }
+        
+        binding.newsView.layoutParams = layoutParams
+        binding.newsView.requestLayout()
+    }
 
     /**
      * リモコンキーイベントのハンドリング
@@ -132,6 +166,16 @@ class MainActivity : AppCompatActivity() {
                 viewModel.toggleTts()
                 true
             }
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                // 上キー: 前のニュースへ
+                viewModel.navigateToPreviousNews()
+                true
+            }
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                // 下キー: 次のニュースへ
+                viewModel.navigateToNextNews()
+                true
+            }
             else -> super.onKeyDown(keyCode, event)
         }
     }
@@ -143,7 +187,15 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        // 権限ダイアログや一時的なフォーカス喪失でも呼ばれるため強制finishを廃止
+        // バックグラウンドに移行時に一時停止
+        viewModel.onPause()
+        binding.visualizerView.stopVisualizer()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // 完全に見えなくなった時に停止
+        viewModel.onStop()
     }
 
     private fun hasAudioPermission(): Boolean {

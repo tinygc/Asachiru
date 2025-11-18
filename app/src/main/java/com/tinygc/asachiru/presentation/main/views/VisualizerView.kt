@@ -260,18 +260,6 @@ class VisualizerView @JvmOverloads constructor(
                 barPaint
             )
         }
-        
-        // デバッグ表示: Fallback中か実データか
-        if (useFallback) {
-            canvas.drawText("FALLBACK", 20f, 40f, debugPaint)
-        } else if (lastFftUpdateTime > 0) {
-            val elapsed = System.currentTimeMillis() - lastFftUpdateTime
-            if (elapsed < 1000) {
-                debugPaint.color = Color.GREEN
-                canvas.drawText("FFT ACTIVE", 20f, 40f, debugPaint)
-                debugPaint.color = Color.RED
-            }
-        }
     }    override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         stopVisualizer()

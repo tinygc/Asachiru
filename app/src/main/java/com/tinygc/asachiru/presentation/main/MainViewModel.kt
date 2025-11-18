@@ -3,6 +3,7 @@ package com.tinygc.asachiru.presentation.main
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tinygc.asachiru.domain.common.Result
+import com.tinygc.asachiru.domain.entity.News
 import com.tinygc.asachiru.domain.repository.SettingsRepository
 import com.tinygc.asachiru.domain.usecase.clock.GetCurrentDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.music.GetCurrentTrackUseCase
@@ -13,6 +14,7 @@ import com.tinygc.asachiru.domain.usecase.weather.GetWeatherUseCase
 import com.tinygc.asachiru.domain.usecase.weather.RefreshWeatherUseCase
 import com.tinygc.asachiru.presentation.util.FlowTimer
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,6 +51,13 @@ class MainViewModel(
 
     // セッション内の既読ニュースIDを保持（idはlinkを想定）
     private val readNewsIds = mutableSetOf<String>()
+    
+    // 現在実行中のニュース表示/読み上げJob
+    private var currentNewsJob: Job? = null
+    
+    // ニュースリストと現在のインデックス
+    private var currentNewsList: List<News> = emptyList()
+    private var currentNewsIndex: Int = -1
 
     init {
         if (!skipAutoStart) {
@@ -201,8 +210,14 @@ class MainViewModel(
                             currentNews = null
                         )
                     }
+                    currentNewsList = emptyList()
+                    currentNewsIndex = -1
                     return
                 }
+
+                // ニュースリストを保存
+                currentNewsList = unread
+                currentNewsIndex = 0
 
                 _uiState.update {
                     it.copy(
@@ -211,22 +226,40 @@ class MainViewModel(
                     )
                 }
 
-                // TTS有効時のみ読み上げ実行
-                if (_uiState.value.enableTts) {
-                    readNewsUseCase(
-                        newsList = unread,
-                        onNewsChanged = { news ->
+                // 既存のニュース表示/読み上げJobをキャンセル
+                currentNewsJob?.cancel()
+                
+                // 新しいJobを開始
+                currentNewsJob = viewModelScope.launch {
+                    // TTS有効時のみ読み上げ実行
+                    if (_uiState.value.enableTts) {
+                        readNewsUseCase(
+                            newsList = unread,
+                            onNewsChanged = { news ->
+                                readNewsIds += news.id
+                                _uiState.update { it.copy(currentNews = news) }
+                            },
+                            onComplete = {
+                                _uiState.update { it.copy(currentNews = null) }
+                            }
+                        )
+                    } else {
+                        // TTS無効時は文字数に応じた時間で次のニュースを表示（一時停止可能）
+                        unread.forEachIndexed { index, news ->
+                            if (index > 0) {
+                                readNewsUseCase.pauseableDelay(5000L)
+                            }
                             readNewsIds += news.id
                             _uiState.update { it.copy(currentNews = news) }
-                        },
-                        onComplete = {
-                            _uiState.update { it.copy(currentNews = null) }
+                            
+                            // タイトル+説明文の文字数から表示時間を計算（読み上げ速度に合わせて）
+                            val textLength = news.title.length + news.description.length
+                            // 1文字あたり約200ms（読み上げ速度に近い）+ 余裕で1秒追加
+                            val displayTime = (textLength * 200L) + 1000L
+                            readNewsUseCase.pauseableDelay(displayTime)
                         }
-                    )
-                } else {
-                    // TTS無効時は最初のニュースを表示のみ
-                    readNewsIds += unread.first().id
-                    _uiState.update { it.copy(currentNews = unread.first()) }
+                        _uiState.update { it.copy(currentNews = null) }
+                    }
                 }
             }
             is Result.Error -> {
@@ -268,6 +301,23 @@ class MainViewModel(
     }
 
     /**
+     * Background移行時の処理
+     */
+    fun onPause() {
+        // TTS停止
+        readNewsUseCase.stopReading()
+        // ニュース自動送りJob停止
+        currentNewsJob?.cancel()
+    }
+
+    /**
+     * 完全に停止時の処理
+     */
+    fun onStop() {
+        // 何もしない（音楽は継続）
+    }
+
+    /**
      * ニュース詳細表示を切り替える
      */
     fun toggleNewsDetail() {
@@ -275,15 +325,11 @@ class MainViewModel(
             val newShowDetail = !_uiState.value.showNewsDetail
             _uiState.update { it.copy(showNewsDetail = newShowDetail) }
 
-            // 詳細表示時にTTS ONなら読み上げ
-            if (newShowDetail && _uiState.value.enableTts) {
-                _uiState.value.currentNews?.let { news ->
-                    readNewsUseCase(
-                        newsList = listOf(news),
-                        onNewsChanged = { },
-                        onComplete = { }
-                    )
-                }
+            // ポップアップ表示時はニュース送りを一時停止、閉じたら再開
+            if (newShowDetail) {
+                readNewsUseCase.pause()
+            } else {
+                readNewsUseCase.resume()
             }
         }
     }
@@ -293,6 +339,8 @@ class MainViewModel(
      */
     fun closeNewsDetail() {
         _uiState.update { it.copy(showNewsDetail = false) }
+        // ニュース送りを再開
+        readNewsUseCase.resume()
     }
 
     /**
@@ -305,6 +353,150 @@ class MainViewModel(
             val newSettings = settings.copy(enableTts = newEnableTts)
             settingsRepository.saveSettings(newSettings)
             _uiState.update { it.copy(enableTts = newEnableTts) }
+            
+            if (!newEnableTts) {
+                // TTS OFFにした場合は即座に読み上げを停止
+                readNewsUseCase.stopReading()
+            } else {
+                // TTS ONにした場合は現在のニュースから読み上げ開始
+                currentNewsJob?.cancel()
+                val currentNews = _uiState.value.currentNews
+                if (currentNews != null) {
+                    // 現在表示中のニュースがあれば、それを読み上げ
+                    currentNewsJob = viewModelScope.launch {
+                        readNewsUseCase(
+                            newsList = listOf(currentNews),
+                            onNewsChanged = { },
+                            onComplete = { }
+                        )
+                    }
+                } else {
+                    // 表示中のニュースがなければ新しく取得
+                    readNews()
+                }
+            }
+        }
+    }
+
+    /**
+     * 前のニュースへ移動
+     */
+    fun navigateToPreviousNews() {
+        if (currentNewsList.isEmpty()) return
+        
+        currentNewsJob?.cancel()
+        readNewsUseCase.stopReading()
+        
+        // インデックスを1つ戻す（0未満にならないように）
+        currentNewsIndex = maxOf(0, currentNewsIndex - 1)
+        val news = currentNewsList[currentNewsIndex]
+        
+        _uiState.update { it.copy(currentNews = news) }
+        
+        // 手動選択後も自動送りを継続（残りのニュースを再開）
+        currentNewsJob = viewModelScope.launch {
+            if (_uiState.value.enableTts) {
+                // TTS ON: 選択したニュースを読み上げてから残りを継続
+                readNewsUseCase(
+                    newsList = listOf(news),
+                    onNewsChanged = { },
+                    onComplete = { }
+                )
+            }
+            
+            // 残りのニュースを自動送り
+            val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
+            if (remainingNews.isNotEmpty()) {
+                if (_uiState.value.enableTts) {
+                    readNewsUseCase(
+                        newsList = remainingNews,
+                        onNewsChanged = { nextNews ->
+                            currentNewsIndex++
+                            readNewsIds += nextNews.id
+                            _uiState.update { it.copy(currentNews = nextNews) }
+                        },
+                        onComplete = {
+                            _uiState.update { it.copy(currentNews = null) }
+                        }
+                    )
+                } else {
+                    // TTS OFF時の自動送り
+                    remainingNews.forEachIndexed { index, nextNews ->
+                        if (index > 0) {
+                            readNewsUseCase.pauseableDelay(5000L)
+                        }
+                        currentNewsIndex++
+                        readNewsIds += nextNews.id
+                        _uiState.update { it.copy(currentNews = nextNews) }
+                        
+                        val textLength = nextNews.title.length + nextNews.description.length
+                        val displayTime = (textLength * 200L) + 1000L
+                        readNewsUseCase.pauseableDelay(displayTime)
+                    }
+                    _uiState.update { it.copy(currentNews = null) }
+                }
+            }
+        }
+    }
+
+    /**
+     * 次のニュースへ移動
+     */
+    fun navigateToNextNews() {
+        if (currentNewsList.isEmpty()) return
+        
+        currentNewsJob?.cancel()
+        readNewsUseCase.stopReading()
+        
+        // インデックスを1つ進める（リスト末尾を超えないように）
+        currentNewsIndex = minOf(currentNewsList.size - 1, currentNewsIndex + 1)
+        val news = currentNewsList[currentNewsIndex]
+        
+        _uiState.update { it.copy(currentNews = news) }
+        
+        // 手動選択後も自動送りを継続（残りのニュースを再開）
+        currentNewsJob = viewModelScope.launch {
+            if (_uiState.value.enableTts) {
+                // TTS ON: 選択したニュースを読み上げてから残りを継続
+                readNewsUseCase(
+                    newsList = listOf(news),
+                    onNewsChanged = { },
+                    onComplete = { }
+                )
+            }
+            
+            // 残りのニュースを自動送り
+            val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
+            if (remainingNews.isNotEmpty()) {
+                if (_uiState.value.enableTts) {
+                    readNewsUseCase(
+                        newsList = remainingNews,
+                        onNewsChanged = { nextNews ->
+                            currentNewsIndex++
+                            readNewsIds += nextNews.id
+                            _uiState.update { it.copy(currentNews = nextNews) }
+                        },
+                        onComplete = {
+                            _uiState.update { it.copy(currentNews = null) }
+                        }
+                    )
+                } else {
+                    // TTS OFF時の自動送り
+                    remainingNews.forEachIndexed { index, nextNews ->
+                        if (index > 0) {
+                            readNewsUseCase.pauseableDelay(5000L)
+                        }
+                        currentNewsIndex++
+                        readNewsIds += nextNews.id
+                        _uiState.update { it.copy(currentNews = nextNews) }
+                        
+                        val textLength = nextNews.title.length + nextNews.description.length
+                        val displayTime = (textLength * 200L) + 1000L
+                        readNewsUseCase.pauseableDelay(displayTime)
+                    }
+                    _uiState.update { it.copy(currentNews = null) }
+                }
+            }
         }
     }
 }
