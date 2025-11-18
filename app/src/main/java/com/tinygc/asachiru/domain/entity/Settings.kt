@@ -5,7 +5,10 @@ package com.tinygc.asachiru.domain.entity
  */
 data class Settings(
     val postalCode: String,
-    val newsIntervalMinutes: Int
+    val newsIntervalMinutes: Int,
+    val rssUrl: String? = null,
+    val enableTts: Boolean = false,
+    val rssPreset: String? = null
 ) {
     /**
      * 設定が有効かチェック
@@ -34,7 +37,10 @@ data class Settings(
          */
         val DEFAULT = Settings(
             postalCode = "",
-            newsIntervalMinutes = 5
+            newsIntervalMinutes = 5,
+            rssUrl = null,
+            enableTts = false,
+            rssPreset = null
         )
     }
 }

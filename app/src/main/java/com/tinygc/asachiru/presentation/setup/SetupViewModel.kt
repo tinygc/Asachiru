@@ -52,6 +52,27 @@ class SetupViewModel(
     }
 
     /**
+     * RSS URLを更新
+     */
+    fun updateRssUrl(url: String) {
+        _uiState.update { it.copy(rssUrl = url) }
+    }
+
+    /**
+     * TTS有効化を更新
+     */
+    fun updateEnableTts(enable: Boolean) {
+        _uiState.update { it.copy(enableTts = enable) }
+    }
+
+    /**
+     * RSSプリセット名を更新
+     */
+    fun updateRssPreset(preset: String?) {
+        _uiState.update { it.copy(rssPreset = preset) }
+    }
+
+    /**
      * 設定を保存
      *
      * バリデーションが全て通過している場合のみ保存を実行します。
@@ -69,7 +90,10 @@ class SetupViewModel(
 
             val settings = Settings(
                 postalCode = currentState.postalCode,
-                newsIntervalMinutes = currentState.newsInterval
+                newsIntervalMinutes = currentState.newsInterval,
+                rssUrl = currentState.rssUrl,
+                enableTts = currentState.enableTts,
+                rssPreset = currentState.rssPreset
             )
 
             when (val result = saveSettingsUseCase(settings)) {

@@ -50,7 +50,8 @@ class RepositoryFactory(private val context: Context) {
      */
     fun createNewsRepository(): NewsRepository {
         val dataSource = dataSourceFactory.createNewsRssDataSource()
-        return NewsRepositoryImpl(dataSource)
+        val settingsRepository = createSettingsRepository()
+        return NewsRepositoryImpl(dataSource, settingsRepository)
     }
 
     /**

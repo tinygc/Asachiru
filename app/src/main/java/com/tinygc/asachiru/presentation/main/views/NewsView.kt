@@ -27,6 +27,8 @@ class NewsView @JvmOverloads constructor(
 
     private var currentNews: News? = null
     private var errorMessage: String? = null
+    private var showDetail: Boolean = false
+    private var enableTts: Boolean = false
 
     // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -110,8 +112,30 @@ class NewsView @JvmOverloads constructor(
         invalidate()
     }
 
+    /**
+     * 詳細表示の切り替え
+     */
+    fun setShowDetail(show: Boolean) {
+        this.showDetail = show
+        invalidate()
+    }
+
+    /**
+     * TTS有効状態の更新
+     */
+    fun setEnableTts(enable: Boolean) {
+        this.enableTts = enable
+        invalidate()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+
+        // 詳細表示時は全画面ポップアップ
+        if (showDetail) {
+            drawDetailPopup(canvas)
+            return
+        }
 
         // Glassmorphism背景を描画
         drawGlassmorphismBackground(canvas)
@@ -258,5 +282,103 @@ class NewsView @JvmOverloads constructor(
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         return "${hour}時${minute}分"
+    }
+
+    /**
+     * 詳細ポップアップを描画（全画面）
+     */
+    private fun drawDetailPopup(canvas: Canvas) {
+        val news = currentNews ?: return
+
+        // 半透明黒背景
+        val overlayPaint = Paint().apply {
+            color = Color.argb(200, 0, 0, 0)
+            style = Paint.Style.FILL
+        }
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
+
+        // 白い背景カード
+        val cardPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+        val cardPadding = 100f
+        val cardCornerRadius = 48f
+        val cardRect = RectF(
+            cardPadding,
+            cardPadding,
+            width.toFloat() - cardPadding,
+            height.toFloat() - cardPadding
+        )
+        canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, cardPaint)
+
+        // テキストペイント（黒）
+        val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 80f
+            color = Color.BLACK
+            letterSpacing = 0.02f
+        }
+
+        val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 100f
+            color = Color.BLACK
+            letterSpacing = 0.02f
+            isFakeBoldText = true
+        }
+
+        val ttsPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = 60f
+            color = if (enableTts) Color.GREEN else Color.GRAY
+            letterSpacing = 0.02f
+        }
+
+        // タイトル、概要、TTS状態を描画
+        val startX = cardPadding + 60f
+        var currentY = cardPadding + 150f
+
+        // TTS状態表示
+        val ttsText = "TTS: ${if (enableTts) "ON" else "OFF"}"
+        canvas.drawText(ttsText, startX, currentY, ttsPaint)
+        currentY += 120f
+
+        // タイトル
+        canvas.drawText(news.title, startX, currentY, detailTitlePaint)
+        currentY += 150f
+
+        // 概要（descriptionがあれば表示、なければtitleを再表示）
+        val description = news.description.ifBlank { news.title }
+        val maxWidth = width - (cardPadding + 60f) * 2
+        val lines = wrapText(description, detailTextPaint, maxWidth)
+
+        lines.forEach { line ->
+            canvas.drawText(line, startX, currentY, detailTextPaint)
+            currentY += 100f
+        }
+    }
+
+    /**
+     * テキストを指定幅で折り返す
+     */
+    private fun wrapText(text: String, paint: Paint, maxWidth: Float): List<String> {
+        val lines = mutableListOf<String>()
+        var currentLine = ""
+
+        text.split(" ", "、", "。", "！", "？").forEach { word ->
+            val testLine = if (currentLine.isEmpty()) word else "$currentLine$word"
+            val testWidth = paint.measureText(testLine)
+
+            if (testWidth > maxWidth && currentLine.isNotEmpty()) {
+                lines.add(currentLine)
+                currentLine = word
+            } else {
+                currentLine = testLine
+            }
+        }
+
+        if (currentLine.isNotEmpty()) {
+            lines.add(currentLine)
+        }
+
+        return lines
     }
 }

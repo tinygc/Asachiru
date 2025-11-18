@@ -10,26 +10,22 @@ import okhttp3.Request
 import java.io.IOException
 
 /**
- * NHKニュースRSSからデータを取得するデータソース
+ * ニュースRSSからデータを取得するデータソース
  */
 open class NewsRssDataSource(
     private val httpClient: OkHttpClient
 ) {
-    companion object {
-        // NHKニュースRSS
-        private const val RSS_URL = "https://www3.nhk.or.jp/rss/news/cat0.xml"
-    }
-
     /**
      * 最新ニュースを取得
+     * @param rssUrl RSS URL
      * @return NewsDtoリスト
      * @throws IOException ネットワークエラー
      */
     open
-    suspend fun fetchLatestNews(): List<NewsDto> = withContext(Dispatchers.IO) {
+    suspend fun fetchLatestNews(rssUrl: String): List<NewsDto> = withContext(Dispatchers.IO) {
         val request = Request.Builder()
-            .url(RSS_URL)
-            .cacheControl(CacheControl.FORCE_NETWORK) // 常に最新のRSSを取得（キャッシュ無視）
+            .url(rssUrl)
+            .cacheControl(CacheControl.FORCE_NETWORK) // 常に最新のRSSを取得(キャッシュ無視)
             .get()
             .build()
 

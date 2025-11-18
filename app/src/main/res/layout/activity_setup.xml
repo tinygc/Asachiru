@@ -90,6 +90,79 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/news_interval_text_view"
+        app:layout_constraintBottom_toTopOf="@id/rss_preset_label" />
+
+    <!-- RSS URLプリセットラベル -->
+    <TextView
+        android:id="@+id/rss_preset_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RSS配信元"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/news_interval_seek_bar"
+        app:layout_constraintBottom_toTopOf="@id/rss_preset_spinner" />
+
+    <!-- RSSプリセット選択 -->
+    <Spinner
+        android:id="@+id/rss_preset_spinner"
+        android:layout_width="600dp"
+        android:layout_height="60dp"
+        android:background="#333333"
+        android:padding="12dp"
+        android:popupBackground="#333333"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_label"
+        app:layout_constraintBottom_toTopOf="@id/rss_custom_url_edit_text" />
+
+    <!-- カスタムURL入力 -->
+    <EditText
+        android:id="@+id/rss_custom_url_edit_text"
+        android:layout_width="600dp"
+        android:layout_height="60dp"
+        android:background="#333333"
+        android:gravity="center_vertical"
+        android:hint="カスタムURL入力"
+        android:inputType="textUri"
+        android:padding="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#888888"
+        android:textSize="24sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner"
+        app:layout_constraintBottom_toTopOf="@id/enable_tts_checkbox" />
+
+    <!-- TTS有効化チェックボックス -->
+    <CheckBox
+        android:id="@+id/enable_tts_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="読み上げ機能を有効にする"
+        android:textColor="#FFFFFF"
+        android:textSize="28sp"
+        android:checked="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text"
+        app:layout_constraintBottom_toTopOf="@id/tts_copyright_notice" />
+
+    <!-- 著作権注意 -->
+    <TextView
+        android:id="@+id/tts_copyright_notice"
+        android:layout_width="600dp"
+        android:layout_height="wrap_content"
+        android:text="※著作権は各コンテンツ提供者に帰属します"
+        android:textColor="#FFCC00"
+        android:textSize="20sp"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox"
         app:layout_constraintBottom_toTopOf="@id/save_button" />
 
     <!-- 保存ボタン -->

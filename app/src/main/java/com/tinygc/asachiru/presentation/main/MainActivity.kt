@@ -1,6 +1,7 @@
 package com.tinygc.asachiru.presentation.main
 
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -68,6 +69,8 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.showError(state.newsError)
                     } else {
                         binding.newsView.updateNews(state.currentNews)
+                        binding.newsView.setShowDetail(state.showNewsDetail)
+                        binding.newsView.setEnableTts(state.enableTts)
                     }
 
                     // デバッグ情報の更新
@@ -102,6 +105,34 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * リモコンキーイベントのハンドリング
+     */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER -> {
+                // 決定キー: 詳細表示切り替え
+                viewModel.toggleNewsDetail()
+                true
+            }
+            KeyEvent.KEYCODE_BACK -> {
+                // 戻るキー: 詳細表示中なら閉じる、通常時はデフォルト動作
+                if (viewModel.uiState.value.showNewsDetail) {
+                    viewModel.closeNewsDetail()
+                    true
+                } else {
+                    super.onKeyDown(keyCode, event)
+                }
+            }
+            KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                // 左右キー: TTS切り替え
+                viewModel.toggleTts()
+                true
+            }
+            else -> super.onKeyDown(keyCode, event)
         }
     }
 

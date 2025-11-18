@@ -12,6 +12,15 @@ data class SetupUiState(
     /** ニュース読み上げ間隔（1～60分） */
     val newsInterval: Int = 30,
 
+    /** RSS URL */
+    val rssUrl: String = "",
+
+    /** TTS有効化 */
+    val enableTts: Boolean = false,
+
+    /** RSSプリセット名 */
+    val rssPreset: String? = null,
+
     /** 郵便番号のバリデーション結果 */
     val isPostalCodeValid: Boolean = true,
 

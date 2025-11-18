@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -11,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.tinygc.asachiru.data.RssPresets
 import com.tinygc.asachiru.databinding.ActivitySetupBinding
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import com.tinygc.asachiru.presentation.main.MainActivity
@@ -73,6 +77,54 @@ class SetupActivity : AppCompatActivity() {
                 }
             }
         })
+
+        // RSSプリセットSpinner
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, RssPresets.PRESET_NAMES)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.rssPresetSpinner.adapter = adapter
+
+        binding.rssPresetSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val selected = RssPresets.PRESET_NAMES[position]
+                
+                // "カスタムURL入力"選択時はEditTextを表示
+                if (selected == RssPresets.CUSTOM_URL) {
+                    binding.rssCustomUrlEditText.visibility = View.VISIBLE
+                    viewModel.updateRssPreset(selected)
+                } else if (selected != "選択してください") {
+                    binding.rssCustomUrlEditText.visibility = View.GONE
+                    val url = RssPresets.getUrl(selected)
+                    viewModel.updateRssUrl(url ?: "")
+                    viewModel.updateRssPreset(selected)
+                } else {
+                    binding.rssCustomUrlEditText.visibility = View.GONE
+                    viewModel.updateRssUrl("")
+                    viewModel.updateRssPreset(null)
+                }
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // 何もしない
+            }
+        }
+
+        // カスタムURL入力
+        binding.rssCustomUrlEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (binding.rssCustomUrlEditText.visibility == View.VISIBLE) {
+                    viewModel.updateRssUrl(s?.toString() ?: "")
+                }
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        // TTS有効化チェックボックス
+        binding.enableTtsCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.updateEnableTts(isChecked)
+        }
 
         // 保存ボタン
         binding.saveButton.setOnClickListener {

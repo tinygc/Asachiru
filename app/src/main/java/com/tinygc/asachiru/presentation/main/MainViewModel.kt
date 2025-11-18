@@ -55,9 +55,20 @@ class MainViewModel(
             startClockUpdate()
             loadWeather()
             startWeatherAutoRefresh()
+            loadTtsSettings()
             startNewsReading()
             startMusicPlayback()
             startTrackInfoUpdate()
+        }
+    }
+
+    /**
+     * TTS設定を読み込む
+     */
+    private fun loadTtsSettings() {
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            _uiState.update { it.copy(enableTts = settings.enableTts) }
         }
     }
 
@@ -200,17 +211,23 @@ class MainViewModel(
                     )
                 }
 
-                // 読み上げ実行（onNewsChangedで既読登録）
-                readNewsUseCase(
-                    newsList = unread,
-                    onNewsChanged = { news ->
-                        readNewsIds += news.id
-                        _uiState.update { it.copy(currentNews = news) }
-                    },
-                    onComplete = {
-                        _uiState.update { it.copy(currentNews = null) }
-                    }
-                )
+                // TTS有効時のみ読み上げ実行
+                if (_uiState.value.enableTts) {
+                    readNewsUseCase(
+                        newsList = unread,
+                        onNewsChanged = { news ->
+                            readNewsIds += news.id
+                            _uiState.update { it.copy(currentNews = news) }
+                        },
+                        onComplete = {
+                            _uiState.update { it.copy(currentNews = null) }
+                        }
+                    )
+                } else {
+                    // TTS無効時は最初のニュースを表示のみ
+                    readNewsIds += unread.first().id
+                    _uiState.update { it.copy(currentNews = unread.first()) }
+                }
             }
             is Result.Error -> {
                 _uiState.update {
@@ -248,5 +265,46 @@ class MainViewModel(
      */
     fun onResume() {
         refreshWeather()
+    }
+
+    /**
+     * ニュース詳細表示を切り替える
+     */
+    fun toggleNewsDetail() {
+        viewModelScope.launch {
+            val newShowDetail = !_uiState.value.showNewsDetail
+            _uiState.update { it.copy(showNewsDetail = newShowDetail) }
+
+            // 詳細表示時にTTS ONなら読み上げ
+            if (newShowDetail && _uiState.value.enableTts) {
+                _uiState.value.currentNews?.let { news ->
+                    readNewsUseCase(
+                        newsList = listOf(news),
+                        onNewsChanged = { },
+                        onComplete = { }
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * ニュース詳細を閉じる
+     */
+    fun closeNewsDetail() {
+        _uiState.update { it.copy(showNewsDetail = false) }
+    }
+
+    /**
+     * TTS ON/OFFを切り替える
+     */
+    fun toggleTts() {
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            val newEnableTts = !settings.enableTts
+            val newSettings = settings.copy(enableTts = newEnableTts)
+            settingsRepository.saveSettings(newSettings)
+            _uiState.update { it.copy(enableTts = newEnableTts) }
+        }
     }
 }

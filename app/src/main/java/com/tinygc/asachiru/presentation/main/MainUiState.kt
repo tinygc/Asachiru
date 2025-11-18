@@ -23,6 +23,8 @@ data class MainUiState(
     val currentNews: News? = null,
     val isNewsLoading: Boolean = false,
     val newsError: String? = null,
+    val showNewsDetail: Boolean = false,
+    val enableTts: Boolean = false,
 
     // 音楽
     val currentTrack: Music? = null,
