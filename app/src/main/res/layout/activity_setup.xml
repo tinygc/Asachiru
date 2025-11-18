@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
-    android:fillViewport="true">
-
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="48dp">
+    android:padding="32dp">
 
     <!-- タイトル -->
     <TextView
@@ -18,9 +13,9 @@
         android:layout_height="wrap_content"
         android:text="初回設定"
         android:textColor="#FFFFFF"
-        android:textSize="48sp"
+        android:textSize="36sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"
+        android:layout_marginBottom="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -32,15 +27,15 @@
         android:layout_height="wrap_content"
         android:text="郵便番号（7桁）"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:layout_marginTop="24dp"
+        android:textSize="22sp"
+        android:layout_marginTop="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_text_view" />
 
     <EditText
         android:id="@+id/postal_code_edit_text"
-        android:layout_width="350dp"
-        android:layout_height="60dp"
+        android:layout_width="320dp"
+        android:layout_height="48dp"
         android:background="#333333"
         android:gravity="center"
         android:hint="例: 1000001"
@@ -48,8 +43,8 @@
         android:maxLength="7"
         android:textColor="#FFFFFF"
         android:textColorHint="#888888"
-        android:textSize="28sp"
-        android:layout_marginTop="8dp"
+        android:textSize="22sp"
+        android:layout_marginTop="6dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
 
@@ -60,9 +55,9 @@
         android:layout_height="wrap_content"
         android:text="ニュース間隔"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:layout_marginTop="24dp"
-        android:layout_marginStart="32dp"
+        android:textSize="22sp"
+        android:layout_marginTop="12dp"
+        android:layout_marginStart="24dp"
         app:layout_constraintStart_toEndOf="@id/postal_code_label"
         app:layout_constraintTop_toBottomOf="@id/title_text_view" />
 
@@ -72,10 +67,10 @@
         android:layout_height="wrap_content"
         android:text="30 分"
         android:textColor="#FFFFFF"
-        android:textSize="32sp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="32dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="24dp"
         app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
         app:layout_constraintTop_toBottomOf="@id/news_interval_label" />
 
@@ -86,8 +81,8 @@
         android:max="60"
         android:min="1"
         android:progress="30"
-        android:layout_marginTop="8dp"
-        android:layout_marginStart="32dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="24dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@id/postal_code_edit_text"
         app:layout_constraintTop_toBottomOf="@id/news_interval_text_view" />
@@ -99,19 +94,19 @@
         android:layout_height="wrap_content"
         android:text="RSS配信元"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:layout_marginTop="32dp"
+        android:textSize="22sp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text" />
 
     <Spinner
         android:id="@+id/rss_preset_spinner"
         android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_height="48dp"
         android:background="#333333"
-        android:padding="12dp"
+        android:padding="8dp"
         android:popupBackground="#333333"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rss_preset_label" />
@@ -119,17 +114,17 @@
     <EditText
         android:id="@+id/rss_custom_url_edit_text"
         android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_height="48dp"
         android:background="#333333"
         android:gravity="center_vertical"
         android:hint="カスタムURL入力"
         android:inputType="textUri"
-        android:padding="12dp"
+        android:padding="8dp"
         android:textColor="#FFFFFF"
         android:textColorHint="#888888"
-        android:textSize="22sp"
+        android:textSize="20sp"
         android:visibility="gone"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner" />
@@ -141,9 +136,9 @@
         android:layout_height="wrap_content"
         android:text="読み上げ機能を有効にする"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:checked="false"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="12dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text" />
 
@@ -153,9 +148,9 @@
         android:layout_height="wrap_content"
         android:text="※著作権は各コンテンツ提供者に帰属します"
         android:textColor="#FFCC00"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:gravity="start"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox" />
@@ -163,17 +158,15 @@
     <!-- 保存ボタン -->
     <Button
         android:id="@+id/save_button"
-        android:layout_width="300dp"
-        android:layout_height="70dp"
+        android:layout_width="280dp"
+        android:layout_height="56dp"
         android:backgroundTint="#4CAF50"
         android:text="保存"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:layout_marginTop="32dp"
-        android:layout_marginBottom="32dp"
+        android:textSize="24sp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-</ScrollView>
