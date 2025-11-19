@@ -31,7 +31,8 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
                     readNewsUseCase = useCaseFactory.createReadNewsUseCase(),
                     playMusicUseCase = useCaseFactory.createPlayMusicUseCase(),
                     getCurrentTrackUseCase = useCaseFactory.createGetCurrentTrackUseCase(),
-                    settingsRepository = repositoryFactory.createSettingsRepository()
+                    settingsRepository = repositoryFactory.createSettingsRepository(),
+                    musicPlayer = repositoryFactory.getMusicPlayer()
                 ) as T
             }
             modelClass.isAssignableFrom(SetupViewModel::class.java) -> {

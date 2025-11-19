@@ -211,4 +211,16 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
             false
         }
     }
+
+    /**
+     * 現在の再生位置を取得（ミリ秒）
+     * @return 現在の再生位置（再生していない場合は0）
+     */
+    override fun getCurrentPosition(): Long {
+        return try {
+            currentPlayer?.currentPosition?.toLong() ?: 0L
+        } catch (e: IllegalStateException) {
+            0L
+        }
+    }
 }
