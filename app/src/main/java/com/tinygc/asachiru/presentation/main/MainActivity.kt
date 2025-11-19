@@ -265,6 +265,9 @@ class MainActivity : AppCompatActivity() {
             "未取得"
         }
         
-        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime)"
+        // 次のニュースまでの残り秒数
+        val remainingSeconds = state.debugNextNewsRemainingSeconds
+        
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime) | 次の記事まで: ${remainingSeconds}秒"
     }
 }

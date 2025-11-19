@@ -55,7 +55,11 @@
 **最終更新日**: 2025-11-19
 
 ### 最近の更新 (2025-11-19)
-1. **MediaPlayer例外処理の改善**: MusicPlayer.getAudioSessionId()でIllegalStateExceptionが発生してアプリがクラッシュする問題を修正
+1. **デバッグ情報にカウントダウン表示追加**: 次の記事表示までの残り秒数をデバッグ情報欄に表示
+   - MainUiStateにdebugNextNewsRemainingSecondsフィールドを追加
+   - MainViewModelで1秒ごとにカウントダウンを計算して更新
+   - DEBUG BUILDでのみ表示される開発者向け機能
+2. **MediaPlayer例外処理の改善**: MusicPlayer.getAudioSessionId()でIllegalStateExceptionが発生してアプリがクラッシュする問題を修正
    - MediaPlayerが解放済みまたは不正な状態でaudioSessionIdを取得しようとした際の例外を適切にキャッチ
    - クラッシュの代わりに0を返すことでアプリの安定性を向上
 2. **テキストサイズ最適化**: 実際のTV表示に最適化するため、すべてのテキストサイズをDP単位（SP）に変換し約50%縮小
