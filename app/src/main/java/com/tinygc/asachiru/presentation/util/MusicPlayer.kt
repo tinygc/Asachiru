@@ -80,17 +80,23 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
     private fun playNext() {
         if (trackList.isEmpty()) return
 
-        // クロスフェード処理
+        // 次のインデックスを計算
+        val nextIndex = (currentTrackIndex + 1) % trackList.size
+        val nextTrack = trackList.getOrNull(nextIndex)
+        
+        if (nextTrack == null) return
+
+        // クロスフェード処理（前の曲をフェードアウト）
         fadeOut(currentPlayer, FADE_DURATION_MS)
 
         // 次の曲に移行
         currentPlayer = nextPlayer
-        currentTrackIndex = (currentTrackIndex + 1) % trackList.size
-        currentTrack = trackList.getOrNull(currentTrackIndex)
+        currentTrackIndex = nextIndex
+        currentTrack = nextTrack
 
-        // nextPlayerがnullの場合は、現在の曲を直接再生
-        if (currentPlayer == null && currentTrack != null) {
-            currentPlayer = MediaPlayer.create(context, currentTrack!!.resourceId)
+        // nextPlayerがnullの場合は、直接MediaPlayerを作成
+        if (currentPlayer == null) {
+            currentPlayer = MediaPlayer.create(context, nextTrack.resourceId)
         }
 
         currentPlayer?.apply {
