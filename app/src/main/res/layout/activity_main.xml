@@ -66,6 +66,20 @@
         tools:text="[DEBUG] TTS: ON | RSS: 10件取得 (12:34:56)"
         tools:visibility="visible" />
 
+    <!-- ニュースデバッグビュー（DEBUG BUILD時のみ表示） -->
+    <com.tinygc.asachiru.presentation.main.views.NewsDebugView
+        android:id="@+id/news_debug_view"
+        android:layout_width="400dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/debug_info_view"
+        tools:visibility="visible" />
+
     <!-- 時計（左上） -->
     <com.tinygc.asachiru.presentation.main.views.ClockView
         android:id="@+id/clock_view"

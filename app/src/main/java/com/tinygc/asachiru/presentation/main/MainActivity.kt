@@ -242,10 +242,12 @@ class MainActivity : AppCompatActivity() {
     private fun updateDebugInfo(state: MainUiState) {
         if (!BuildConfig.DEBUG) {
             binding.debugInfoView.visibility = android.view.View.GONE
+            binding.newsDebugView.visibility = android.view.View.GONE
             return
         }
 
         binding.debugInfoView.visibility = android.view.View.VISIBLE
+        binding.newsDebugView.visibility = android.view.View.VISIBLE
         
         // TTS ON/OFF状態
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
@@ -266,5 +268,8 @@ class MainActivity : AppCompatActivity() {
         }
         
         binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime)"
+        
+        // NewsDebugViewを更新
+        binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
     }
 }
