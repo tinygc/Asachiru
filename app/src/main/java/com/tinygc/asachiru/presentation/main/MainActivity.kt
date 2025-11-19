@@ -54,6 +54,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
+                    // デバッグ情報の更新（DEBUG BUILDのみ）
+                    updateDebugInfo(state)
+                    
                     // 時計の更新
                     binding.clockView.updateDateTime(state.dateTime)
 
@@ -227,5 +230,37 @@ class MainActivity : AppCompatActivity() {
                 android.util.Log.d("Visualizer", "RECORD_AUDIO拒否。フェイク表示継続")
             }
         }
+    }
+
+    /**
+     * デバッグ情報を更新（DEBUG BUILDのみ）
+     */
+    private fun updateDebugInfo(state: MainUiState) {
+        if (!com.tinygc.asachiru.BuildConfig.DEBUG) {
+            binding.debugInfoView.visibility = android.view.View.GONE
+            return
+        }
+
+        binding.debugInfoView.visibility = android.view.View.VISIBLE
+        
+        // TTS ON/OFF状態
+        val ttsStatus = if (state.enableTts) "ON" else "OFF"
+        
+        // RSS取得状況
+        val rssCount = state.debugNewsList.size
+        val lastFetchTime = if (state.debugLastFetchTime > 0) {
+            val calendar = java.util.Calendar.getInstance().apply {
+                timeInMillis = state.debugLastFetchTime
+            }
+            String.format("%02d:%02d:%02d", 
+                calendar.get(java.util.Calendar.HOUR_OF_DAY),
+                calendar.get(java.util.Calendar.MINUTE),
+                calendar.get(java.util.Calendar.SECOND)
+            )
+        } else {
+            "未取得"
+        }
+        
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime)"
     }
 }
