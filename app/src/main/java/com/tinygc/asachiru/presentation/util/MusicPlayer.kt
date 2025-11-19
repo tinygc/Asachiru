@@ -88,6 +88,11 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         currentTrackIndex = (currentTrackIndex + 1) % trackList.size
         currentTrack = trackList.getOrNull(currentTrackIndex)
 
+        // nextPlayerがnullの場合は、現在の曲を直接再生
+        if (currentPlayer == null && currentTrack != null) {
+            currentPlayer = MediaPlayer.create(context, currentTrack!!.resourceId)
+        }
+
         currentPlayer?.apply {
             setVolume(baseVolume, baseVolume)
             setOnCompletionListener {
