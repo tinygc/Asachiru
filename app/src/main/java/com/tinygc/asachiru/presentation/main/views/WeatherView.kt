@@ -6,6 +6,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.Weather
@@ -60,27 +61,27 @@ class WeatherView @JvmOverloads constructor(
     private val highlightRect = RectF()
 
     private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 192f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 96f, context.resources.displayMetrics)
         color = Color.WHITE
         setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 72f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
         color = Color.WHITE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 72f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
         color = Color.RED
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     private val dateLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 56f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 28f, context.resources.displayMetrics)
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 少し薄く表示
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
