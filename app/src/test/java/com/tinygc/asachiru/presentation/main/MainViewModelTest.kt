@@ -46,6 +46,7 @@ class MainViewModelTest {
     private lateinit var playMusicUseCase: PlayMusicUseCase
     private lateinit var getCurrentTrackUseCase: GetCurrentTrackUseCase
     private lateinit var settingsRepository: SettingsRepository
+    private lateinit var musicPlayer: com.tinygc.asachiru.domain.common.IMusicPlayer
 
     private lateinit var viewModel: MainViewModel
 
@@ -74,12 +75,14 @@ class MainViewModelTest {
         playMusicUseCase = mock()
         getCurrentTrackUseCase = mock()
         settingsRepository = mock()
+        musicPlayer = mock()
 
         whenever(getCurrentDateTimeUseCase.invoke()).thenReturn(testDateTime)
         runBlocking {
             whenever(settingsRepository.getSettings()).thenReturn(testSettings)
         }
         whenever(getCurrentTrackUseCase.invoke()).thenReturn(testMusic)
+        whenever(musicPlayer.getCurrentPosition()).thenReturn(0L)
     }
 
     @After
@@ -196,6 +199,7 @@ class MainViewModelTest {
             playMusicUseCase = playMusicUseCase,
             getCurrentTrackUseCase = getCurrentTrackUseCase,
             settingsRepository = settingsRepository,
+            musicPlayer = musicPlayer,
             skipAutoStart = skipAutoStart
         )
     }
