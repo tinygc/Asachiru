@@ -154,6 +154,47 @@ class MainViewModelTest {
         verify(refreshWeatherUseCase, atLeastOnce()).invoke()
     }
 
+    @Test
+    fun `onResume should restart music playback`() = runTest {
+        // Given
+        viewModel = createViewModel()
+
+        // When
+        viewModel.onResume()
+        advanceTimeBy(100)
+
+        // Then
+        // startMusicPlayback()内でplayMusicUseCaseが呼ばれる
+        verify(playMusicUseCase, atLeastOnce()).invoke()
+    }
+
+    @Test
+    fun `onPause should stop music player`() = runTest {
+        // Given
+        viewModel = createViewModel()
+
+        // When
+        viewModel.onPause()
+        advanceTimeBy(100)
+
+        // Then
+        verify(musicPlayer, times(1)).stop()
+        verify(readNewsUseCase, times(1)).stopReading()
+    }
+
+    @Test
+    fun `onStop should stop music player`() = runTest {
+        // Given
+        viewModel = createViewModel()
+
+        // When
+        viewModel.onStop()
+        advanceTimeBy(100)
+
+        // Then
+        verify(musicPlayer, times(1)).stop()
+    }
+
     // 無限ループのテストは削除
     // FlowTimer.ticker()の動作はKotlin Coroutinesに任せる
 
