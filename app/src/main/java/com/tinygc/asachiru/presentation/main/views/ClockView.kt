@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.DateTime
@@ -63,7 +64,7 @@ class ClockView @JvmOverloads constructor(
     private val highlightRect = RectF()
 
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 240f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 120f, context.resources.displayMetrics)
         color = Color.WHITE
         typeface = Typeface.MONOSPACE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
@@ -71,7 +72,7 @@ class ClockView @JvmOverloads constructor(
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 96f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 48f, context.resources.displayMetrics)
         typeface = Typeface.MONOSPACE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）

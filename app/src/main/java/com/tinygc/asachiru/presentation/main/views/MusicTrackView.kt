@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.tinygc.asachiru.domain.entity.Music
@@ -60,7 +61,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // トラック名用
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 72f // Android TV (4K)用に少し控えめなサイズ
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
         color = Color.WHITE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
@@ -70,7 +71,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // アーティスト名用
     private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 48f // タイトルより小さめの控えめなサイズ
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 80%の不透明度
         textAlign = Paint.Align.CENTER
@@ -80,7 +81,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // エラーメッセージ用
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 72f // Android TV (4K)用に2倍に拡大
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
         color = Color.RED
         textAlign = Paint.Align.CENTER
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
