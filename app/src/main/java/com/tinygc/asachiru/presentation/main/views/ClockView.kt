@@ -64,7 +64,7 @@ class ClockView @JvmOverloads constructor(
     private val highlightRect = RectF()
 
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 120f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 60f, context.resources.displayMetrics)
         color = Color.WHITE
         typeface = Typeface.MONOSPACE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
@@ -72,7 +72,7 @@ class ClockView @JvmOverloads constructor(
     }
 
     private val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 48f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
         typeface = Typeface.MONOSPACE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）

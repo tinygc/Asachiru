@@ -62,7 +62,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // トラック名用
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
         color = Color.WHITE
         typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textAlign = Paint.Align.CENTER
@@ -72,7 +72,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // アーティスト名用
     private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 80%の不透明度
         textAlign = Paint.Align.CENTER
@@ -92,7 +92,7 @@ class MusicTrackView @JvmOverloads constructor(
 
     // エラーメッセージ用
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
         color = Color.RED
         textAlign = Paint.Align.CENTER
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）

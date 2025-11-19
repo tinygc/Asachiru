@@ -71,7 +71,7 @@ class NewsView @JvmOverloads constructor(
     private val highlightRect = RectF()
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 48f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
         color = Color.WHITE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
@@ -79,7 +79,7 @@ class NewsView @JvmOverloads constructor(
 
     // 時刻表示用（タイトルより小さめ）
     private val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 32f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 16f, context.resources.displayMetrics)
         color = Color.WHITE
         alpha = (255 * 0.8f).toInt() // 少し薄く表示
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
@@ -354,14 +354,14 @@ class NewsView @JvmOverloads constructor(
 
         // テキストペイント（明るい白）
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 36f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
             color = Color.argb(240, 240, 245, 255)
             letterSpacing = 0.03f
             setShadowLayer(4f, 2f, 2f, Color.argb(100, 0, 0, 0)) // テキストに影
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 46f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 23f, context.resources.displayMetrics)
             color = Color.argb(255, 255, 255, 255)
             letterSpacing = 0.02f
             isFakeBoldText = true
@@ -396,7 +396,7 @@ class NewsView @JvmOverloads constructor(
         
         // フッター情報（閉じるヒント）
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
             color = Color.argb(150, 180, 185, 200)
             letterSpacing = 0.02f
         }
@@ -446,7 +446,7 @@ class NewsView @JvmOverloads constructor(
         
         // QRコードの説明テキスト
         val qrLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10f, context.resources.displayMetrics)
             color = Color.argb(200, 200, 205, 220)
             letterSpacing = 0.02f
         }

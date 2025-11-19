@@ -180,7 +180,12 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      * @return オーディオセッションID
      */
     override fun getAudioSessionId(): Int {
-        return currentPlayer?.audioSessionId ?: 0
+        return try {
+            currentPlayer?.audioSessionId ?: 0
+        } catch (e: IllegalStateException) {
+            // MediaPlayerが既に解放されている場合
+            0
+        }
     }
 
     /**
