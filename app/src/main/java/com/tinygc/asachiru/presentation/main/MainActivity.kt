@@ -80,6 +80,9 @@ class MainActivity : AppCompatActivity() {
                         updateNewsViewLayout(state.showNewsDetail)
                     }
 
+                    // 音楽トラック情報の更新
+                    binding.musicTrackView.updateMusic(state.currentTrack, state.currentPosition)
+
                     // ビジュアライザー起動ロジック
                     val sessionId = musicPlayer.getAudioSessionId()
                     val isPlaying = musicPlayer.isPlaying()

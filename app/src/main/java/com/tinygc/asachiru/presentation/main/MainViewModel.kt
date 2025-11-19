@@ -2,6 +2,7 @@ package com.tinygc.asachiru.presentation.main
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tinygc.asachiru.domain.common.IMusicPlayer
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.News
 import com.tinygc.asachiru.domain.repository.SettingsRepository
@@ -38,6 +39,7 @@ class MainViewModel(
     private val playMusicUseCase: PlayMusicUseCase,
     private val getCurrentTrackUseCase: GetCurrentTrackUseCase,
     private val settingsRepository: SettingsRepository,
+    private val musicPlayer: IMusicPlayer,
     // テスト用のパラメータ（デフォルト値は本番用）
     private val clockUpdateIntervalMs: Long = 1000L,
     private val trackUpdateIntervalMs: Long = 1000L,
@@ -288,7 +290,8 @@ class MainViewModel(
         FlowTimer.ticker(intervalMillis = trackUpdateIntervalMs)
             .onEach {
                 val currentTrack = getCurrentTrackUseCase()
-                _uiState.update { it.copy(currentTrack = currentTrack) }
+                val currentPosition = musicPlayer.getCurrentPosition()
+                _uiState.update { it.copy(currentTrack = currentTrack, currentPosition = currentPosition) }
             }
             .launchIn(viewModelScope)
     }

@@ -25,6 +25,7 @@ class MusicTrackView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var currentMusic: Music? = null
+    private var currentPosition: Long = 0L // 現在の再生位置（ミリ秒）
     private var errorMessage: String? = null
 
     // Material Design 3 + Neumorphism背景用
@@ -79,6 +80,16 @@ class MusicTrackView @JvmOverloads constructor(
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
+    // 再生時間用
+    private val durationPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
+        color = Color.WHITE
+        alpha = (255 * 0.7f).toInt() // 70%の不透明度
+        textAlign = Paint.Align.CENTER
+        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
+        setShadowLayer(4f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+    }
+
     // エラーメッセージ用
     private val errorPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
@@ -92,10 +103,12 @@ class MusicTrackView @JvmOverloads constructor(
      * 音楽情報を更新
      * 初回表示時はフェードインアニメーションで表示されます。
      * @param music 表示する音楽情報（nullの場合は非表示）
+     * @param position 現在の再生位置（ミリ秒）
      */
-    fun updateMusic(music: Music?) {
+    fun updateMusic(music: Music?, position: Long = 0L) {
         val shouldAnimate = this.currentMusic == null && music != null && music != Music.EMPTY
         this.currentMusic = music
+        this.currentPosition = position
         this.errorMessage = null
 
         if (shouldAnimate) {
@@ -143,8 +156,8 @@ class MusicTrackView @JvmOverloads constructor(
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
 
-        // タイトル + アーティスト + 余白分を目安に高さ上限を決める
-        val desiredHeight = titlePaint.textSize + artistPaint.textSize + 72f
+        // タイトル + アーティスト + 再生時間 + 余白分を目安に高さ上限を決める
+        val desiredHeight = titlePaint.textSize + artistPaint.textSize + durationPaint.textSize + 96f
         val maxHeight = desiredHeight.toInt()
 
         val measuredWidth = measuredWidth
@@ -265,5 +278,33 @@ class MusicTrackView @JvmOverloads constructor(
         if (artistWidth > availableWidth) {
             canvas.restore()
         }
+
+        // 再生時間（アーティスト名のさらに下）
+        val durationText = formatDuration(currentPosition) + " / " + formatDuration(music.durationMs)
+        val durationWidth = durationPaint.measureText(durationText)
+
+        if (durationWidth > availableWidth) {
+            val scale = availableWidth / durationWidth
+            canvas.save()
+            canvas.scale(scale, scale, centerX, centerY + 80f)
+        }
+
+        canvas.drawText(durationText, centerX, centerY + 80f, durationPaint)
+
+        if (durationWidth > availableWidth) {
+            canvas.restore()
+        }
+    }
+
+    /**
+     * ミリ秒を "分:秒" フォーマットに変換
+     * @param ms ミリ秒
+     * @return "分:秒" 形式の文字列（例: "1:23"）
+     */
+    private fun formatDuration(ms: Long): String {
+        val totalSeconds = ms / 1000
+        val minutes = totalSeconds / 60
+        val seconds = totalSeconds % 60
+        return String.format("%d:%02d", minutes, seconds)
     }
 }

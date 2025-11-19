@@ -29,6 +29,7 @@ data class MainUiState(
     // 音楽
     val currentTrack: Music? = null,
     val isMusicPlaying: Boolean = false,
+    val currentPosition: Long = 0L, // 現在の再生位置（ミリ秒）
 
     // デバッグ情報
     val debugNewsList: List<News> = emptyList(),

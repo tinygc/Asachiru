@@ -41,4 +41,10 @@ interface IMusicPlayer {
      * @return 再生中ならtrue
      */
     fun isPlaying(): Boolean
+
+    /**
+     * 現在の再生位置を取得（ミリ秒）
+     * @return 現在の再生位置（再生していない場合は0）
+     */
+    fun getCurrentPosition(): Long
 }
