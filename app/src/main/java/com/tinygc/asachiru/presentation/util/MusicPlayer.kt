@@ -32,7 +32,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      * トラックリストを設定
      * @param tracks トラックリスト
      */
-    fun setTrackList(tracks: List<Music>) {
+    override fun setTrackList(tracks: List<Music>) {
         this.trackList = tracks
     }
 

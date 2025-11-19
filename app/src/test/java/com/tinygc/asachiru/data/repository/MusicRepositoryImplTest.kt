@@ -77,6 +77,7 @@ class MusicRepositoryImplTest {
         repository.playTrack("1")
 
         // Then
+        verify(musicPlayer).setTrackList(mockTracks)
         verify(musicPlayer).play(mockTracks[0])
     }
 
@@ -92,6 +93,7 @@ class MusicRepositoryImplTest {
         repository.playTrack("2")
 
         // Then
+        verify(musicPlayer).setTrackList(mockTracks)
         verify(musicPlayer).play(track2)
         verify(musicPlayer, never()).play(track1)
     }
@@ -108,6 +110,7 @@ class MusicRepositoryImplTest {
         repository.playTrack("999")
 
         // Then
+        verify(musicPlayer, never()).setTrackList(any())
         verify(musicPlayer, never()).play(any())
     }
 
@@ -120,6 +123,7 @@ class MusicRepositoryImplTest {
         repository.playTrack("1")
 
         // Then
+        verify(musicPlayer, never()).setTrackList(any())
         verify(musicPlayer, never()).play(any())
     }
 
@@ -191,6 +195,7 @@ class MusicRepositoryImplTest {
         repository.playTrack("2")
 
         // Then
+        verify(musicPlayer, times(2)).setTrackList(mockTracks)
         verify(musicPlayer).play(track1)
         verify(musicPlayer).play(track2)
     }
@@ -225,5 +230,40 @@ class MusicRepositoryImplTest {
         assertEquals("First", result[0].title)
         assertEquals("Second", result[1].title)
         assertEquals("Third", result[2].title)
+    }
+
+    @Test
+    fun `playTrack should set track list with all 3 tracks for loop playback`() {
+        // Given
+        val track1 = Music("nakazaki_cho", "中崎町", "Artist A", 1, 180_000L)
+        val track2 = Music("se_no_bi", "背の美", "Artist B", 2, 200_000L)
+        val track3 = Music("yoru_no_byoshitsu_electro", "夜の病室 Electro", "Artist C", 3, 190_000L)
+        val mockTracks = listOf(track1, track2, track3)
+        whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
+
+        // When
+        repository.playTrack("nakazaki_cho")
+
+        // Then
+        verify(musicPlayer).setTrackList(mockTracks)
+        verify(musicPlayer).play(track1)
+    }
+
+    @Test
+    fun `playTrack should set all tracks in the list for looping`() {
+        // Given
+        val mockTracks = listOf(
+            Music("1", "Track 1", "Artist 1", 1, 180_000L),
+            Music("2", "Track 2", "Artist 2", 2, 200_000L),
+            Music("3", "Track 3", "Artist 3", 3, 190_000L)
+        )
+        whenever(musicLocalDataSource.getAllTracks()).thenReturn(mockTracks)
+
+        // When - Play second track
+        repository.playTrack("2")
+
+        // Then - All tracks should be set for looping, but only track 2 should play
+        verify(musicPlayer).setTrackList(mockTracks)
+        verify(musicPlayer).play(mockTracks[1])
     }
 }
