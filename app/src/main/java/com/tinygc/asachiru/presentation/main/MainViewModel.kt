@@ -364,14 +364,33 @@ class MainViewModel(
                 // TTS ONにした場合は現在のニュースから読み上げ開始
                 currentNewsJob?.cancel()
                 val currentNews = _uiState.value.currentNews
-                if (currentNews != null) {
-                    // 現在表示中のニュースがあれば、それを読み上げ
+                if (currentNews != null && currentNewsList.isNotEmpty() && currentNewsIndex >= 0) {
+                    // 現在表示中のニュースがあれば、そのニュースを読み上げてから残りも継続
                     currentNewsJob = viewModelScope.launch {
+                        // 現在のニュースを読み上げ
                         readNewsUseCase(
                             newsList = listOf(currentNews),
                             onNewsChanged = { },
                             onComplete = { }
                         )
+                        
+                        // 残りのニュースがあれば続けて読み上げ
+                        val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
+                        if (remainingNews.isNotEmpty()) {
+                            readNewsUseCase(
+                                newsList = remainingNews,
+                                onNewsChanged = { news ->
+                                    currentNewsIndex++
+                                    readNewsIds += news.id
+                                    _uiState.update { it.copy(currentNews = news) }
+                                },
+                                onComplete = {
+                                    _uiState.update { it.copy(currentNews = null) }
+                                }
+                            )
+                        } else {
+                            _uiState.update { it.copy(currentNews = null) }
+                        }
                     }
                 } else {
                     // 表示中のニュースがなければ新しく取得
