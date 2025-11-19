@@ -9,6 +9,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
+import com.tinygc.asachiru.BuildConfig
 import com.tinygc.asachiru.databinding.ActivityMainBinding
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import kotlinx.coroutines.launch
@@ -236,7 +237,7 @@ class MainActivity : AppCompatActivity() {
      * デバッグ情報を更新（DEBUG BUILDのみ）
      */
     private fun updateDebugInfo(state: MainUiState) {
-        if (!com.tinygc.asachiru.BuildConfig.DEBUG) {
+        if (!BuildConfig.DEBUG) {
             binding.debugInfoView.visibility = android.view.View.GONE
             return
         }
