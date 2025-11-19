@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // 音楽トラック情報の更新
-                    binding.musicTrackView.updateMusic(state.currentTrack, state.currentPosition)
+                    binding.musicTrackView.updateMusic(state.currentTrack)
 
                     // ビジュアライザー起動ロジック
                     val sessionId = musicPlayer.getAudioSessionId()
