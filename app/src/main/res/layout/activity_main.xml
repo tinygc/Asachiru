@@ -63,7 +63,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="[DEBUG] TTS: ON | RSS: 10件取得 (12:34:56)"
+        tools:text="[DEBUG] TTS: ON"
         tools:visibility="visible" />
 
     <!-- ニュースデバッグビュー（DEBUG BUILD時のみ表示） -->

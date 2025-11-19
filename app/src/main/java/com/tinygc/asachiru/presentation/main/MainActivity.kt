@@ -249,27 +249,11 @@ class MainActivity : AppCompatActivity() {
         binding.debugInfoView.visibility = android.view.View.VISIBLE
         binding.newsDebugView.visibility = android.view.View.VISIBLE
         
-        // TTS ON/OFF状態
+        // TTS ON/OFF状態のみ表示（RSS情報はNewsDebugViewに集約）
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus"
         
-        // RSS取得状況
-        val rssCount = state.debugNewsList.size
-        val lastFetchTime = if (state.debugLastFetchTime > 0) {
-            val calendar = java.util.Calendar.getInstance().apply {
-                timeInMillis = state.debugLastFetchTime
-            }
-            String.format("%02d:%02d:%02d", 
-                calendar.get(java.util.Calendar.HOUR_OF_DAY),
-                calendar.get(java.util.Calendar.MINUTE),
-                calendar.get(java.util.Calendar.SECOND)
-            )
-        } else {
-            "未取得"
-        }
-        
-        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime)"
-        
-        // NewsDebugViewを更新
+        // NewsDebugViewを更新（RSS取得時刻と記事リスト）
         binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
     }
 }
