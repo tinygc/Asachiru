@@ -301,6 +301,8 @@ class MainViewModel(
      */
     fun onResume() {
         refreshWeather()
+        // 音楽再生を再開
+        startMusicPlayback()
     }
 
     /**
@@ -311,13 +313,16 @@ class MainViewModel(
         readNewsUseCase.stopReading()
         // ニュース自動送りJob停止
         currentNewsJob?.cancel()
+        // 音楽を停止
+        musicPlayer.stop()
     }
 
     /**
      * 完全に停止時の処理
      */
     fun onStop() {
-        // 何もしない（音楽は継続）
+        // 音楽を停止
+        musicPlayer.stop()
     }
 
     /**
