@@ -313,8 +313,8 @@ class MainViewModel(
         readNewsUseCase.stopReading()
         // ニュース自動送りJob停止
         currentNewsJob?.cancel()
-        // 音楽を停止
-        musicPlayer.stop()
+        // 音楽停止はonStopでやるから、ここでは何もしないよ☆
+        
     }
 
     /**
