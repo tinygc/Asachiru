@@ -33,6 +33,8 @@ class NewsView @JvmOverloads constructor(
     private var errorMessage: String? = null
     private var showDetail: Boolean = false
     private var enableTts: Boolean = false
+    private var progressPercent: Float = 0f // 次の記事までのプログレス（0.0～1.0）
+    private var animatedProgress: Float = 0f // アニメーション用の現在のプログレス値
     
     // QRコードキャッシュ
     private var qrCodeBitmap: Bitmap? = null
@@ -64,6 +66,18 @@ class NewsView @JvmOverloads constructor(
         alpha = (255 * 0.5f).toInt() // 50%の不透明度（強調）
         style = Paint.Style.STROKE
         strokeWidth = 2f // より繊細に
+    }
+
+    // プログレスバー背景用（モダンで控えめ）
+    private val progressBackgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.argb((255 * 0.25f).toInt(), 135, 206, 250) // パステルブルー 25%
+        style = Paint.Style.FILL
+    }
+
+    // プログレスバー前景用（グラデーション対応）
+    private val progressForegroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+        // グラデーション効果は描画時に動的設定
     }
 
     private val backgroundRect = RectF()
@@ -99,6 +113,7 @@ class NewsView @JvmOverloads constructor(
         if (shouldAnimate) {
             // 初回表示時はフェードインアニメーション（Material Design 3準拠）
             alpha = 0f
+            animatedProgress = 0f // プログレスもリセット
             invalidate()
             animate()
                 .alpha(1f)
@@ -136,6 +151,35 @@ class NewsView @JvmOverloads constructor(
         invalidate()
     }
 
+    /**
+     * プログレスの更新(TTS OFF時の次の記事までの進行度)
+     * 滑らかなアニメーションで遷移します
+     */
+    fun setProgress(percent: Float) {
+        val targetProgress = percent.coerceIn(0f, 1f)
+        this.progressPercent = targetProgress
+        
+        // 大きく変化する場合(記事切り替え時)は即座に反映、小さい変化はアニメーション
+        val progressDiff = Math.abs(targetProgress - animatedProgress)
+        if (progressDiff > 0.5f) {
+            // 記事切り替えなど大きな変化: 即座に反映
+            animatedProgress = targetProgress
+            invalidate()
+        } else {
+            // 通常の進行: 滑らかなアニメーション(300ms)
+            animate()
+                .setDuration(300)
+                .setInterpolator(FastOutSlowInInterpolator())
+                .setUpdateListener { animation ->
+                    // 現在のプログレス値から目標値まで補間
+                    val fraction = animation.animatedFraction
+                    animatedProgress = animatedProgress + (targetProgress - animatedProgress) * fraction
+                    invalidate()
+                }
+                .start()
+        }
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -143,6 +187,11 @@ class NewsView @JvmOverloads constructor(
         if (showDetail) {
             drawDetailPopup(canvas)
             return
+        }
+
+        // TTS OFF時はプログレスバーを最初に描画（Viewの一番上）
+        if (!enableTts && progressPercent > 0f) {
+            drawProgressBar(canvas)
         }
 
         // Glassmorphism背景を描画
@@ -290,6 +339,49 @@ class NewsView @JvmOverloads constructor(
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         return "${hour}時${minute}分"
+    }
+
+    /**
+     * プログレスバーを描画（TTS OFF時、画面最上部にモダンデザイン）
+     */
+    private fun drawProgressBar(canvas: Canvas) {
+        val progressBarHeight = 8f // 8dpのバー
+        
+        // 画面最上部に配置
+        val progressBarY = 0f
+
+        // 背景バー（全幅）
+        val backgroundRect = RectF(
+            0f,
+            progressBarY,
+            width.toFloat(),
+            progressBarY + progressBarHeight
+        )
+        canvas.drawRect(backgroundRect, progressBackgroundPaint)
+
+        // 前景バー（グラデーション付き、プログレスに応じて伸びる）
+        val foregroundWidth = width * animatedProgress
+        if (foregroundWidth > 0) {
+            // グラデーション設定（パステルブルー → シアン）
+            progressForegroundPaint.shader = android.graphics.LinearGradient(
+                0f, progressBarY,
+                foregroundWidth, progressBarY,
+                intArrayOf(
+                    Color.argb((255 * 0.75f).toInt(), 100, 180, 255), // パステルブルー 75%
+                    Color.argb((255 * 0.85f).toInt(), 0, 220, 255)    // シアン 85%
+                ),
+                null,
+                android.graphics.Shader.TileMode.CLAMP
+            )
+            
+            val foregroundRect = RectF(
+                0f,
+                progressBarY,
+                foregroundWidth,
+                progressBarY + progressBarHeight
+            )
+            canvas.drawRect(foregroundRect, progressForegroundPaint)
+        }
     }
 
     /**

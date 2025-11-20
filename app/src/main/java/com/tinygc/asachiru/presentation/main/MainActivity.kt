@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.updateNews(state.currentNews)
                         binding.newsView.setShowDetail(state.showNewsDetail)
                         binding.newsView.setEnableTts(state.enableTts)
+                        binding.newsView.setProgress(state.newsProgressPercent)
                         
                         // 詳細表示時はNewsViewを全画面表示にする
                         updateNewsViewLayout(state.showNewsDetail)
@@ -203,6 +204,8 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         // 完全に見えなくなった時に停止
         viewModel.onStop()
+        // バックグラウンドに移行したらアプリを終了
+        finish()
     }
 
     private fun hasAudioPermission(): Boolean {

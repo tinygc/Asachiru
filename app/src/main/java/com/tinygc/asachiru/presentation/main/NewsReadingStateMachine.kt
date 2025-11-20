@@ -65,7 +65,12 @@ class NewsReadingStateMachine(
                     is NewsReadingState.ReadingArticle -> {
                         val nextIndex = currentState.articleIndex + 1
                         if (nextIndex < currentState.totalArticles) {
-                            transitionToArticleInterval(nextIndex, currentState.totalArticles)
+                            // TTS OFFの場合はインターバルなしで即次の記事へ
+                            if (!settings.enableTts) {
+                                transitionToReadingArticle(nextIndex, currentArticles, settings)
+                            } else {
+                                transitionToArticleInterval(nextIndex, currentState.totalArticles)
+                            }
                         } else {
                             handleEvent(NewsReadingEvent.AllArticlesCompleted, settings)
                         }
@@ -110,9 +115,9 @@ class NewsReadingStateMachine(
                                     cachedSettings?.let { handleEvent(NewsReadingEvent.ArticleCompleted, it) }
                                 }
                             } else {
-                                // TTS ON → OFF: タイマーを開始
+                                // TTS ON → OFF: タイマーを開始（タイトル文字数×7倍で計算）
                                 cancelTimer()
-                                val textLength = currentState.article.title.length + currentState.article.description.length
+                                val textLength = currentState.article.title.length * 7
                                 val displayDurationMs = (textLength * 200L) + 1000L
                                 val estimatedEndTimeMs = System.currentTimeMillis() + displayDurationMs
                                 
@@ -158,16 +163,21 @@ class NewsReadingStateMachine(
                     is NewsReadingState.ReadingArticle -> {
                         if (currentState.isPaused) {
                             // 一時停止を解除
-                            val pausedDurationMs = System.currentTimeMillis() - pausedAtMs
-                            val newEstimatedEndTimeMs = currentState.estimatedEndTimeMs + pausedDurationMs
-                            _state.value = currentState.copy(
-                                isPaused = false,
-                                estimatedEndTimeMs = newEstimatedEndTimeMs
-                            )
-                            // 残り時間でタイマー再開
-                            val remainingMs = newEstimatedEndTimeMs - System.currentTimeMillis()
-                            startTimer(remainingMs.coerceAtLeast(0)) {
-                                handleEvent(NewsReadingEvent.ArticleCompleted, settings)
+                            _state.value = currentState.copy(isPaused = false)
+                            
+                            // TTS OFF時のみタイマー再開（TTS ON時はonReadArticleが継続中）
+                            if (currentState.estimatedEndTimeMs > 0L) {
+                                val pausedDurationMs = System.currentTimeMillis() - pausedAtMs
+                                val newEstimatedEndTimeMs = currentState.estimatedEndTimeMs + pausedDurationMs
+                                _state.value = currentState.copy(
+                                    isPaused = false,
+                                    estimatedEndTimeMs = newEstimatedEndTimeMs
+                                )
+                                // 残り時間でタイマー再開
+                                val remainingMs = newEstimatedEndTimeMs - System.currentTimeMillis()
+                                startTimer(remainingMs.coerceAtLeast(0)) {
+                                    cachedSettings?.let { handleEvent(NewsReadingEvent.ArticleCompleted, it) }
+                                }
                             }
                         }
                     }
@@ -298,8 +308,8 @@ class NewsReadingStateMachine(
                 onReadArticle(article, true)
                 handleEvent(NewsReadingEvent.ArticleCompleted, settings)
             } else {
-                // TTS OFF: 文字数ベースで表示時間を計算
-                val textLength = article.title.length + article.description.length
+                // TTS OFF: タイトルの文字数×7倍で表示時間を計算（詳細は含まない）
+                val textLength = article.title.length * 7
                 val displayDurationMs = (textLength * 200L) + 1000L
                 val estimatedEndTimeMs = System.currentTimeMillis() + displayDurationMs
                 

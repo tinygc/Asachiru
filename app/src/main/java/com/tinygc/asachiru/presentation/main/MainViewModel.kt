@@ -90,13 +90,65 @@ class MainViewModel(
             stateMachine.state.collect { state ->
                 when (state) {
                     is NewsReadingState.ReadingArticle -> {
-                        _uiState.update { it.copy(currentNews = convertToEntityNews(state.article)) }
+                        _uiState.update { 
+                            it.copy(
+                                currentNews = convertToEntityNews(state.article),
+                                newsProgressPercent = calculateProgress(state)
+                            ) 
+                        }
+                    }
+                    is NewsReadingState.ArticleInterval -> {
+                        _uiState.update { 
+                            it.copy(
+                                currentNews = null,
+                                newsProgressPercent = calculateProgress(state)
+                            ) 
+                        }
                     }
                     else -> {
-                        _uiState.update { it.copy(currentNews = null) }
+                        _uiState.update { 
+                            it.copy(
+                                currentNews = null,
+                                newsProgressPercent = 0f
+                            ) 
+                        }
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * プログレスバーの進行度を計算（0.0～1.0）
+     * TTS OFF時のみ有効、TTS ON時は0を返す
+     */
+    private fun calculateProgress(state: NewsReadingState): Float {
+        // TTS ONの場合はプログレスバーを表示しない
+        if (_uiState.value.enableTts) {
+            return 0f
+        }
+
+        return when (state) {
+            is NewsReadingState.ReadingArticle -> {
+                if (state.estimatedEndTimeMs == 0L) {
+                    // TTS ON時
+                    0f
+                } else {
+                    // 開始時刻を逆算（タイトル×7倍で計算）
+                    val remainingMs = (state.estimatedEndTimeMs - System.currentTimeMillis()).coerceAtLeast(0L)
+                    val totalDurationMs = state.article.title.length * 7 * 200L + 1000L
+                    val elapsedMs = totalDurationMs - remainingMs
+                    (elapsedMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
+                }
+            }
+            is NewsReadingState.ArticleInterval -> {
+                // 記事間インターバル（5秒）のプログレス
+                val remainingMs = (state.endTimeMs - System.currentTimeMillis()).coerceAtLeast(0L)
+                val totalDurationMs = 5000L
+                val elapsedMs = totalDurationMs - remainingMs
+                (elapsedMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
+            }
+            else -> 0f
         }
     }
 
@@ -203,13 +255,16 @@ class MainViewModel(
             .onEach {
                 val dateTime = getCurrentDateTimeUseCase()
                 
-                // State Machineから残り時間を取得
-                val remainingSeconds = stateMachine.state.value.getRemainingSeconds()
+                // State Machineから残り時間とプログレスを取得
+                val currentState = stateMachine.state.value
+                val remainingSeconds = currentState.getRemainingSeconds()
+                val progress = calculateProgress(currentState)
                 
                 _uiState.update { 
                     it.copy(
                         dateTime = dateTime,
-                        debugNextNewsRemainingSeconds = remainingSeconds
+                        debugNextNewsRemainingSeconds = remainingSeconds,
+                        newsProgressPercent = progress
                     ) 
                 }
             }
