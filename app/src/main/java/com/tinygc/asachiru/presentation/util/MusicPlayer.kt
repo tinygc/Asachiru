@@ -26,7 +26,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
     private var trackList: List<Music> = emptyList()
     private var currentTrackIndex = 0
     private val handler = Handler(Looper.getMainLooper())
-    private var baseVolume = 1.0f // 基本音量
+    private var baseVolume = 0.3f // 基本音量（30%固定）
 
     /**
      * トラックリストを設定
