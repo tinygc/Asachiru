@@ -301,8 +301,10 @@ class MainViewModel(
      */
     fun onResume() {
         refreshWeather()
-        // 音楽再生を再開
-        startMusicPlayback()
+        // BGM再生を再開
+        viewModelScope.launch {
+            playMusicUseCase()
+        }
     }
 
     /**
@@ -313,15 +315,15 @@ class MainViewModel(
         readNewsUseCase.stopReading()
         // ニュース自動送りJob停止
         currentNewsJob?.cancel()
-        // 音楽停止はonStopでやるから、ここでは何もしないよ☆
-        
+        // BGM停止
+        musicPlayer.stop()
     }
 
     /**
      * 完全に停止時の処理
      */
     fun onStop() {
-        // 音楽を停止
+        // BGM停止
         musicPlayer.stop()
     }
 

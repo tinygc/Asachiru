@@ -106,9 +106,16 @@ class TtsManager(
 
     /**
      * TTSを停止
+     * バックグラウンド遷移時などに呼ばれ、読み上げを即座に停止します。
      */
     override fun stop() {
         tts?.stop()
+        // 読み上げキューをクリアして、音量も元に戻す
+        if (activeUtterances > 0 && musicPlayer != null) {
+            musicPlayer.setVolume(originalVolume ?: 1.0f)
+            activeUtterances = 0
+            originalVolume = null
+        }
     }
 
     /**
