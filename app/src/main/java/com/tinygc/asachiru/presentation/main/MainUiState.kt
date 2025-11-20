@@ -33,5 +33,6 @@ data class MainUiState(
 
     // デバッグ情報
     val debugNewsList: List<News> = emptyList(),
-    val debugLastFetchTime: Long = 0L
+    val debugLastFetchTime: Long = 0L,
+    val debugNextNewsRemainingSeconds: Long = 0L // 次のニュースまでの残り秒数
 )

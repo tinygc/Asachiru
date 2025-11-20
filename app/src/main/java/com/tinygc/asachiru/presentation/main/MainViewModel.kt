@@ -60,6 +60,9 @@ class MainViewModel(
     // ニュースリストと現在のインデックス
     private var currentNewsList: List<News> = emptyList()
     private var currentNewsIndex: Int = -1
+    
+    // 次のニュース読み上げ実行時刻（エポックミリ秒）
+    private var nextNewsReadingTime: Long = 0L
 
     init {
         if (!skipAutoStart) {
@@ -90,7 +93,21 @@ class MainViewModel(
         FlowTimer.ticker(intervalMillis = clockUpdateIntervalMs)
             .onEach {
                 val dateTime = getCurrentDateTimeUseCase()
-                _uiState.update { it.copy(dateTime = dateTime) }
+                
+                // 次のニュースまでの残り秒数を計算
+                val remainingSeconds = if (nextNewsReadingTime > 0) {
+                    val remaining = (nextNewsReadingTime - System.currentTimeMillis()) / 1000L
+                    maxOf(0L, remaining) // 負の値にならないように
+                } else {
+                    0L
+                }
+                
+                _uiState.update { 
+                    it.copy(
+                        dateTime = dateTime,
+                        debugNextNewsRemainingSeconds = remainingSeconds
+                    ) 
+                }
             }
             .launchIn(viewModelScope)
     }
@@ -177,9 +194,16 @@ class MainViewModel(
             // 設定された間隔を取得
             val settings = settingsRepository.getSettings()
             val intervalMs = settings.newsIntervalMinutes * 60 * 1000L
+            
+            // 初回のニュース読み上げ実行
+            nextNewsReadingTime = System.currentTimeMillis() + intervalMs
+            readNews()
 
             FlowTimer.ticker(intervalMillis = intervalMs)
-                .onEach { readNews() }
+                .onEach { 
+                    nextNewsReadingTime = System.currentTimeMillis() + intervalMs
+                    readNews() 
+                }
                 .launchIn(this) // viewModelScope.launch内なので、thisを使用
         }
     }

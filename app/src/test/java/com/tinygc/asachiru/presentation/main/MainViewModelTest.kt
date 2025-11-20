@@ -228,6 +228,27 @@ class MainViewModelTest {
         assertEquals(testWeather, newState.weather)
     }
 
+    @Test
+    fun `MainUiState should store debug next news remaining seconds`() {
+        // Given
+        val state = MainUiState()
+        
+        // When
+        val newState = state.copy(debugNextNewsRemainingSeconds = 120L)
+        
+        // Then
+        assertEquals(120L, newState.debugNextNewsRemainingSeconds)
+    }
+    
+    @Test
+    fun `debugNextNewsRemainingSeconds should default to 0`() {
+        // Given & When
+        val state = MainUiState()
+        
+        // Then
+        assertEquals(0L, state.debugNextNewsRemainingSeconds)
+    }
+
     private fun createViewModel(
         skipAutoStart: Boolean = true
     ): MainViewModel {

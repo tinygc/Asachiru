@@ -249,9 +249,10 @@ class MainActivity : AppCompatActivity() {
         binding.debugInfoView.visibility = android.view.View.VISIBLE
         binding.newsDebugView.visibility = android.view.View.VISIBLE
         
-        // TTS ON/OFF状態のみ表示（RSS情報はNewsDebugViewに集約）
+        // TTS ON/OFF状態と次のニュースまでの残り秒数を表示
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
-        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus"
+        val remainingSeconds = state.debugNextNewsRemainingSeconds
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | 次の記事まで: ${remainingSeconds}秒"
         
         // NewsDebugViewを更新（RSS取得時刻と記事リスト）
         binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
