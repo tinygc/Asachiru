@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.tinygc.asachiru.domain.common.IMusicPlayer
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.News
+import com.tinygc.asachiru.domain.model.News as DomainNews
 import com.tinygc.asachiru.domain.repository.SettingsRepository
 import com.tinygc.asachiru.domain.usecase.clock.GetCurrentDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.music.GetCurrentTrackUseCase
@@ -14,8 +15,6 @@ import com.tinygc.asachiru.domain.usecase.news.ReadNewsUseCase
 import com.tinygc.asachiru.domain.usecase.weather.GetWeatherUseCase
 import com.tinygc.asachiru.domain.usecase.weather.RefreshWeatherUseCase
 import com.tinygc.asachiru.presentation.util.FlowTimer
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +28,7 @@ import kotlinx.coroutines.launch
  *
  * 全ての機能（時計、天気、ニュース、音楽）を統合し、
  * StateFlowで状態を管理します。
+ * ニュース読み上げは NewsReadingStateMachine で管理します。
  */
 class MainViewModel(
     private val getCurrentDateTimeUseCase: GetCurrentDateTimeUseCase,
@@ -51,40 +51,149 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
-    // セッション内の既読ニュースIDを保持（idはlinkを想定）
-    private val readNewsIds = mutableSetOf<String>()
-    
-    // 現在実行中のニュース表示/読み上げJob
-    private var currentNewsJob: Job? = null
-    
-    // ニュースリストと現在のインデックス
-    private var currentNewsList: List<News> = emptyList()
-    private var currentNewsIndex: Int = -1
-    
-    // 次のニュース読み上げ実行時刻（エポックミリ秒）
-    private var nextNewsReadingTime: Long = 0L
+    // State Machine
+    private val stateMachine = NewsReadingStateMachine(
+        scope = viewModelScope,
+        onFetchNews = { fetchNewsArticles() },
+        onReadArticle = { article, ttsEnabled -> readArticle(article, ttsEnabled) }
+    )
 
     init {
         if (!skipAutoStart) {
             startClockUpdate()
             loadWeather()
             startWeatherAutoRefresh()
-            loadTtsSettings()
-            startNewsReading()
             startMusicPlayback()
             startTrackInfoUpdate()
+            startNewsStateMachine()
+            observeStateMachine()
+            startTtsSettingsMonitor()
+        }
+    }
+
+
+    /**
+     * State Machineを開始
+     */
+    private fun startNewsStateMachine() {
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            stateMachine.handleEvent(NewsReadingEvent.AppStarted, settings)
         }
     }
 
     /**
-     * TTS設定を読み込む
+     * State Machineの状態を監視してUIStateを更新
      */
-    private fun loadTtsSettings() {
+    private fun observeStateMachine() {
         viewModelScope.launch {
-            val settings = settingsRepository.getSettings()
-            _uiState.update { it.copy(enableTts = settings.enableTts) }
+            stateMachine.state.collect { state ->
+                when (state) {
+                    is NewsReadingState.ReadingArticle -> {
+                        _uiState.update { it.copy(currentNews = convertToEntityNews(state.article)) }
+                    }
+                    else -> {
+                        _uiState.update { it.copy(currentNews = null) }
+                    }
+                }
+            }
         }
     }
+
+    /**
+     * TTS設定の変更を監視
+     */
+    private fun startTtsSettingsMonitor() {
+        viewModelScope.launch {
+            var previousEnableTts: Boolean? = null
+            while (true) {
+                val settings = settingsRepository.getSettings()
+                val currentEnableTts = settings.enableTts
+                
+                if (previousEnableTts != null && previousEnableTts != currentEnableTts) {
+                    // TTS設定変更イベントを発火
+                    stateMachine.handleEvent(NewsReadingEvent.TtsSettingChanged(currentEnableTts), settings)
+                }
+                
+                _uiState.update { it.copy(enableTts = currentEnableTts) }
+                previousEnableTts = currentEnableTts
+                
+                kotlinx.coroutines.delay(1000L)
+            }
+        }
+    }
+
+    /**
+     * ニュース記事を取得
+     */
+    private suspend fun fetchNewsArticles(): List<com.tinygc.asachiru.domain.model.News> {
+        _uiState.update { it.copy(isNewsLoading = true) }
+
+        return when (val result = getLatestNewsUseCase(10)) {
+            is Result.Success -> {
+                _uiState.update {
+                    it.copy(
+                        isNewsLoading = false,
+                        newsError = null,
+                        debugNewsList = result.data,
+                        debugLastFetchTime = System.currentTimeMillis()
+                    )
+                }
+                // domain.entity.News から domain.model.News に変換
+                result.data.map { convertToDomainNews(it) }
+            }
+            is Result.Error -> {
+                _uiState.update {
+                    it.copy(
+                        isNewsLoading = false,
+                        newsError = result.exception.message
+                    )
+                }
+                emptyList()
+            }
+        }
+    }
+
+    /**
+     * 記事を読み上げ/表示
+     */
+    private suspend fun readArticle(article: com.tinygc.asachiru.domain.model.News, ttsEnabled: Boolean) {
+        val entityNews = convertToEntityNews(article)
+        if (ttsEnabled) {
+            readNewsUseCase(
+                newsList = listOf(entityNews),
+                onNewsChanged = { },
+                onComplete = { }
+            )
+        }
+        // TTS無効時は表示のみ（State Machineがタイマー管理）
+    }
+
+    /**
+     * domain.entity.News から domain.model.News に変換
+     */
+    private fun convertToDomainNews(entityNews: News): DomainNews {
+        return DomainNews(
+            id = entityNews.id,
+            title = entityNews.title,
+            description = entityNews.description,
+            link = entityNews.id, // entityにはlinkフィールドがないのでidを使用
+            imageUrl = null // entityにはimageUrlフィールドがない
+        )
+    }
+
+    /**
+     * domain.model.News から domain.entity.News に変換
+     */
+    private fun convertToEntityNews(domainNews: DomainNews): News {
+        return News(
+            id = domainNews.id,
+            title = domainNews.title,
+            description = domainNews.description,
+            publishedAt = System.currentTimeMillis() // publishedAtは現在時刻で代用
+        )
+    }
+
 
     /**
      * 時計の定期更新を開始
@@ -94,13 +203,8 @@ class MainViewModel(
             .onEach {
                 val dateTime = getCurrentDateTimeUseCase()
                 
-                // 次のニュースまでの残り秒数を計算
-                val remainingSeconds = if (nextNewsReadingTime > 0) {
-                    val remaining = (nextNewsReadingTime - System.currentTimeMillis()) / 1000L
-                    maxOf(0L, remaining) // 負の値にならないように
-                } else {
-                    0L
-                }
+                // State Machineから残り時間を取得
+                val remainingSeconds = stateMachine.state.value.getRemainingSeconds()
                 
                 _uiState.update { 
                     it.copy(
@@ -183,123 +287,6 @@ class MainViewModel(
     }
 
     /**
-     * ニュース読み上げを開始
-     * 初回は10秒待機、その後は設定された間隔で読み上げ
-     */
-    private fun startNewsReading() {
-        viewModelScope.launch {
-            // 初回は10秒待機
-            delay(10_000L)
-
-            // 設定された間隔を取得
-            val settings = settingsRepository.getSettings()
-            val intervalMs = settings.newsIntervalMinutes * 60 * 1000L
-            
-            // 初回のニュース読み上げ実行
-            nextNewsReadingTime = System.currentTimeMillis() + intervalMs
-            readNews()
-
-            FlowTimer.ticker(intervalMillis = intervalMs)
-                .onEach { 
-                    nextNewsReadingTime = System.currentTimeMillis() + intervalMs
-                    readNews() 
-                }
-                .launchIn(this) // viewModelScope.launch内なので、thisを使用
-        }
-    }
-
-    /**
-     * ニュースを読み上げる
-     */
-    private suspend fun readNews() {
-        _uiState.update { it.copy(isNewsLoading = true) }
-
-        when (val result = getLatestNewsUseCase(10)) {
-            is Result.Success -> {
-                // デバッグ情報を更新
-                _uiState.update {
-                    it.copy(
-                        debugNewsList = result.data,
-                        debugLastFetchTime = System.currentTimeMillis()
-                    )
-                }
-
-                // 既読を除外
-                val unread = result.data.filter { it.id !in readNewsIds }
-
-                if (unread.isEmpty()) {
-                    // 未読なし
-                    _uiState.update {
-                        it.copy(
-                            isNewsLoading = false,
-                            newsError = null,
-                            currentNews = null
-                        )
-                    }
-                    currentNewsList = emptyList()
-                    currentNewsIndex = -1
-                    return
-                }
-
-                // ニュースリストを保存
-                currentNewsList = unread
-                currentNewsIndex = 0
-
-                _uiState.update {
-                    it.copy(
-                        isNewsLoading = false,
-                        newsError = null
-                    )
-                }
-
-                // 既存のニュース表示/読み上げJobをキャンセル
-                currentNewsJob?.cancel()
-                
-                // 新しいJobを開始
-                currentNewsJob = viewModelScope.launch {
-                    // TTS有効時のみ読み上げ実行
-                    if (_uiState.value.enableTts) {
-                        readNewsUseCase(
-                            newsList = unread,
-                            onNewsChanged = { news ->
-                                readNewsIds += news.id
-                                _uiState.update { it.copy(currentNews = news) }
-                            },
-                            onComplete = {
-                                _uiState.update { it.copy(currentNews = null) }
-                            }
-                        )
-                    } else {
-                        // TTS無効時は文字数に応じた時間で次のニュースを表示（一時停止可能）
-                        unread.forEachIndexed { index, news ->
-                            if (index > 0) {
-                                readNewsUseCase.pauseableDelay(5000L)
-                            }
-                            readNewsIds += news.id
-                            _uiState.update { it.copy(currentNews = news) }
-                            
-                            // タイトル+説明文の文字数から表示時間を計算（読み上げ速度に合わせて）
-                            val textLength = news.title.length + news.description.length
-                            // 1文字あたり約200ms（読み上げ速度に近い）+ 余裕で1秒追加
-                            val displayTime = (textLength * 200L) + 1000L
-                            readNewsUseCase.pauseableDelay(displayTime)
-                        }
-                        _uiState.update { it.copy(currentNews = null) }
-                    }
-                }
-            }
-            is Result.Error -> {
-                _uiState.update {
-                    it.copy(
-                        isNewsLoading = false,
-                        newsError = result.exception.message
-                    )
-                }
-            }
-        }
-    }
-
-    /**
      * 音楽再生を開始
      */
     private fun startMusicPlayback() {
@@ -328,6 +315,8 @@ class MainViewModel(
         // BGM再生を再開
         viewModelScope.launch {
             playMusicUseCase()
+            val settings = settingsRepository.getSettings()
+            stateMachine.handleEvent(NewsReadingEvent.ForegroundTransition, settings)
         }
     }
 
@@ -337,10 +326,13 @@ class MainViewModel(
     fun onPause() {
         // TTS停止
         readNewsUseCase.stopReading()
-        // ニュース自動送りJob停止
-        currentNewsJob?.cancel()
         // BGM停止
         musicPlayer.stop()
+        // State Machineにイベント通知
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            stateMachine.handleEvent(NewsReadingEvent.BackgroundTransition, settings)
+        }
     }
 
     /**
@@ -359,10 +351,14 @@ class MainViewModel(
             val newShowDetail = !_uiState.value.showNewsDetail
             _uiState.update { it.copy(showNewsDetail = newShowDetail) }
 
-            // ポップアップ表示時はニュース送りを一時停止、閉じたら再開
+            val settings = settingsRepository.getSettings()
             if (newShowDetail) {
+                // 詳細表示を開く
+                stateMachine.handleEvent(NewsReadingEvent.DetailOpened, settings)
                 readNewsUseCase.pause()
             } else {
+                // 詳細表示を閉じる
+                stateMachine.handleEvent(NewsReadingEvent.DetailClosed, settings)
                 readNewsUseCase.resume()
             }
         }
@@ -373,8 +369,11 @@ class MainViewModel(
      */
     fun closeNewsDetail() {
         _uiState.update { it.copy(showNewsDetail = false) }
-        // ニュース送りを再開
         readNewsUseCase.resume()
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            stateMachine.handleEvent(NewsReadingEvent.DetailClosed, settings)
+        }
     }
 
     /**
@@ -391,43 +390,8 @@ class MainViewModel(
             if (!newEnableTts) {
                 // TTS OFFにした場合は即座に読み上げを停止
                 readNewsUseCase.stopReading()
-            } else {
-                // TTS ONにした場合は現在のニュースから読み上げ開始
-                currentNewsJob?.cancel()
-                val currentNews = _uiState.value.currentNews
-                if (currentNews != null && currentNewsList.isNotEmpty() && currentNewsIndex >= 0) {
-                    // 現在表示中のニュースがあれば、そのニュースを読み上げてから残りも継続
-                    currentNewsJob = viewModelScope.launch {
-                        // 現在のニュースを読み上げ
-                        readNewsUseCase(
-                            newsList = listOf(currentNews),
-                            onNewsChanged = { },
-                            onComplete = { }
-                        )
-                        
-                        // 残りのニュースがあれば続けて読み上げ
-                        val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
-                        if (remainingNews.isNotEmpty()) {
-                            readNewsUseCase(
-                                newsList = remainingNews,
-                                onNewsChanged = { news ->
-                                    currentNewsIndex++
-                                    readNewsIds += news.id
-                                    _uiState.update { it.copy(currentNews = news) }
-                                },
-                                onComplete = {
-                                    _uiState.update { it.copy(currentNews = null) }
-                                }
-                            )
-                        } else {
-                            _uiState.update { it.copy(currentNews = null) }
-                        }
-                    }
-                } else {
-                    // 表示中のニュースがなければ新しく取得
-                    readNews()
-                }
             }
+            // TTS設定変更はstartTtsSettingsMonitor()が検知してイベント発火
         }
     }
 
@@ -435,60 +399,10 @@ class MainViewModel(
      * 前のニュースへ移動
      */
     fun navigateToPreviousNews() {
-        if (currentNewsList.isEmpty()) return
-        
-        currentNewsJob?.cancel()
-        readNewsUseCase.stopReading()
-        
-        // インデックスを1つ戻す（0未満にならないように）
-        currentNewsIndex = maxOf(0, currentNewsIndex - 1)
-        val news = currentNewsList[currentNewsIndex]
-        
-        _uiState.update { it.copy(currentNews = news) }
-        
-        // 手動選択後も自動送りを継続（残りのニュースを再開）
-        currentNewsJob = viewModelScope.launch {
-            if (_uiState.value.enableTts) {
-                // TTS ON: 選択したニュースを読み上げてから残りを継続
-                readNewsUseCase(
-                    newsList = listOf(news),
-                    onNewsChanged = { },
-                    onComplete = { }
-                )
-            }
-            
-            // 残りのニュースを自動送り
-            val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
-            if (remainingNews.isNotEmpty()) {
-                if (_uiState.value.enableTts) {
-                    readNewsUseCase(
-                        newsList = remainingNews,
-                        onNewsChanged = { nextNews ->
-                            currentNewsIndex++
-                            readNewsIds += nextNews.id
-                            _uiState.update { it.copy(currentNews = nextNews) }
-                        },
-                        onComplete = {
-                            _uiState.update { it.copy(currentNews = null) }
-                        }
-                    )
-                } else {
-                    // TTS OFF時の自動送り
-                    remainingNews.forEachIndexed { index, nextNews ->
-                        if (index > 0) {
-                            readNewsUseCase.pauseableDelay(5000L)
-                        }
-                        currentNewsIndex++
-                        readNewsIds += nextNews.id
-                        _uiState.update { it.copy(currentNews = nextNews) }
-                        
-                        val textLength = nextNews.title.length + nextNews.description.length
-                        val displayTime = (textLength * 200L) + 1000L
-                        readNewsUseCase.pauseableDelay(displayTime)
-                    }
-                    _uiState.update { it.copy(currentNews = null) }
-                }
-            }
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            readNewsUseCase.stopReading() // 現在の読み上げを停止
+            stateMachine.handleEvent(NewsReadingEvent.NavigateToPrevious, settings)
         }
     }
 
@@ -496,60 +410,15 @@ class MainViewModel(
      * 次のニュースへ移動
      */
     fun navigateToNextNews() {
-        if (currentNewsList.isEmpty()) return
-        
-        currentNewsJob?.cancel()
-        readNewsUseCase.stopReading()
-        
-        // インデックスを1つ進める（リスト末尾を超えないように）
-        currentNewsIndex = minOf(currentNewsList.size - 1, currentNewsIndex + 1)
-        val news = currentNewsList[currentNewsIndex]
-        
-        _uiState.update { it.copy(currentNews = news) }
-        
-        // 手動選択後も自動送りを継続（残りのニュースを再開）
-        currentNewsJob = viewModelScope.launch {
-            if (_uiState.value.enableTts) {
-                // TTS ON: 選択したニュースを読み上げてから残りを継続
-                readNewsUseCase(
-                    newsList = listOf(news),
-                    onNewsChanged = { },
-                    onComplete = { }
-                )
-            }
-            
-            // 残りのニュースを自動送り
-            val remainingNews = currentNewsList.drop(currentNewsIndex + 1)
-            if (remainingNews.isNotEmpty()) {
-                if (_uiState.value.enableTts) {
-                    readNewsUseCase(
-                        newsList = remainingNews,
-                        onNewsChanged = { nextNews ->
-                            currentNewsIndex++
-                            readNewsIds += nextNews.id
-                            _uiState.update { it.copy(currentNews = nextNews) }
-                        },
-                        onComplete = {
-                            _uiState.update { it.copy(currentNews = null) }
-                        }
-                    )
-                } else {
-                    // TTS OFF時の自動送り
-                    remainingNews.forEachIndexed { index, nextNews ->
-                        if (index > 0) {
-                            readNewsUseCase.pauseableDelay(5000L)
-                        }
-                        currentNewsIndex++
-                        readNewsIds += nextNews.id
-                        _uiState.update { it.copy(currentNews = nextNews) }
-                        
-                        val textLength = nextNews.title.length + nextNews.description.length
-                        val displayTime = (textLength * 200L) + 1000L
-                        readNewsUseCase.pauseableDelay(displayTime)
-                    }
-                    _uiState.update { it.copy(currentNews = null) }
-                }
-            }
+        viewModelScope.launch {
+            val settings = settingsRepository.getSettings()
+            readNewsUseCase.stopReading() // 現在の読み上げを停止
+            stateMachine.handleEvent(NewsReadingEvent.NavigateToNext, settings)
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stateMachine.cleanup()
     }
 }

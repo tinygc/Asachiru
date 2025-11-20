@@ -52,9 +52,35 @@
 - **プラットフォーム**: Android TV
 - [ ] ビジュアライザーの描画確認（AudioSessionId取得タイミングの追跡ログ追加済み）
 - **アーキテクチャ**: Clean Architecture
-**最終更新日**: 2025-11-19
+**最終更新日**: 2025-11-20
 
-### 最近の更新 (2025-11-19)
+### 最近の更新 (2025-11-20)
+1. **State Machineパターン導入**: ニュース読み上げ機能を State Machine パターンで再設計
+   - `NewsReadingState` sealed class で明確な状態定義（Idle, WaitingForStart, FetchingNews, ReadingArticle, ArticleInterval, SessionInterval）
+   - `NewsReadingEvent` sealed class でイベント駆動の状態遷移（AppStarted, TtsSettingChanged, DetailOpened/Closed など）
+   - `NewsReadingStateMachine` class で状態遷移ロジックを集約
+   - 複雑だった複数タイマーとコルーチンの管理を State Machine に統一し、予測可能な動作を実現
+   - TTS ON/OFF 切り替え時の不具合（記事が進まなくなる問題）を根本的に解決
+   - 詳細表示時の一時停止機能を `isPaused` フラグで管理し、カウントダウンも正しく停止・再開
+   - MainViewModel のコード行数を大幅に削減（588行 → 約250行）し保守性向上
+   - 設計ドキュメント `design/NewsReadingStateMachine.md` を追加
+
+2. **TTS読み上げ完了待ち機能**: TTS ON時に読み上げが途中で次の記事に進む問題を修正
+   - TTS ON: `onReadArticle()`の完了を待ってから次の記事へ遷移（タイマー不使用）
+   - TTS OFF: 文字数ベース（1文字200ms+余裕1秒）でタイマー設定
+   - 記事の長さに関係なく、実際の読み上げ時間に合わせて進行
+
+3. **TTS ON/OFF切り替え時のカウントダウン修正**: 読み上げ途中でOFFにした時にカウントダウンが0秒のままになる問題を修正
+   - TTS ON→OFF: タイマーを開始して文字数ベースでカウントダウン表示
+   - TTS OFF→ON: タイマーをキャンセルして読み上げ完了待ちに切り替え
+   - `TtsSettingChanged`イベントで適切に状態とタイマーを管理
+
+4. **上下キーナビゲーション復活**: State Machine導入時に失われた手動ナビゲーション機能を再実装
+   - `NavigateToPrevious`/`NavigateToNext`イベントを追加
+   - ReadingArticle状態とArticleInterval状態で前後の記事へ移動可能
+   - 手動選択後も自動進行を継続（タイマー再設定）
+
+### 過去の更新 (2025-11-19)
 1. **デバッグ情報にカウントダウン表示追加**: 次の記事表示までの残り秒数をデバッグ情報欄に表示
    - MainUiStateにdebugNextNewsRemainingSecondsフィールドを追加
    - MainViewModelで1秒ごとにカウントダウンを計算して更新
