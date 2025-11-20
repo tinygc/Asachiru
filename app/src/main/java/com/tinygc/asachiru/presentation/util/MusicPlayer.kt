@@ -90,13 +90,14 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         fadeOut(currentPlayer, FADE_DURATION_MS)
 
         // 次の曲に移行
-        currentPlayer = nextPlayer
         currentTrackIndex = nextIndex
         currentTrack = nextTrack
 
-        // nextPlayerがnullの場合は、直接MediaPlayerを作成
-        if (currentPlayer == null) {
-            currentPlayer = MediaPlayer.create(context, nextTrack.resourceId)
+        // nextPlayerが準備されている場合はそれを使用、なければ新規作成
+        currentPlayer = if (nextPlayer != null) {
+            nextPlayer.also { nextPlayer = null }
+        } else {
+            MediaPlayer.create(context, nextTrack.resourceId)
         }
 
         currentPlayer?.apply {
@@ -104,7 +105,10 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
             setOnCompletionListener {
                 playNext()
             }
-            start()
+            // MediaPlayer.create()で作成されたものはまだ再生されていないので、start()を呼ぶ
+            if (!isPlaying) {
+                start()
+            }
         }
 
         // さらに次の曲を準備
