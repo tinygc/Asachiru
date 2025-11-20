@@ -47,4 +47,10 @@ interface IMusicPlayer {
      * @return 現在の再生位置（再生していない場合は0）
      */
     fun getCurrentPosition(): Long
+
+    /**
+     * トラックリストを設定（ループ再生用）
+     * @param tracks トラックリスト
+     */
+    fun setTrackList(tracks: List<Music>)
 }
