@@ -81,7 +81,7 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // 音楽トラック情報の更新
-                    binding.musicTrackView.updateMusic(state.currentTrack, state.currentPosition)
+                    binding.musicTrackView.updateMusic(state.currentTrack)
 
                     // ビジュアライザー起動ロジック
                     val sessionId = musicPlayer.getAudioSessionId()
@@ -242,32 +242,19 @@ class MainActivity : AppCompatActivity() {
     private fun updateDebugInfo(state: MainUiState) {
         if (!BuildConfig.DEBUG) {
             binding.debugInfoView.visibility = android.view.View.GONE
+            binding.newsDebugView.visibility = android.view.View.GONE
             return
         }
 
         binding.debugInfoView.visibility = android.view.View.VISIBLE
+        binding.newsDebugView.visibility = android.view.View.VISIBLE
         
-        // TTS ON/OFF状態
+        // TTS ON/OFF状態と次のニュースまでの残り秒数を表示
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
-        
-        // RSS取得状況
-        val rssCount = state.debugNewsList.size
-        val lastFetchTime = if (state.debugLastFetchTime > 0) {
-            val calendar = java.util.Calendar.getInstance().apply {
-                timeInMillis = state.debugLastFetchTime
-            }
-            String.format("%02d:%02d:%02d", 
-                calendar.get(java.util.Calendar.HOUR_OF_DAY),
-                calendar.get(java.util.Calendar.MINUTE),
-                calendar.get(java.util.Calendar.SECOND)
-            )
-        } else {
-            "未取得"
-        }
-        
-        // 次のニュースまでの残り秒数
         val remainingSeconds = state.debugNextNewsRemainingSeconds
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | 次の記事まで: ${remainingSeconds}秒"
         
-        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | RSS: ${rssCount}件取得 ($lastFetchTime) | 次の記事まで: ${remainingSeconds}秒"
+        // NewsDebugViewを更新（RSS取得時刻と記事リスト）
+        binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
     }
 }

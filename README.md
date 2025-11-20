@@ -32,8 +32,8 @@
 - **免責事項**: 詳細は [利用規約](TERMS_OF_SERVICE.md) をご確認ください。
 
 ### 音楽再生機能
-- Lo-Fiジャンルのフリー音源をループ再生
-- **再生中の曲情報表示**: タイトル、アーティスト、再生時間（経過/総時間）をリアルタイム表示
+- Lo-Fiジャンルのフリー音源を3曲ループ再生
+- **再生中の曲情報表示**: タイトル、アーティストを表示
 
 ### 音声連携（TTS＋ダッキング）
 - ニュース読み上げ中は音楽ボリュームを30%へ自動ダッキングし可聴性向上
@@ -59,16 +59,25 @@
    - MainUiStateにdebugNextNewsRemainingSecondsフィールドを追加
    - MainViewModelで1秒ごとにカウントダウンを計算して更新
    - DEBUG BUILDでのみ表示される開発者向け機能
-2. **MediaPlayer例外処理の改善**: MusicPlayer.getAudioSessionId()でIllegalStateExceptionが発生してアプリがクラッシュする問題を修正
+2. **バックグラウンド遷移時のTTS・BGM停止修正**: アプリがバックグラウンドに遷移した際にTTSとBGMが停止しない問題を修正
+   - `TtsManager.stop()`メソッドを改善し、読み上げ停止時に音楽の音量を即座に元に戻す処理を追加
+   - `MainViewModel.onPause()`でバックグラウンド移行時に音楽プレイヤーを停止
+   - `MainViewModel.onStop()`で完全停止時に音楽プレイヤーを停止
+   - `MainViewModel.onResume()`でフォアグラウンド復帰時に音楽再生を再開
+   - バックグラウンド遷移時に確実にTTSとBGMが停止するように改善
+3. **音楽プレーヤーのループ再生機能を修正**: 1曲再生終了後に次の曲に進まない問題を修正
+   - `MusicRepositoryImpl`で`playTrack()`呼び出し時に全トラックリストを設定
+   - `IMusicPlayer`インターフェースに`setTrackList()`メソッドを追加
+   - 3曲のループ再生が正常に動作するようテスト追加
+   - `playNext()`のロジックを改善して、nextPlayerの適切な処理と再生開始を実装
+4. **音楽プレーヤーの時間表示を削除**: ユーザーフィードバックに基づき、音楽プレーヤーから再生時間表示を削除しシンプルな表示に変更
+   - 曲タイトルとアーティスト名のみを表示するようUI調整
+5. **MediaPlayer例外処理の改善**: MusicPlayer.getAudioSessionId()でIllegalStateExceptionが発生してアプリがクラッシュする問題を修正
    - MediaPlayerが解放済みまたは不正な状態でaudioSessionIdを取得しようとした際の例外を適切にキャッチ
    - クラッシュの代わりに0を返すことでアプリの安定性を向上
-2. **テキストサイズ最適化**: 実際のTV表示に最適化するため、すべてのテキストサイズをDP単位（SP）に変換し約50%縮小
+5. **テキストサイズ最適化**: 実際のTV表示に最適化するため、すべてのテキストサイズをDP単位（SP）に変換し約50%縮小
    - カスタムビュー（時計/天気/ニュース/音楽）でTypedValue.applyDimension()を使用してSP→PX変換
    - 設定画面とスプラッシュ画面のテキストサイズも調整
-2. **音楽再生情報の表示強化**: 再生中のMP3の情報をメタデータから取得して画面に表示
-   - 曲タイトル、アーティスト名に加えて、現在の再生時間と総再生時間を表示（例: "1:23 / 3:45"）
-   - MusicTrackViewに再生時間表示機能を追加
-   - IMusicPlayerインターフェースにgetCurrentPosition()メソッドを追加
    - ClockView: 時刻 120sp→60sp、日付 48sp→24sp
    - WeatherView: アイコン 96sp→48sp、テキスト 36sp→18sp、ラベル 28sp→14sp
    - NewsView: タイトル 48sp→24sp、時刻 32sp→16sp、詳細ポップアップ 46sp→23sp/36sp→18sp

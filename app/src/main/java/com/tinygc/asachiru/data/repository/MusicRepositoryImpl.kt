@@ -18,8 +18,11 @@ class MusicRepositoryImpl(
     }
 
     override fun playTrack(trackId: String) {
-        val track = getAllTracks().find { it.id == trackId }
+        val allTracks = getAllTracks()
+        val track = allTracks.find { it.id == trackId }
         track?.let {
+            // ループ再生のためにトラックリストを設定
+            musicPlayer.setTrackList(allTracks)
             musicPlayer.play(it)
         }
     }
