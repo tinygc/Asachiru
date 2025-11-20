@@ -32,7 +32,7 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
      * トラックリストを設定
      * @param tracks トラックリスト
      */
-    fun setTrackList(tracks: List<Music>) {
+    override fun setTrackList(tracks: List<Music>) {
         this.trackList = tracks
     }
 
@@ -80,20 +80,35 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
     private fun playNext() {
         if (trackList.isEmpty()) return
 
-        // クロスフェード処理
+        // 次のインデックスを計算
+        val nextIndex = (currentTrackIndex + 1) % trackList.size
+        val nextTrack = trackList.getOrNull(nextIndex)
+        
+        if (nextTrack == null) return
+
+        // クロスフェード処理（前の曲をフェードアウト）
         fadeOut(currentPlayer, FADE_DURATION_MS)
 
         // 次の曲に移行
-        currentPlayer = nextPlayer
-        currentTrackIndex = (currentTrackIndex + 1) % trackList.size
-        currentTrack = trackList.getOrNull(currentTrackIndex)
+        currentTrackIndex = nextIndex
+        currentTrack = nextTrack
+
+        // nextPlayerが準備されている場合はそれを使用、なければ新規作成
+        currentPlayer = if (nextPlayer != null) {
+            nextPlayer.also { nextPlayer = null }
+        } else {
+            MediaPlayer.create(context, nextTrack.resourceId)
+        }
 
         currentPlayer?.apply {
             setVolume(baseVolume, baseVolume)
             setOnCompletionListener {
                 playNext()
             }
-            start()
+            // MediaPlayer.create()で作成されたものはまだ再生されていないので、start()を呼ぶ
+            if (!isPlaying) {
+                start()
+            }
         }
 
         // さらに次の曲を準備
