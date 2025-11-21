@@ -63,6 +63,7 @@
    - 原因: `ArticleCompleted` イベントが `ReadingArticle.isPaused=true`（詳細表示中）でもそのまま状態遷移を実行していた。
    - 対策: `ReadingArticle` に `hasCompletedReading` フラグを追加し、詳細表示中は読了イベントを遷移保留。ポップアップ閉鎖 (`DetailClosed`) 時に再開。
    - 挙動: ポップアップ表示中は現在の記事が固定され、閉じるまで次の記事やインターバルへ進まない。ユーザーの集中閲覧体験を改善。
+3. **要件定義書・設計書の更新**: 実装済み機能（RSS選択、既読スキップ、詳細ポップアップ、State Machine、時間帯別背景等）を反映し、ドキュメントを最新化。
 
 ### 過去の更新 (2025-11-20)
 1. **State Machineパターン導入**: ニュース読み上げ機能を State Machine パターンで再設計

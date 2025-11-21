@@ -119,32 +119,59 @@ com.tinygc.asachiru/
 │   ├── main/
 │   │   ├── MainActivity.kt
 │   │   ├── MainViewModel.kt
+│   │   ├── MainUiState.kt
+│   │   ├── NewsReadingState.kt
+│   │   ├── NewsReadingEvent.kt
+│   │   ├── NewsReadingStateMachine.kt
 │   │   └── views/
 │   │       ├── ClockView.kt
 │   │       ├── WeatherView.kt
+│   │       ├── NewsView.kt
+│   │       ├── NewsDebugView.kt
+│   │       ├── MusicTrackView.kt
 │   │       ├── VisualizerView.kt
-│   │       └── BackgroundView.kt
+│   │       ├── BackgroundGradientView.kt
+│   │       ├── ParticleView.kt
+│   │       └── DotPatternView.kt
 │   ├── setup/
 │   │   ├── SetupActivity.kt
-│   │   └── SetupViewModel.kt
-│   └── common/
-│       └── ViewModelFactory.kt
+│   │   ├── SetupViewModel.kt
+│   │   └── SetupUiState.kt
+│   ├── splash/
+│   │   ├── SplashActivity.kt
+│   │   └── SplashViewModel.kt
+│   ├── common/
+│   │   └── ViewModelFactory.kt
+│   └── util/
+│       ├── TtsManager.kt
+│       ├── MusicPlayer.kt
+│       └── FlowTimer.kt
 │
 ├── domain/
 │   ├── entity/
 │   │   ├── DateTime.kt
+│   │   ├── DayOfWeek.kt
 │   │   ├── Weather.kt
+│   │   ├── WeatherCondition.kt
 │   │   ├── News.kt
 │   │   ├── Music.kt
 │   │   └── Settings.kt
+│   ├── model/
+│   │   └── News.kt
 │   ├── repository/
 │   │   ├── WeatherRepository.kt
 │   │   ├── NewsRepository.kt
 │   │   ├── SettingsRepository.kt
 │   │   └── MusicRepository.kt
+│   ├── common/
+│   │   ├── Result.kt
+│   │   ├── AppException.kt
+│   │   ├── ITtsManager.kt
+│   │   └── IMusicPlayer.kt
 │   └── usecase/
 │       ├── clock/
-│       │   └── GetCurrentDateTimeUseCase.kt
+│       │   ├── GetCurrentDateTimeUseCase.kt
+│       │   └── ConvertTimestampToDateTimeUseCase.kt
 │       ├── weather/
 │       │   ├── GetWeatherUseCase.kt
 │       │   └── RefreshWeatherUseCase.kt
@@ -156,24 +183,37 @@ com.tinygc.asachiru/
 │       │   └── GetCurrentTrackUseCase.kt
 │       └── settings/
 │           ├── SaveSettingsUseCase.kt
-│           └── GetSettingsUseCase.kt
+│           ├── GetSettingsUseCase.kt
+│           └── CheckSettingsExistUseCase.kt
 │
-└── data/
-    ├── repository/
-    │   ├── WeatherRepositoryImpl.kt
-    │   ├── NewsRepositoryImpl.kt
-    │   ├── SettingsRepositoryImpl.kt
-    │   └── MusicRepositoryImpl.kt
-    ├── datasource/
-    │   ├── remote/
-    │   │   ├── WeatherApiDataSource.kt
-    │   │   └── NewsRssDataSource.kt
-    │   └── local/
-    │       ├── SettingsLocalDataSource.kt
-    │       └── MusicLocalDataSource.kt
-    └── dto/
-        ├── WeatherDto.kt
-        └── NewsDto.kt
+├── data/
+│   ├── repository/
+│   │   ├── WeatherRepositoryImpl.kt
+│   │   ├── NewsRepositoryImpl.kt
+│   │   ├── SettingsRepositoryImpl.kt
+│   │   ├── MusicRepositoryImpl.kt
+│   │   └── AdRepository.kt
+│   ├── datasource/
+│   │   ├── remote/
+│   │   │   ├── WeatherApiDataSource.kt
+│   │   │   └── NewsRssDataSource.kt
+│   │   └── local/
+│   │       ├── SettingsLocalDataSource.kt
+│   │       └── MusicLocalDataSource.kt
+│   ├── dto/
+│   │   ├── WeatherDto.kt
+│   │   └── NewsDto.kt
+│   ├── util/
+│   │   ├── PostalCodeConverter.kt
+│   │   └── RssParser.kt
+│   └── RssPresets.kt
+│
+├── di/
+│   ├── RepositoryFactory.kt
+│   ├── DataSourceFactory.kt
+│   └── UseCaseFactory.kt
+│
+└── AsaChiruApplication.kt
 ```
 
 ---
