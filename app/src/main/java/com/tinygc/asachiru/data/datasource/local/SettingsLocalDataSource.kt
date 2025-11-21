@@ -107,5 +107,14 @@ class SettingsLocalDataSource(
             .putStringSet(KEY_READ_ARTICLE_IDS, cleanedIds)
             .apply()
     }
+
+    /**
+     * 全ての既読記事情報をクリア
+     */
+    suspend fun clearReadArticles() = withContext(Dispatchers.IO) {
+        sharedPreferences.edit()
+            .remove(KEY_READ_ARTICLE_IDS)
+            .apply()
+    }
 }
 

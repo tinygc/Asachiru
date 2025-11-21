@@ -25,4 +25,8 @@ class ReadArticleRepositoryImpl(
     override suspend fun cleanupReadArticles(validArticleIds: Set<String>) {
         settingsLocalDataSource.cleanupReadArticles(validArticleIds)
     }
+
+    override suspend fun clearAll() {
+        settingsLocalDataSource.clearReadArticles()
+    }
 }

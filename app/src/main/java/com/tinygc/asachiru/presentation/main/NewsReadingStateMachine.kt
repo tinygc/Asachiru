@@ -79,11 +79,6 @@ class NewsReadingStateMachine(
             is NewsReadingEvent.ArticleCompleted -> {
                 when (currentState) {
                     is NewsReadingState.ReadingArticle -> {
-                        // 記事読了時に既読としてマーク
-                        scope.launch {
-                            onMarkAsRead(currentState.article.id)
-                        }
-                        
                         // ポップアップ表示中であれば遷移保留しフラグのみ立てる
                         if (currentState.isPaused) {
                             _state.value = currentState.copy(hasCompletedReading = true)
@@ -134,25 +129,22 @@ class NewsReadingStateMachine(
             }
 
             is NewsReadingEvent.AllArticlesCompleted -> {
+                // 全記事読了後、allArticlesの全記事を既読としてマーク
+                scope.launch {
+                    allArticles.forEach { article ->
+                        onMarkAsRead(article.id)
+                    }
+                    Log.d("StateMachine", "Marked all ${allArticles.size} articles as read before showing ad")
+                }
+                // newArticlesをクリアして次のフェッチで新規記事のみを対象にする
+                newArticles = emptyList()
                 transitionToSessionInterval(settings)
             }
 
             is NewsReadingEvent.SessionIntervalExpired -> {
                 if (currentState is NewsReadingState.SessionInterval) {
-                    // 広告終了後は最初の新規記事から再開(RSSフェッチはしない)
-                    if (newArticles.isNotEmpty()) {
-                        val firstNewArticleId = newArticles[0].id
-                        val startIndex = allArticles.indexOfFirst { it.id == firstNewArticleId }
-                        if (startIndex >= 0) {
-                            transitionToReadingArticle(startIndex, allArticles, settings)
-                        } else {
-                            // 見つからない場合はフェッチ
-                            transitionToFetchingNews()
-                        }
-                    } else {
-                        // 新規記事がない場合はフェッチ
-                        transitionToFetchingNews()
-                    }
+                    // 広告終了後は常に新規ニュースをフェッチ
+                    transitionToFetchingNews()
                 }
             }
 
@@ -369,13 +361,13 @@ class NewsReadingStateMachine(
     }
 
     /**
-     * 初回開始待機状態に遷移（10秒）
+     * 初回開始待機状態に遷移（3秒）
      */
     private fun transitionToWaitingForStart() {
         cancelTimer()
-        val startTimeMs = System.currentTimeMillis() + 10_000
+        val startTimeMs = System.currentTimeMillis() + 3_000
         _state.value = NewsReadingState.WaitingForStart(startTimeMs)
-        startTimer(10_000) {
+        startTimer(3_000) {
             cachedSettings?.let { handleEvent(NewsReadingEvent.StartTimerExpired, it) }
         }
     }

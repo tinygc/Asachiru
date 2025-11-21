@@ -212,9 +212,25 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         // 完全に見えなくなった時に停止
         viewModel.onStop()
-        // finish() 呼び出しを削除: onStopでActivity終了すると非同期トランザクション実行中に
-        // Activity client recordがnullとなり IllegalArgumentException を誘発するため。
-        // 必要ならユーザー明示操作で終了させる方針へ変更。
+        // AdMobの広告を破棄してからアプリを終了
+        // (ClipboardServiceエラー回避のため)
+        binding.adView.destroy()
+        // バックグラウンドに移行したらアプリを終了
+        // finishAndRemoveTask()を使用してタスクリストからも削除
+        finishAndRemoveTask()
+        // プロセスを完全に終了させる
+        // (AdMobのバックグラウンドスレッドも含めて強制終了)
+        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            android.os.Process.killProcess(android.os.Process.myPid())
+            kotlin.system.exitProcess(0)
+        }, 500)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // アプリ終了時に既読記事情報をクリア
+        viewModel.clearReadArticles()
+        android.util.Log.d("MainActivity", "onDestroy: 既読記事情報をクリア")
     }
 
     private fun hasAudioPermission(): Boolean {

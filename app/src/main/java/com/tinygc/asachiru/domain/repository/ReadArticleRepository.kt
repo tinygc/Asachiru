@@ -28,4 +28,9 @@ interface ReadArticleRepository {
      * @param validArticleIds RSSに存在する記事IDのセット
      */
     suspend fun cleanupReadArticles(validArticleIds: Set<String>)
+
+    /**
+     * 全ての既読記事情報をクリア
+     */
+    suspend fun clearAll()
 }

@@ -34,18 +34,24 @@ class WeatherRepositoryImpl(
             val apiResponse = weatherApiDataSource.fetchWeather(areaCode)
             Log.d(TAG, "getWeather: API response received, forecasts count=${apiResponse.forecasts.size}")
 
-            // 現在の日付を日本時間（JST）で取得（YYYY-MM-DD形式）
-            // 天気APIは日本の天気情報を日本時間で返すため、日付判定もJSTで行う
+            // 現在の日本時間（JST）を取得（YYYY-MM-DD形式）
+            // デバイスのタイムゾーンに関係なく、常にJSTで判定する
             val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-            val calendar = java.util.Calendar.getInstance(jstTimeZone)
+            val utcCalendar = java.util.Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+            val currentUtcTimeMillis = utcCalendar.timeInMillis
+            
+            // UTCからJSTに変換（+9時間）
+            val jstCalendar = java.util.Calendar.getInstance(jstTimeZone)
+            jstCalendar.timeInMillis = currentUtcTimeMillis
+            
             val currentDate = String.format(
                 "%04d-%02d-%02d",
-                calendar.get(java.util.Calendar.YEAR),
-                calendar.get(java.util.Calendar.MONTH) + 1,
-                calendar.get(java.util.Calendar.DAY_OF_MONTH)
+                jstCalendar.get(java.util.Calendar.YEAR),
+                jstCalendar.get(java.util.Calendar.MONTH) + 1,
+                jstCalendar.get(java.util.Calendar.DAY_OF_MONTH)
             )
-            val currentHour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
-            Log.d(TAG, "getWeather: currentDate=$currentDate (JST), currentHour=$currentHour (JST)")
+            val currentHour = jstCalendar.get(java.util.Calendar.HOUR_OF_DAY)
+            Log.d(TAG, "getWeather: currentDate=$currentDate (JST), currentHour=$currentHour (JST), deviceTimeZone=${TimeZone.getDefault().id}")
 
             // forecasts[0]とforecasts[1]の日付を確認
             val todayForecast = apiResponse.forecasts.getOrNull(0)

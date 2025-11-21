@@ -65,6 +65,8 @@ class MainViewModel(
 
     init {
         if (!skipAutoStart) {
+            // アプリ起動時に既読情報をクリア
+            clearReadArticles()
             startClockUpdate()
             loadWeather()
             startWeatherAutoRefresh()
@@ -209,6 +211,20 @@ class MainViewModel(
                 previousEnableTts = currentEnableTts
                 
                 kotlinx.coroutines.delay(1000L)
+            }
+        }
+    }
+
+    /**
+     * 既読記事情報をクリア
+     */
+    fun clearReadArticles() {
+        viewModelScope.launch {
+            try {
+                readArticleRepository.clearAll()
+                Log.d("MainViewModel", "既読記事情報をクリアしました")
+            } catch (e: Exception) {
+                Log.e("MainViewModel", "既読記事情報のクリアに失敗", e)
             }
         }
     }
