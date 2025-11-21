@@ -471,7 +471,7 @@ class NewsView @JvmOverloads constructor(
         val titleLines = wrapText(news.title, detailTitlePaint, width - (cardPadding + 50f) * 2)
         titleLines.forEach { line ->
             canvas.drawText(line, startX, currentY, detailTitlePaint)
-            currentY += 110f
+            currentY += 130f  // 行間を広げた（110f → 130f）
         }
         
         currentY += 30f
@@ -483,7 +483,7 @@ class NewsView @JvmOverloads constructor(
 
         lines.forEach { line ->
             canvas.drawText(line, startX, currentY, detailTextPaint)
-            currentY += 90f
+            currentY += 110f  // 行間を広げた（90f → 110f）
         }
         
         // QRコード表示（右下）
