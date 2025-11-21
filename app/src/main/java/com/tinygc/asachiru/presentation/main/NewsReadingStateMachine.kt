@@ -24,6 +24,8 @@ class NewsReadingStateMachine(
 
     private var timerJob: Job? = null
     private var currentArticles: List<News> = emptyList()
+    private var displayedArticleIds: MutableSet<String> = mutableSetOf() // 既読記事ID
+    private var lastClearTimeMs: Long = System.currentTimeMillis() // 最後に既読IDをクリアした時刻
     private var pausedAtMs: Long = 0L // 一時停止時の時刻
     private var cachedSettings: Settings? = null // 設定をキャッシュ
 
@@ -50,12 +52,29 @@ class NewsReadingStateMachine(
 
             is NewsReadingEvent.NewsFetched -> {
                 if (currentState is NewsReadingState.FetchingNews) {
-                    currentArticles = event.articles
-                    if (event.articles.isNotEmpty()) {
-                        transitionToReadingArticle(0, event.articles, settings)
+                    // 30分(1800秒)経過していたら既読記事IDをクリア
+                    val currentTimeMs = System.currentTimeMillis()
+                    val elapsedMinutes = (currentTimeMs - lastClearTimeMs) / (60 * 1000L)
+                    if (elapsedMinutes >= 30) {
+                        displayedArticleIds.clear()
+                        lastClearTimeMs = currentTimeMs
+                        Log.d("StateMachine", "30分経過: 既読記事IDをクリアして全記事を再読します")
+                    }
+                    
+                    // 新しい記事のみを抽出(既読記事IDと重複しないもの)
+                    val newArticles = event.articles.filter { it.id !in displayedArticleIds }
+                    
+                    if (newArticles.isNotEmpty()) {
+                        // 新しい記事がある場合
+                        currentArticles = newArticles
+                        // 記事IDを既読リストに追加
+                        displayedArticleIds.addAll(newArticles.map { it.id })
+                        transitionToReadingArticle(0, newArticles, settings)
+                        Log.d("StateMachine", "New articles found: ${newArticles.size} (total displayed: ${displayedArticleIds.size})")
                     } else {
-                        // 記事が0件の場合、セッション待機に移行
-                        transitionToSessionInterval(settings)
+                        // 新しい記事がない場合、5分待機してから再フェッチ
+                        Log.d("StateMachine", "No new articles, waiting 5 minutes before retry")
+                        transitionToNoNewArticlesWait(settings)
                     }
                 }
             }
@@ -63,6 +82,12 @@ class NewsReadingStateMachine(
             is NewsReadingEvent.ArticleCompleted -> {
                 when (currentState) {
                     is NewsReadingState.ReadingArticle -> {
+                        // ポップアップ表示中であれば遷移保留しフラグのみ立てる
+                        if (currentState.isPaused) {
+                            _state.value = currentState.copy(hasCompletedReading = true)
+                            Log.d("StateMachine", "ArticleCompleted deferred (detail open) index=${currentState.articleIndex}")
+                            return
+                        }
                         val nextIndex = currentState.articleIndex + 1
                         if (nextIndex < currentState.totalArticles) {
                             // TTS OFFの場合はインターバルなしで即次の記事へ
@@ -179,6 +204,21 @@ class NewsReadingStateMachine(
                                     cachedSettings?.let { handleEvent(NewsReadingEvent.ArticleCompleted, it) }
                                 }
                             }
+                            // 読了済みだった場合は次のステップへ遷移再開
+                            val updated = _state.value as NewsReadingState.ReadingArticle
+                            if (updated.hasCompletedReading) {
+                                val settingsLocal = cachedSettings ?: settings
+                                val nextIndex = updated.articleIndex + 1
+                                if (nextIndex < updated.totalArticles) {
+                                    if (!settingsLocal.enableTts) {
+                                        transitionToReadingArticle(nextIndex, currentArticles, settingsLocal)
+                                    } else {
+                                        transitionToArticleInterval(nextIndex, updated.totalArticles)
+                                    }
+                                } else {
+                                    handleEvent(NewsReadingEvent.AllArticlesCompleted, settingsLocal)
+                                }
+                            }
                         }
                     }
                     is NewsReadingState.ArticleInterval -> {
@@ -229,6 +269,13 @@ class NewsReadingStateMachine(
                             transitionToReadingArticle(prevIndex, currentArticles, settings)
                         }
                     }
+                    is NewsReadingState.SessionInterval -> {
+                        // セッション間隔中は最後の記事に戻る
+                        if (currentArticles.isNotEmpty()) {
+                            cancelTimer()
+                            transitionToReadingArticle(currentArticles.size - 1, currentArticles, settings)
+                        }
+                    }
                     else -> Log.d("StateMachine", "NavigateToPrevious in state: $currentState (no action)")
                 }
             }
@@ -248,6 +295,13 @@ class NewsReadingStateMachine(
                         if (currentState.nextArticleIndex < currentArticles.size) {
                             cancelTimer()
                             transitionToReadingArticle(currentState.nextArticleIndex, currentArticles, settings)
+                        }
+                    }
+                    is NewsReadingState.SessionInterval -> {
+                        // セッション間隔中は最初の記事に戻る
+                        if (currentArticles.isNotEmpty()) {
+                            cancelTimer()
+                            transitionToReadingArticle(0, currentArticles, settings)
                         }
                     }
                     else -> Log.d("StateMachine", "NavigateToNext in state: $currentState (no action)")
@@ -298,7 +352,8 @@ class NewsReadingStateMachine(
             totalArticles = articles.size,
             article = article,
             estimatedEndTimeMs = 0L, // TTS完了まで時間不明
-            isPaused = false
+            isPaused = false,
+            hasCompletedReading = false
         )
 
         // 記事を読み上げ（完了後に次へ進む）
@@ -318,7 +373,8 @@ class NewsReadingStateMachine(
                     totalArticles = articles.size,
                     article = article,
                     estimatedEndTimeMs = estimatedEndTimeMs,
-                    isPaused = false
+                    isPaused = false,
+                    hasCompletedReading = false
                 )
                 
                 onReadArticle(article, false)
@@ -349,14 +405,39 @@ class NewsReadingStateMachine(
     }
 
     /**
-     * セッション間待機状態に遷移（設定時間）
+     * セッション間待機状態に遷移（広告10秒のみ）
+     * 広告終了後は即座に次のニュースフェッチへ
      */
     private fun transitionToSessionInterval(settings: Settings) {
         cancelTimer()
-        val intervalMs = settings.newsIntervalMinutes * 60 * 1000L
-        val endTimeMs = System.currentTimeMillis() + intervalMs
-        _state.value = NewsReadingState.SessionInterval(endTimeMs)
-        startTimer(intervalMs) {
+        val adDurationMs = 10_000L // 広告表示時間: 10秒
+        val endTimeMs = System.currentTimeMillis() + adDurationMs
+        _state.value = NewsReadingState.SessionInterval(
+            endTimeMs = endTimeMs,
+            showAd = true, // 広告表示フラグ
+            adEndTimeMs = endTimeMs // 広告終了 = セッション終了
+        )
+        // 10秒後に次のニュースフェッチへ
+        startTimer(adDurationMs) {
+            cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
+        }
+    }
+
+    /**
+     * 新しい記事がない場合の待機状態（5分）
+     * 広告は表示せず、5分後に再フェッチ
+     */
+    private fun transitionToNoNewArticlesWait(settings: Settings) {
+        cancelTimer()
+        val waitDurationMs = 5 * 60 * 1000L // 5分
+        val endTimeMs = System.currentTimeMillis() + waitDurationMs
+        _state.value = NewsReadingState.SessionInterval(
+            endTimeMs = endTimeMs,
+            showAd = false, // 広告は表示しない
+            adEndTimeMs = 0L
+        )
+        // 5分後に再フェッチ
+        startTimer(waitDurationMs) {
             cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
         }
     }

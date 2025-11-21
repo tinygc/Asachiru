@@ -29,13 +29,15 @@ sealed class NewsReadingState {
      * @param article 現在の記事
      * @param estimatedEndTimeMs 読み上げ終了予定時刻（エポックミリ秒）
      * @param isPaused 詳細表示により一時停止中か
+     * @param hasCompletedReading 読み上げ（または表示時間）自体は完了したがポップアップ表示中で遷移を保留しているか
      */
     data class ReadingArticle(
         val articleIndex: Int,
         val totalArticles: Int,
         val article: News,
         val estimatedEndTimeMs: Long,
-        val isPaused: Boolean = false
+        val isPaused: Boolean = false,
+        val hasCompletedReading: Boolean = false
     ) : NewsReadingState()
 
     /**
@@ -55,8 +57,14 @@ sealed class NewsReadingState {
     /**
      * セッション間待機中（設定された間隔：デフォルト30分）
      * @param endTimeMs 待機終了予定時刻（エポックミリ秒）
+     * @param showAd 広告を表示するか（最初の10秒のみtrue）
+     * @param adEndTimeMs 広告表示終了時刻（エポックミリ秒）
      */
-    data class SessionInterval(val endTimeMs: Long) : NewsReadingState()
+    data class SessionInterval(
+        val endTimeMs: Long,
+        val showAd: Boolean = false,
+        val adEndTimeMs: Long = 0L
+    ) : NewsReadingState()
 
     /**
      * 次のイベントまでの残り時間（秒）を計算

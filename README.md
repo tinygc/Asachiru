@@ -52,9 +52,19 @@
 - **プラットフォーム**: Android TV
 - [ ] ビジュアライザーの描画確認（AudioSessionId取得タイミングの追跡ログ追加済み）
 - **アーキテクチャ**: Clean Architecture
-**最終更新日**: 2025-11-20
+**最終更新日**: 2025-11-21
 
-### 最近の更新 (2025-11-20)
+### 最近の更新 (2025-11-21)
+1. **ライフサイクルクラッシュ修正**: `MainActivity.onStop()` 内の `finish()` 呼び出しを削除し、`IllegalArgumentException: Activity client record must not be null` を解消。
+   - 原因: onStopでActivityを強制終了すると、まだ処理中のUIトランザクション（Coroutine内のUI操作/AdMob初期化など）が ActivityThread 内で参照するレコードを失いクラッシュ。
+   - 対策: バックグラウンド移行時は状態保存と停止のみ行い、ユーザー操作（BACKキー長押しなど）で明示終了とする設計へ。
+   - 影響範囲: 機能的変更なし（自動終了挙動のみ撤廃）。安定性向上。
+2. **ニュース詳細ポップアップ遷移抑止**: TTS ONで記事読了直後にポップアップが自動的に閉じて次の記事へ進んでしまう問題を修正。
+   - 原因: `ArticleCompleted` イベントが `ReadingArticle.isPaused=true`（詳細表示中）でもそのまま状態遷移を実行していた。
+   - 対策: `ReadingArticle` に `hasCompletedReading` フラグを追加し、詳細表示中は読了イベントを遷移保留。ポップアップ閉鎖 (`DetailClosed`) 時に再開。
+   - 挙動: ポップアップ表示中は現在の記事が固定され、閉じるまで次の記事やインターバルへ進まない。ユーザーの集中閲覧体験を改善。
+
+### 過去の更新 (2025-11-20)
 1. **State Machineパターン導入**: ニュース読み上げ機能を State Machine パターンで再設計
    - `NewsReadingState` sealed class で明確な状態定義（Idle, WaitingForStart, FetchingNews, ReadingArticle, ArticleInterval, SessionInterval）
    - `NewsReadingEvent` sealed class でイベント駆動の状態遷移（AppStarted, TtsSettingChanged, DetailOpened/Closed など）

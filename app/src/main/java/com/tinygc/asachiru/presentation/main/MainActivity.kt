@@ -84,6 +84,9 @@ class MainActivity : AppCompatActivity() {
                     // 音楽トラック情報の更新
                     binding.musicTrackView.updateMusic(state.currentTrack)
 
+                    // 広告の表示/非表示制御
+                    updateAdView(state.showAd)
+
                     // ビジュアライザー起動ロジック
                     val sessionId = musicPlayer.getAudioSessionId()
                     val isPlaying = musicPlayer.isPlaying()
@@ -156,9 +159,14 @@ class MainActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER -> {
-                // 決定キー: 詳細表示切り替え
-                viewModel.toggleNewsDetail()
-                true
+                // 決定キー: 詳細表示切り替え（ニュース表示中のみ）
+                val state = viewModel.stateMachine.state.value
+                if (state is NewsReadingState.ReadingArticle) {
+                    viewModel.toggleNewsDetail()
+                    true
+                } else {
+                    false
+                }
             }
             KeyEvent.KEYCODE_BACK -> {
                 // 戻るキー: 詳細表示中なら閉じる、通常時はデフォルト動作
@@ -204,8 +212,9 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         // 完全に見えなくなった時に停止
         viewModel.onStop()
-        // バックグラウンドに移行したらアプリを終了
-        finish()
+        // finish() 呼び出しを削除: onStopでActivity終了すると非同期トランザクション実行中に
+        // Activity client recordがnullとなり IllegalArgumentException を誘発するため。
+        // 必要ならユーザー明示操作で終了させる方針へ変更。
     }
 
     private fun hasAudioPermission(): Boolean {
@@ -252,12 +261,36 @@ class MainActivity : AppCompatActivity() {
         binding.debugInfoView.visibility = android.view.View.VISIBLE
         binding.newsDebugView.visibility = android.view.View.VISIBLE
         
-        // TTS ON/OFF状態と次のニュースまでの残り秒数を表示
+        // TTS ON/OFF状態と次のニュースまでの残り秒数、広告表示状態を表示
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
         val remainingSeconds = state.debugNextNewsRemainingSeconds
-        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | 次の記事まで: ${remainingSeconds}秒"
+        val adStatus = if (state.showAd) "AD表示中 (残り${state.adRemainingSeconds}秒)" else "AD非表示"
+        binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | 次の記事まで: ${remainingSeconds}秒 | $adStatus"
         
         // NewsDebugViewを更新（RSS取得時刻と記事リスト）
         binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
+    }
+
+    /**
+     * 広告ビューの表示/非表示を制御
+     */
+    private fun updateAdView(showAd: Boolean) {
+        if (showAd && binding.adView.visibility != android.view.View.VISIBLE) {
+            // AdMob初期化と広告読み込み
+            lifecycleScope.launch {
+                val adRepository = com.tinygc.asachiru.data.repository.AdRepository(applicationContext)
+                val initialized = adRepository.initializeMobileAds()
+                if (initialized) {
+                    binding.adView.visibility = android.view.View.VISIBLE
+                    binding.adView.bringToFront() // 最前面に表示
+                    adRepository.loadAd(binding.adView)
+                    android.util.Log.d("Ad", "広告表示を開始")
+                }
+            }
+        } else if (!showAd && binding.adView.visibility == android.view.View.VISIBLE) {
+            // 広告非表示
+            binding.adView.visibility = android.view.View.GONE
+            android.util.Log.d("Ad", "広告を非表示にしました")
+        }
     }
 }
