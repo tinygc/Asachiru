@@ -449,14 +449,14 @@ class NewsView @JvmOverloads constructor(
 
         // テキストペイント（明るい白）
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
             color = Color.argb(240, 240, 245, 255)
             letterSpacing = 0.03f
             setShadowLayer(4f, 2f, 2f, Color.argb(100, 0, 0, 0)) // テキストに影
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 23f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 28f, context.resources.displayMetrics)
             color = Color.argb(255, 255, 255, 255)
             letterSpacing = 0.02f
             isFakeBoldText = true
