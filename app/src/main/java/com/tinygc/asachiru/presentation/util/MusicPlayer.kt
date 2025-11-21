@@ -1,6 +1,7 @@
 package com.tinygc.asachiru.presentation.util
 
 import android.content.Context
+import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.os.Handler
 import android.os.Looper
@@ -47,7 +48,17 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         currentTrack = music
         currentTrackIndex = trackList.indexOf(music)
 
-        currentPlayer = MediaPlayer.create(context, music.resourceId)?.apply {
+        currentPlayer = MediaPlayer().apply {
+            // AudioAttributesを設定: システム音量と独立してVisualizer動作可能に
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            
+            setDataSource(context, android.net.Uri.parse("android.resource://${context.packageName}/${music.resourceId}"))
+            prepare()
             setVolume(baseVolume, baseVolume)
             setOnCompletionListener {
                 playNext()
@@ -71,7 +82,17 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
         val nextTrack = trackList[nextIndex]
 
         nextPlayer?.release()
-        nextPlayer = MediaPlayer.create(context, nextTrack.resourceId)
+        nextPlayer = MediaPlayer().apply {
+            // AudioAttributesを設定
+            setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            setDataSource(context, android.net.Uri.parse("android.resource://${context.packageName}/${nextTrack.resourceId}"))
+            prepare()
+        }
     }
 
     /**
