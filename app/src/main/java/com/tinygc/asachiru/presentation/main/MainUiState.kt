@@ -27,6 +27,10 @@ data class MainUiState(
     val enableTts: Boolean = false,
     val newsProgressPercent: Float = 0f, // 次の記事までの進行度（0.0～1.0、TTS OFF時のみ有効）
 
+    // 広告
+    val showAd: Boolean = false, // 広告を表示するかどうか
+    val adRemainingSeconds: Long = 0L, // 広告の残り表示時間（秒）
+
     // 音楽
     val currentTrack: Music? = null,
     val isMusicPlaying: Boolean = false,

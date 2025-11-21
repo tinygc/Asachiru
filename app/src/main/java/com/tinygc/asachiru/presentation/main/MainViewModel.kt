@@ -8,6 +8,7 @@ import com.tinygc.asachiru.domain.entity.News
 import com.tinygc.asachiru.domain.model.News as DomainNews
 import com.tinygc.asachiru.domain.repository.SettingsRepository
 import com.tinygc.asachiru.domain.usecase.clock.GetCurrentDateTimeUseCase
+import com.tinygc.asachiru.domain.usecase.clock.ConvertTimestampToDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.music.GetCurrentTrackUseCase
 import com.tinygc.asachiru.domain.usecase.music.PlayMusicUseCase
 import com.tinygc.asachiru.domain.usecase.news.GetLatestNewsUseCase
@@ -32,6 +33,7 @@ import kotlinx.coroutines.launch
  */
 class MainViewModel(
     private val getCurrentDateTimeUseCase: GetCurrentDateTimeUseCase,
+    private val convertTimestampToDateTimeUseCase: ConvertTimestampToDateTimeUseCase,
     private val getWeatherUseCase: GetWeatherUseCase,
     private val refreshWeatherUseCase: RefreshWeatherUseCase,
     private val getLatestNewsUseCase: GetLatestNewsUseCase,
@@ -51,8 +53,8 @@ class MainViewModel(
     private val _uiState = MutableStateFlow(MainUiState())
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
-    // State Machine
-    private val stateMachine = NewsReadingStateMachine(
+    // State Machine (publicにしてMainActivityからアクセス可能に)
+    val stateMachine = NewsReadingStateMachine(
         scope = viewModelScope,
         onFetchNews = { fetchNewsArticles() },
         onReadArticle = { article, ttsEnabled -> readArticle(article, ttsEnabled) }
@@ -90,26 +92,61 @@ class MainViewModel(
             stateMachine.state.collect { state ->
                 when (state) {
                     is NewsReadingState.ReadingArticle -> {
+                        // 記事の公開時刻を表示
+                        val dateTime = if (state.article.publishedAt > 0L) {
+                            convertTimestampToDateTimeUseCase(state.article.publishedAt)
+                        } else {
+                            getCurrentDateTimeUseCase() // publishedAtがない場合は現在時刻
+                        }
                         _uiState.update { 
                             it.copy(
+                                dateTime = dateTime,
                                 currentNews = convertToEntityNews(state.article),
                                 newsProgressPercent = calculateProgress(state)
+                                // showAdはSessionInterval状態でのみ制御するため、ここでは変更しない
                             ) 
                         }
                     }
                     is NewsReadingState.ArticleInterval -> {
+                        val dateTime = getCurrentDateTimeUseCase()
                         _uiState.update { 
                             it.copy(
+                                dateTime = dateTime,
                                 currentNews = null,
                                 newsProgressPercent = calculateProgress(state)
+                                // showAdはSessionInterval状態でのみ制御するため、ここでは変更しない
+                            ) 
+                        }
+                    }
+                    is NewsReadingState.SessionInterval -> {
+                        // 広告表示制御
+                        val dateTime = getCurrentDateTimeUseCase()
+                        val currentTimeMs = System.currentTimeMillis()
+                        val showAd = state.showAd && currentTimeMs < state.adEndTimeMs
+                        val adRemainingSeconds = if (showAd) {
+                            ((state.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
+                        } else {
+                            0L
+                        }
+                        _uiState.update { 
+                            it.copy(
+                                dateTime = dateTime,
+                                currentNews = null,
+                                newsProgressPercent = 0f,
+                                showAd = showAd,
+                                adRemainingSeconds = adRemainingSeconds
                             ) 
                         }
                     }
                     else -> {
+                        val dateTime = getCurrentDateTimeUseCase()
                         _uiState.update { 
                             it.copy(
+                                dateTime = dateTime,
                                 currentNews = null,
-                                newsProgressPercent = 0f
+                                newsProgressPercent = 0f,
+                                showAd = false, // SessionInterval以外の状態では広告非表示
+                                adRemainingSeconds = 0L
                             ) 
                         }
                     }
@@ -230,7 +267,8 @@ class MainViewModel(
             title = entityNews.title,
             description = entityNews.description,
             link = entityNews.id, // entityにはlinkフィールドがないのでidを使用
-            imageUrl = null // entityにはimageUrlフィールドがない
+            imageUrl = null, // entityにはimageUrlフィールドがない
+            publishedAt = entityNews.publishedAt // 公開時刻を保持
         )
     }
 
@@ -242,7 +280,7 @@ class MainViewModel(
             id = domainNews.id,
             title = domainNews.title,
             description = domainNews.description,
-            publishedAt = System.currentTimeMillis() // publishedAtは現在時刻で代用
+            publishedAt = domainNews.publishedAt // 記事の公開時刻を使用
         )
     }
 
@@ -260,11 +298,27 @@ class MainViewModel(
                 val remainingSeconds = currentState.getRemainingSeconds()
                 val progress = calculateProgress(currentState)
                 
+                // 広告表示中の残り時間を更新
+                val (showAd, adRemainingSeconds) = if (currentState is NewsReadingState.SessionInterval) {
+                    val currentTimeMs = System.currentTimeMillis()
+                    val adActive = currentState.showAd && currentTimeMs < currentState.adEndTimeMs
+                    val adRemaining = if (adActive) {
+                        ((currentState.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
+                    } else {
+                        0L
+                    }
+                    Pair(adActive, adRemaining)
+                } else {
+                    Pair(_uiState.value.showAd, _uiState.value.adRemainingSeconds)
+                }
+                
                 _uiState.update { 
                     it.copy(
                         dateTime = dateTime,
                         debugNextNewsRemainingSeconds = remainingSeconds,
-                        newsProgressPercent = progress
+                        newsProgressPercent = progress,
+                        showAd = showAd,
+                        adRemainingSeconds = adRemainingSeconds
                     ) 
                 }
             }

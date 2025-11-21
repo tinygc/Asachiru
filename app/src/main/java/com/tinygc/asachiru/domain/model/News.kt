@@ -8,5 +8,6 @@ data class News(
     val title: String,
     val description: String,
     val link: String,
-    val imageUrl: String?
+    val imageUrl: String?,
+    val publishedAt: Long = 0L // Unixタイムスタンプ（ミリ秒）
 )

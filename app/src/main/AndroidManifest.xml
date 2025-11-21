@@ -29,6 +29,11 @@
         android:banner="@drawable/app_banner"
         tools:targetApi="31">
 
+        <!-- Google AdMob App ID (テスト用) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~1033173712"/>
+
         <!-- Main Activity (Splash/Initial routing) -->
         <activity
             android:name=".presentation.splash.SplashActivity"

@@ -105,10 +105,8 @@ class MusicPlayer(private val context: Context) : IMusicPlayer {
             setOnCompletionListener {
                 playNext()
             }
-            // MediaPlayer.create()で作成されたものはまだ再生されていないので、start()を呼ぶ
-            if (!isPlaying) {
-                start()
-            }
+            // 必ず再生を開始
+            start()
         }
 
         // さらに次の曲を準備

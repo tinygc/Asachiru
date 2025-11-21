@@ -79,6 +79,12 @@ dependencies {
     // QR Code Generator
     implementation 'com.google.zxing:core:3.5.3'
 
+    // Google Mobile Ads SDK
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+
+    // Google Advertising ID
+    implementation 'com.google.android.gms:play-services-ads-identifier:18.0.1'
+
     // Unit Test
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlin:kotlin-test:1.9.20'

@@ -25,6 +25,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
             modelClass.isAssignableFrom(MainViewModel::class.java) -> {
                 MainViewModel(
                     getCurrentDateTimeUseCase = useCaseFactory.createGetCurrentDateTimeUseCase(),
+                    convertTimestampToDateTimeUseCase = useCaseFactory.createConvertTimestampToDateTimeUseCase(),
                     getWeatherUseCase = useCaseFactory.createGetWeatherUseCase(),
                     refreshWeatherUseCase = useCaseFactory.createRefreshWeatherUseCase(),
                     getLatestNewsUseCase = useCaseFactory.createGetLatestNewsUseCase(),

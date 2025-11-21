@@ -3,6 +3,7 @@ package com.tinygc.asachiru.di
 import android.content.Context
 import com.tinygc.asachiru.domain.common.ITtsManager
 import com.tinygc.asachiru.domain.usecase.clock.GetCurrentDateTimeUseCase
+import com.tinygc.asachiru.domain.usecase.clock.ConvertTimestampToDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.music.GetCurrentTrackUseCase
 import com.tinygc.asachiru.domain.usecase.music.PlayMusicUseCase
 import com.tinygc.asachiru.domain.usecase.news.GetLatestNewsUseCase
@@ -44,6 +45,13 @@ class UseCaseFactory(private val context: Context) {
      */
     fun createGetCurrentDateTimeUseCase(): GetCurrentDateTimeUseCase {
         return GetCurrentDateTimeUseCase()
+    }
+
+    /**
+     * ConvertTimestampToDateTimeUseCaseのインスタンスを生成
+     */
+    fun createConvertTimestampToDateTimeUseCase(): ConvertTimestampToDateTimeUseCase {
+        return ConvertTimestampToDateTimeUseCase()
     }
 
     /**
