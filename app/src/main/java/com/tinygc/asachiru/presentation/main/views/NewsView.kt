@@ -333,9 +333,12 @@ class NewsView @JvmOverloads constructor(
      * 公開時刻をフォーマット（例：「15時30分」）
      */
     private fun formatPublishTime(publishedAt: Long): String {
+        // 新しいCalendarインスタンスを明示的に作成（キャッシュの影響を避ける）
         val jstTimeZone = TimeZone.getTimeZone("Asia/Tokyo")
-        val calendar = Calendar.getInstance(jstTimeZone)
-        calendar.timeInMillis = publishedAt
+        val calendar = Calendar.getInstance().apply {
+            timeZone = jstTimeZone
+            timeInMillis = publishedAt
+        }
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
         return "${hour}時${minute}分"

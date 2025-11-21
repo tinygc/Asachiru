@@ -252,6 +252,7 @@ class NewsReadingStateMachine(
             }
 
             is NewsReadingEvent.NavigateToPrevious -> {
+                Log.d("StateMachine", "NavigateToPrevious: current state = $currentState")
                 when (currentState) {
                     is NewsReadingState.ReadingArticle -> {
                         if (currentState.articleIndex > 0) {
@@ -259,10 +260,13 @@ class NewsReadingStateMachine(
                             val prevIndex = currentState.articleIndex - 1
                             cancelTimer()
                             transitionToReadingArticle(prevIndex, currentArticles, settings)
+                        } else {
+                            // 最初の記事で上キーを押した場合は何もしない（読み上げ継続）
+                            Log.d("StateMachine", "NavigateToPrevious: Already at first article, ignoring")
                         }
                     }
                     is NewsReadingState.ArticleInterval -> {
-                        // インターバル中は現在の記事（次へ進む予定だった記事の1つ前）に戻る
+                        // インターバル中は現在の記事(次へ進む予定だった記事の1つ前)に戻る
                         val prevIndex = currentState.nextArticleIndex - 1
                         if (prevIndex >= 0) {
                             cancelTimer()
@@ -270,10 +274,23 @@ class NewsReadingStateMachine(
                         }
                     }
                     is NewsReadingState.SessionInterval -> {
-                        // セッション間隔中は最後の記事に戻る
-                        if (currentArticles.isNotEmpty()) {
+                        // SessionInterval(広告非表示=新記事なし待機)から最後の記事に戻る
+                        if (!currentState.showAd && currentArticles.isNotEmpty()) {
+                            Log.d("StateMachine", "NavigateToPrevious from SessionInterval(no ad): Going to last article (${currentArticles.size - 1})")
                             cancelTimer()
                             transitionToReadingArticle(currentArticles.size - 1, currentArticles, settings)
+                        } else {
+                            Log.d("StateMachine", "NavigateToPrevious from SessionInterval: showAd=${currentState.showAd}, ignoring")
+                        }
+                    }
+                    is NewsReadingState.FetchingNews -> {
+                        // ニュース取得中(広告タイマー切れ後)は最後の記事に戻る
+                        if (currentArticles.isNotEmpty()) {
+                            Log.d("StateMachine", "NavigateToPrevious from FetchingNews: Going to last article (${currentArticles.size - 1})")
+                            cancelTimer()
+                            transitionToReadingArticle(currentArticles.size - 1, currentArticles, settings)
+                        } else {
+                            Log.w("StateMachine", "NavigateToPrevious from FetchingNews: currentArticles is empty!")
                         }
                     }
                     else -> Log.d("StateMachine", "NavigateToPrevious in state: $currentState (no action)")
@@ -288,6 +305,9 @@ class NewsReadingStateMachine(
                             val nextIndex = currentState.articleIndex + 1
                             cancelTimer()
                             transitionToReadingArticle(nextIndex, currentArticles, settings)
+                        } else {
+                            // 最後の記事で下キーを押した場合は何もしない（読み上げ継続）
+                            Log.d("StateMachine", "NavigateToNext: Already at last article, ignoring")
                         }
                     }
                     is NewsReadingState.ArticleInterval -> {
@@ -298,10 +318,13 @@ class NewsReadingStateMachine(
                         }
                     }
                     is NewsReadingState.SessionInterval -> {
-                        // セッション間隔中は最初の記事に戻る
-                        if (currentArticles.isNotEmpty()) {
+                        // SessionInterval(広告非表示=新記事なし待機)から最初の記事に戻る
+                        if (!currentState.showAd && currentArticles.isNotEmpty()) {
+                            Log.d("StateMachine", "NavigateToNext from SessionInterval(no ad): Going to first article (0)")
                             cancelTimer()
                             transitionToReadingArticle(0, currentArticles, settings)
+                        } else {
+                            Log.d("StateMachine", "NavigateToNext from SessionInterval: showAd=${currentState.showAd}, ignoring")
                         }
                     }
                     else -> Log.d("StateMachine", "NavigateToNext in state: $currentState (no action)")
@@ -408,7 +431,7 @@ class NewsReadingStateMachine(
      * セッション間待機状態に遷移（広告10秒のみ）
      * 広告終了後は即座に次のニュースフェッチへ
      */
-    private fun transitionToSessionInterval(settings: Settings) {
+    private fun transitionToSessionInterval(@Suppress("UNUSED_PARAMETER") settings: Settings) {
         cancelTimer()
         val adDurationMs = 10_000L // 広告表示時間: 10秒
         val endTimeMs = System.currentTimeMillis() + adDurationMs
@@ -427,7 +450,7 @@ class NewsReadingStateMachine(
      * 新しい記事がない場合の待機状態（5分）
      * 広告は表示せず、5分後に再フェッチ
      */
-    private fun transitionToNoNewArticlesWait(settings: Settings) {
+    private fun transitionToNoNewArticlesWait(@Suppress("UNUSED_PARAMETER") settings: Settings) {
         cancelTimer()
         val waitDurationMs = 5 * 60 * 1000L // 5分
         val endTimeMs = System.currentTimeMillis() + waitDurationMs

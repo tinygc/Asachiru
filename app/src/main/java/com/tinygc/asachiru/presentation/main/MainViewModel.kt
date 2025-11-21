@@ -1,5 +1,6 @@
 package com.tinygc.asachiru.presentation.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tinygc.asachiru.domain.common.IMusicPlayer
@@ -92,18 +93,15 @@ class MainViewModel(
             stateMachine.state.collect { state ->
                 when (state) {
                     is NewsReadingState.ReadingArticle -> {
-                        // 記事の公開時刻を表示
-                        val dateTime = if (state.article.publishedAt > 0L) {
-                            convertTimestampToDateTimeUseCase(state.article.publishedAt)
-                        } else {
-                            getCurrentDateTimeUseCase() // publishedAtがない場合は現在時刻
-                        }
+                        // 時計は常に現在時刻を表示（記事の時刻は使わない）
+                        val dateTime = getCurrentDateTimeUseCase()
                         _uiState.update { 
                             it.copy(
                                 dateTime = dateTime,
                                 currentNews = convertToEntityNews(state.article),
-                                newsProgressPercent = calculateProgress(state)
-                                // showAdはSessionInterval状態でのみ制御するため、ここでは変更しない
+                                newsProgressPercent = calculateProgress(state),
+                                showAd = false, // 記事表示中は広告非表示
+                                adRemainingSeconds = 0L
                             ) 
                         }
                     }
@@ -113,8 +111,9 @@ class MainViewModel(
                             it.copy(
                                 dateTime = dateTime,
                                 currentNews = null,
-                                newsProgressPercent = calculateProgress(state)
-                                // showAdはSessionInterval状態でのみ制御するため、ここでは変更しない
+                                newsProgressPercent = calculateProgress(state),
+                                showAd = false, // インターバル中も広告非表示
+                                adRemainingSeconds = 0L
                             ) 
                         }
                     }
@@ -510,6 +509,21 @@ class MainViewModel(
     fun navigateToPreviousNews() {
         viewModelScope.launch {
             val settings = settingsRepository.getSettings()
+            val currentState = stateMachine.state.value
+            
+            // 広告表示中は上キー無効
+            if (currentState is NewsReadingState.SessionInterval && currentState.showAd) {
+                Log.d("MainViewModel", "navigateToPreviousNews: Ad is showing, ignoring")
+                return@launch
+            }
+            
+            // 最初の記事の場合は何もしない(読み上げを継続)
+            if (currentState is NewsReadingState.ReadingArticle &&
+                currentState.articleIndex <= 0) {
+                Log.d("MainViewModel", "navigateToPreviousNews: Already at first article, ignoring")
+                return@launch
+            }
+            
             readNewsUseCase.stopReading() // 現在の読み上げを停止
             stateMachine.handleEvent(NewsReadingEvent.NavigateToPrevious, settings)
         }
@@ -521,6 +535,21 @@ class MainViewModel(
     fun navigateToNextNews() {
         viewModelScope.launch {
             val settings = settingsRepository.getSettings()
+            val currentState = stateMachine.state.value
+            
+            // 広告表示中は下キー無効
+            if (currentState is NewsReadingState.SessionInterval && currentState.showAd) {
+                Log.d("MainViewModel", "navigateToNextNews: Ad is showing, ignoring")
+                return@launch
+            }
+            
+            // 最後の記事の場合は何もしない(読み上げを継続)
+            if (currentState is NewsReadingState.ReadingArticle &&
+                currentState.articleIndex >= currentState.totalArticles - 1) {
+                Log.d("MainViewModel", "navigateToNextNews: Already at last article, ignoring")
+                return@launch
+            }
+            
             readNewsUseCase.stopReading() // 現在の読み上げを停止
             stateMachine.handleEvent(NewsReadingEvent.NavigateToNext, settings)
         }
