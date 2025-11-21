@@ -8,11 +8,15 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
+import android.graphics.RadialGradient
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import java.util.Calendar
+import kotlin.math.cos
+import kotlin.math.sin
+import kotlin.random.Random
 
 /**
  * 時間帯に応じたグラデーション背景を表示するカスタムビュー
@@ -25,6 +29,10 @@ import java.util.Calendar
  *
  * 白文字の視認性を確保するため、暗めのトーンを基調としています。
  * 30秒周期で滑らかに変化（AccelerateDecelerateInterpolator使用）。
+ *
+ * Lo-Fi風のチルな雰囲気を演出するため、以下の効果を追加：
+ * - アンビエント・ブロッブス: 大きなぼかされた円がゆっくり浮遊
+ * - グレイン・ノイズ: フィルム風のざらつき質感
  */
 class BackgroundGradientView @JvmOverloads constructor(
     context: Context,
@@ -33,6 +41,24 @@ class BackgroundGradientView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val blobPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val grainPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+
+    /**
+     * アンビエント・ブロッブ（浮遊する円）のデータクラス
+     */
+    private data class Blob(
+        var x: Float,
+        var y: Float,
+        val radius: Float,
+        val color: Int,
+        val speedX: Float,
+        val speedY: Float,
+        val phase: Float // 動きの位相差
+    )
+
+    private val blobs = mutableListOf<Blob>()
+    private var blobAnimationTime = 0f
 
     // 早朝（5:00～6:59）のグラデーション - 深い青紫から明るい青へ
     private val earlyMorningGradients = listOf(
@@ -176,6 +202,8 @@ class BackgroundGradientView @JvmOverloads constructor(
                 nextGradientIndex = 1
             }
 
+            // Blobアニメーション
+            blobAnimationTime += 0.016f // 約60fps想定
             invalidate() // 再描画
         }
         addListener(object : AnimatorListenerAdapter() {
@@ -212,6 +240,39 @@ class BackgroundGradientView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Blobsを初期化
+     */
+    private fun initializeBlobs() {
+        if (blobs.isNotEmpty() || width == 0 || height == 0) return
+
+        val random = Random(System.currentTimeMillis())
+        val blobCount = 5 // チルな雰囲気のため控えめに
+
+        // 時間帯に応じたBlob色を取得
+        val baseColors = gradientColors[currentGradientIndex]
+
+        repeat(blobCount) {
+            val x = random.nextFloat() * width
+            val y = random.nextFloat() * height
+            val radius = 200f + random.nextFloat() * 400f // 200-600pxの大きな円
+
+            // グラデーション色をベースに、より透明度の高い色を生成
+            val baseColor = baseColors[random.nextInt(baseColors.size)]
+            val r = Color.red(baseColor)
+            val g = Color.green(baseColor)
+            val b = Color.blue(baseColor)
+            val alpha = 25 + random.nextInt(30) // 25-55の低透明度でチルな雰囲気
+            val color = Color.argb(alpha, r, g, b)
+
+            val speedX = (random.nextFloat() - 0.5f) * 0.3f // ゆっくり移動
+            val speedY = (random.nextFloat() - 0.5f) * 0.3f
+            val phase = random.nextFloat() * 6.28f // 0-2π
+
+            blobs.add(Blob(x, y, radius, color, speedX, speedY, phase))
+        }
+    }
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         animator.start()
@@ -222,10 +283,15 @@ class BackgroundGradientView @JvmOverloads constructor(
         animator.cancel()
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        initializeBlobs()
+    }
+
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        // 現在のグラデーションと次のグラデーションを補間
+        // 1. ベースグラデーション描画
         val currentColors = gradientColors[currentGradientIndex]
         val nextColors = gradientColors[nextGradientIndex]
 
@@ -233,7 +299,6 @@ class BackgroundGradientView @JvmOverloads constructor(
             interpolateColor(currentColors[i], nextColors[i], animationProgress)
         }
 
-        // グラデーションを作成
         val gradient = LinearGradient(
             0f, 0f,
             0f, height.toFloat(),
@@ -244,6 +309,60 @@ class BackgroundGradientView @JvmOverloads constructor(
 
         paint.shader = gradient
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+
+        // 2. アンビエント・ブロッブス描画
+        drawBlobs(canvas)
+
+        // 3. グレイン・ノイズ・オーバーレイ
+        drawGrain(canvas)
+    }
+
+    /**
+     * アンビエント・ブロッブスを描画
+     */
+    private fun drawBlobs(canvas: Canvas) {
+        initializeBlobs()
+
+        blobs.forEach { blob ->
+            // 波形の動き（サインとコサインで自然な動き）
+            val offsetX = cos((blobAnimationTime * blob.speedX + blob.phase).toDouble()).toFloat() * 50f
+            val offsetY = sin((blobAnimationTime * blob.speedY + blob.phase).toDouble()).toFloat() * 50f
+
+            val currentX = blob.x + offsetX
+            val currentY = blob.y + offsetY
+
+            // RadialGradientでぼかし効果
+            val radialGradient = RadialGradient(
+                currentX, currentY, blob.radius,
+                intArrayOf(blob.color, Color.TRANSPARENT),
+                floatArrayOf(0f, 1f),
+                Shader.TileMode.CLAMP
+            )
+
+            blobPaint.shader = radialGradient
+            canvas.drawCircle(currentX, currentY, blob.radius, blobPaint)
+        }
+    }
+
+    /**
+     * グレイン・ノイズを描画（フィルム風のざらつき）
+     */
+    private fun drawGrain(canvas: Canvas) {
+        val random = Random(System.currentTimeMillis())
+        grainPaint.style = Paint.Style.FILL
+
+        // ランダムなドットを描画して粒状感を演出
+        val grainDensity = 0.002f // 控えめな密度
+        val pixelCount = (width * height * grainDensity).toInt()
+
+        repeat(pixelCount) {
+            val x = random.nextFloat() * width
+            val y = random.nextFloat() * height
+            val alpha = 10 + random.nextInt(20) // 10-30の低透明度
+
+            grainPaint.color = Color.argb(alpha, 255, 255, 255)
+            canvas.drawCircle(x, y, 1f, grainPaint)
+        }
     }
 
     /**
