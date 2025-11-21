@@ -71,7 +71,7 @@ class NewsRssDataSourceTest {
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        val result = testDataSource.fetchLatestNews()
+        val result = testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         assertEquals(2, result.size)
@@ -91,7 +91,7 @@ class NewsRssDataSourceTest {
 
         // Act & Assert
         try {
-            testDataSource.fetchLatestNews()
+            testDataSource.fetchLatestNews("https://test-rss-url.com")
             fail("Expected IOException to be thrown")
         } catch (e: IOException) {
             assertTrue(e.message?.contains("HTTP Error: 404") == true)
@@ -110,7 +110,7 @@ class NewsRssDataSourceTest {
 
         // Act & Assert
         try {
-            testDataSource.fetchLatestNews()
+            testDataSource.fetchLatestNews("https://test-rss-url.com")
             fail("Expected IOException to be thrown")
         } catch (e: IOException) {
             assertTrue(e.message?.contains("Empty response") == true)
@@ -145,7 +145,7 @@ $items
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        val result = testDataSource.fetchLatestNews()
+        val result = testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         assertEquals(10, result.size)
@@ -174,7 +174,7 @@ $items
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        val result = testDataSource.fetchLatestNews()
+        val result = testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         assertTrue(result.isEmpty())
@@ -191,7 +191,7 @@ $items
 
         // Act & Assert
         try {
-            testDataSource.fetchLatestNews()
+            testDataSource.fetchLatestNews("https://test-rss-url.com")
             fail("Expected IOException to be thrown")
         } catch (e: IOException) {
             assertTrue(e.message?.contains("HTTP Error: 500") == true)
@@ -216,7 +216,7 @@ $items
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        testDataSource.fetchLatestNews()
+        testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         val request = mockWebServer.takeRequest()
@@ -255,7 +255,7 @@ $items
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        val result = testDataSource.fetchLatestNews()
+        val result = testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         assertEquals(2, result.size)
@@ -289,7 +289,7 @@ $items
         val testDataSource = createDataSourceWithMockUrl()
 
         // Act
-        val result = testDataSource.fetchLatestNews()
+        val result = testDataSource.fetchLatestNews("https://test-rss-url.com")
 
         // Assert
         assertEquals(1, result.size)
@@ -299,7 +299,7 @@ $items
     // Helper method to create a data source with mock URL
     private fun createDataSourceWithMockUrl(): NewsRssDataSource {
         return object : NewsRssDataSource(httpClient) {
-            override suspend fun fetchLatestNews(): List<com.tinygc.asachiru.data.dto.NewsDto> {
+            override suspend fun fetchLatestNews(rssUrl: String): List<com.tinygc.asachiru.data.dto.NewsDto> {
                 val url = mockWebServer.url("/").toString()
                 val request = okhttp3.Request.Builder()
                     .url(url)

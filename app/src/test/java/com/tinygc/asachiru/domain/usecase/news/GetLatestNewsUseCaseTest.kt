@@ -3,7 +3,9 @@ package com.tinygc.asachiru.domain.usecase.news
 import com.tinygc.asachiru.domain.common.AppException
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.News
+import com.tinygc.asachiru.domain.entity.NewsResult
 import com.tinygc.asachiru.domain.repository.NewsRepository
+import com.tinygc.asachiru.domain.repository.ReadArticleRepository
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
@@ -17,12 +19,15 @@ class GetLatestNewsUseCaseTest {
     @Mock
     private lateinit var newsRepository: NewsRepository
 
+    @Mock
+    private lateinit var readArticleRepository: ReadArticleRepository
+
     private lateinit var useCase: GetLatestNewsUseCase
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        useCase = GetLatestNewsUseCase(newsRepository)
+        useCase = GetLatestNewsUseCase(newsRepository, readArticleRepository)
     }
 
     @Test
@@ -33,6 +38,8 @@ class GetLatestNewsUseCaseTest {
             News("2", "タイトル2", "説明2", 2000L)
         )
 
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Success(expectedNews))
 
@@ -41,7 +48,9 @@ class GetLatestNewsUseCaseTest {
 
         // Assert
         assertTrue(result is Result.Success)
-        assertEquals(expectedNews, (result as Result.Success).data)
+        val newsResult = (result as Result.Success).data
+        assertEquals(expectedNews, newsResult.allArticles)
+        assertEquals(expectedNews, newsResult.newArticles)
     }
 
     @Test
@@ -49,6 +58,8 @@ class GetLatestNewsUseCaseTest {
         // Arrange
         val exception = AppException.NetworkException("Network error")
 
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Error(exception))
 
@@ -67,6 +78,8 @@ class GetLatestNewsUseCaseTest {
             News("1", "タイトル1", "説明1", 1000L)
         )
 
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Success(expectedNews))
 
@@ -75,7 +88,9 @@ class GetLatestNewsUseCaseTest {
 
         // Assert
         assertTrue(result is Result.Success)
-        assertEquals(expectedNews, (result as Result.Success).data)
+        val newsResult = (result as Result.Success).data
+        assertEquals(expectedNews, newsResult.allArticles)
+        assertEquals(expectedNews, newsResult.newArticles)
     }
 
     @Test
@@ -88,6 +103,8 @@ class GetLatestNewsUseCaseTest {
                 News("$i", "タイトル$i", "説明$i", i * 1000L)
             }
 
+            whenever(readArticleRepository.getReadArticleIds())
+                .thenReturn(emptySet())
             whenever(newsRepository.getLatestNews(count))
                 .thenReturn(Result.Success(expectedNews))
 
@@ -96,7 +113,9 @@ class GetLatestNewsUseCaseTest {
 
             // Assert
             assertTrue("Result should be Success for count $count", result is Result.Success)
-            assertEquals(count, (result as Result.Success).data.size)
+            val newsResult = (result as Result.Success).data
+            assertEquals(count, newsResult.allArticles.size)
+            assertEquals(count, newsResult.newArticles.size)
         }
     }
 
@@ -104,6 +123,8 @@ class GetLatestNewsUseCaseTest {
     fun `invoke should return error when repository throws exception`() = runTest {
         // Arrange
         val exception = RuntimeException("Unexpected error")
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10)).thenThrow(exception)
 
         // Act
@@ -118,6 +139,8 @@ class GetLatestNewsUseCaseTest {
     fun `invoke should handle empty news list`() = runTest {
         // Arrange
         val emptyList = emptyList<News>()
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Success(emptyList))
 
@@ -126,13 +149,17 @@ class GetLatestNewsUseCaseTest {
 
         // Assert
         assertTrue(result is Result.Success)
-        assertTrue((result as Result.Success).data.isEmpty())
+        val newsResult = (result as Result.Success).data
+        assertTrue(newsResult.allArticles.isEmpty())
+        assertTrue(newsResult.newArticles.isEmpty())
     }
 
     @Test
     fun `invoke should handle network exception from repository`() = runTest {
         // Arrange
         val networkException = AppException.NetworkException("Connection timeout")
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Error(networkException))
 
@@ -150,6 +177,8 @@ class GetLatestNewsUseCaseTest {
     fun `invoke should handle parse exception from repository`() = runTest {
         // Arrange
         val parseException = AppException.ParseException("Failed to parse RSS")
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Error(parseException))
 
@@ -174,6 +203,8 @@ class GetLatestNewsUseCaseTest {
         )
         val expectedNews = listOf(news)
 
+        whenever(readArticleRepository.getReadArticleIds())
+            .thenReturn(emptySet())
         whenever(newsRepository.getLatestNews(10))
             .thenReturn(Result.Success(expectedNews))
 
@@ -182,7 +213,8 @@ class GetLatestNewsUseCaseTest {
 
         // Assert
         assertTrue(result is Result.Success)
-        val actualNews = (result as Result.Success).data.first()
+        val newsResult = (result as Result.Success).data
+        val actualNews = newsResult.allArticles.first()
         assertEquals("https://example.com/news/123", actualNews.id)
         assertEquals("重要なニュース", actualNews.title)
         assertEquals("詳細な説明文です", actualNews.description)

@@ -2,7 +2,9 @@ package com.tinygc.asachiru.presentation.main
 
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.*
+import com.tinygc.asachiru.domain.repository.ReadArticleRepository
 import com.tinygc.asachiru.domain.repository.SettingsRepository
+import com.tinygc.asachiru.domain.usecase.clock.ConvertTimestampToDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.clock.GetCurrentDateTimeUseCase
 import com.tinygc.asachiru.domain.usecase.music.GetCurrentTrackUseCase
 import com.tinygc.asachiru.domain.usecase.music.PlayMusicUseCase
@@ -39,6 +41,7 @@ class MainViewModelTest {
     private val testDispatcher = StandardTestDispatcher()
 
     private lateinit var getCurrentDateTimeUseCase: GetCurrentDateTimeUseCase
+    private lateinit var convertTimestampToDateTimeUseCase: ConvertTimestampToDateTimeUseCase
     private lateinit var getWeatherUseCase: GetWeatherUseCase
     private lateinit var refreshWeatherUseCase: RefreshWeatherUseCase
     private lateinit var getLatestNewsUseCase: GetLatestNewsUseCase
@@ -46,6 +49,7 @@ class MainViewModelTest {
     private lateinit var playMusicUseCase: PlayMusicUseCase
     private lateinit var getCurrentTrackUseCase: GetCurrentTrackUseCase
     private lateinit var settingsRepository: SettingsRepository
+    private lateinit var readArticleRepository: ReadArticleRepository
     private lateinit var musicPlayer: com.tinygc.asachiru.domain.common.IMusicPlayer
 
     private lateinit var viewModel: MainViewModel
@@ -60,7 +64,13 @@ class MainViewModelTest {
         dateLabel = "今日",
         iconText = "☀"
     )
-    private val testSettings = Settings("1000001", 30)
+    private val testSettings = Settings(
+        postalCode = "1000001",
+        newsIntervalMinutes = 30,
+        rssUrl = "https://test.com/rss",
+        enableTts = false,
+        rssPreset = null
+    )
     private val testMusic = Music("1", "Test Track", "Test Artist", 1, 180_000L)
 
     @Before
@@ -68,6 +78,7 @@ class MainViewModelTest {
         Dispatchers.setMain(testDispatcher)
 
         getCurrentDateTimeUseCase = mock()
+        convertTimestampToDateTimeUseCase = mock()
         getWeatherUseCase = mock()
         refreshWeatherUseCase = mock()
         getLatestNewsUseCase = mock()
@@ -75,6 +86,7 @@ class MainViewModelTest {
         playMusicUseCase = mock()
         getCurrentTrackUseCase = mock()
         settingsRepository = mock()
+        readArticleRepository = mock()
         musicPlayer = mock()
 
         whenever(getCurrentDateTimeUseCase.invoke()).thenReturn(testDateTime)
@@ -254,6 +266,7 @@ class MainViewModelTest {
     ): MainViewModel {
         return MainViewModel(
             getCurrentDateTimeUseCase = getCurrentDateTimeUseCase,
+            convertTimestampToDateTimeUseCase = convertTimestampToDateTimeUseCase,
             getWeatherUseCase = getWeatherUseCase,
             refreshWeatherUseCase = refreshWeatherUseCase,
             getLatestNewsUseCase = getLatestNewsUseCase,
@@ -261,6 +274,7 @@ class MainViewModelTest {
             playMusicUseCase = playMusicUseCase,
             getCurrentTrackUseCase = getCurrentTrackUseCase,
             settingsRepository = settingsRepository,
+            readArticleRepository = readArticleRepository,
             musicPlayer = musicPlayer,
             skipAutoStart = skipAutoStart
         )

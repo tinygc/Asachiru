@@ -62,7 +62,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings)).then { }
 
@@ -79,7 +82,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "5400001",
-            newsIntervalMinutes = 60
+            newsIntervalMinutes = 60,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
 
         // When
@@ -94,7 +100,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
             .thenThrow(RuntimeException("Save failed"))
@@ -114,7 +123,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
             .thenThrow(RuntimeException("Custom error message"))
@@ -134,7 +146,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
             .thenThrow(RuntimeException(null as String?))
@@ -190,7 +205,10 @@ class SettingsRepositoryImplTest {
         // Given
         val settings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
 
         // When
@@ -206,7 +224,10 @@ class SettingsRepositoryImplTest {
         // Given
         val mockSettings = Settings(
             postalCode = "5400001",
-            newsIntervalMinutes = 45
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
         )
         whenever(settingsLocalDataSource.loadSettings()).thenReturn(mockSettings)
 
@@ -221,8 +242,20 @@ class SettingsRepositoryImplTest {
     @Test
     fun `saveSettings should handle multiple consecutive saves`() = runTest {
         // Given
-        val settings1 = Settings("1000001", 30)
-        val settings2 = Settings("5400001", 60)
+        val settings1 = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
+        val settings2 = Settings(
+            postalCode = "5400001",
+            newsIntervalMinutes = 60,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // When
         val result1 = repository.saveSettings(settings1)

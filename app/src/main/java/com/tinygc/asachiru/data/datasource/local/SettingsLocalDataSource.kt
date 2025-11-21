@@ -17,6 +17,7 @@ class SettingsLocalDataSource(
         private const val KEY_RSS_URL = "rss_url"
         private const val KEY_ENABLE_TTS = "enable_tts"
         private const val KEY_RSS_PRESET = "rss_preset"
+        private const val KEY_READ_ARTICLE_IDS = "read_article_ids"
     }
 
     /**
@@ -63,4 +64,48 @@ class SettingsLocalDataSource(
         val hasRssUrl = sharedPreferences.contains(KEY_RSS_URL)
         hasPostalCode && hasRssUrl
     }
+
+    /**
+     * 既読記事IDを取得
+     * @return 既読記事IDのセット
+     */
+    suspend fun getReadArticleIds(): Set<String> = withContext(Dispatchers.IO) {
+        sharedPreferences.getStringSet(KEY_READ_ARTICLE_IDS, emptySet()) ?: emptySet()
+    }
+
+    /**
+     * 記事を既読としてマーク
+     * @param articleId 記事ID
+     */
+    suspend fun markArticleAsRead(articleId: String) = withContext(Dispatchers.IO) {
+        val currentIds = sharedPreferences.getStringSet(KEY_READ_ARTICLE_IDS, emptySet())?.toMutableSet() ?: mutableSetOf()
+        currentIds.add(articleId)
+        sharedPreferences.edit()
+            .putStringSet(KEY_READ_ARTICLE_IDS, currentIds)
+            .apply()
+    }
+
+    /**
+     * 記事が既読かどうか判定
+     * @param articleId 記事ID
+     * @return 既読の場合true
+     */
+    suspend fun isArticleRead(articleId: String): Boolean = withContext(Dispatchers.IO) {
+        val readIds = sharedPreferences.getStringSet(KEY_READ_ARTICLE_IDS, emptySet()) ?: emptySet()
+        readIds.contains(articleId)
+    }
+
+    /**
+     * 既読記事をクリア(指定されたIDのみ残す)
+     * RSSから消えた記事の既読フラグを削除するために使用
+     * @param validArticleIds RSSに存在する記事IDのセット
+     */
+    suspend fun cleanupReadArticles(validArticleIds: Set<String>) = withContext(Dispatchers.IO) {
+        val currentIds = sharedPreferences.getStringSet(KEY_READ_ARTICLE_IDS, emptySet())?.toMutableSet() ?: mutableSetOf()
+        val cleanedIds = currentIds.intersect(validArticleIds)
+        sharedPreferences.edit()
+            .putStringSet(KEY_READ_ARTICLE_IDS, cleanedIds)
+            .apply()
+    }
 }
+

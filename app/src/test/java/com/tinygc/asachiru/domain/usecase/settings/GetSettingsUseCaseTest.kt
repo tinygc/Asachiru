@@ -27,7 +27,13 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should return settings from repository`() = runTest {
         // Arrange
-        val expectedSettings = Settings("1000001", 30)
+        val expectedSettings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         whenever(settingsRepository.getSettings()).thenReturn(expectedSettings)
 
         // Act
@@ -50,7 +56,7 @@ class GetSettingsUseCaseTest {
         // Assert
         assertEquals(Settings.DEFAULT, result)
         assertEquals("", result.postalCode)
-        assertEquals(30, result.newsIntervalMinutes)
+        assertEquals(5, result.newsIntervalMinutes)
     }
 
     @Test
@@ -59,7 +65,13 @@ class GetSettingsUseCaseTest {
         val postalCodes = listOf("1000001", "5300001", "0600000", "9999999")
 
         postalCodes.forEach { postalCode ->
-            val settings = Settings(postalCode, 30)
+            val settings = Settings(
+                postalCode = postalCode,
+                newsIntervalMinutes = 30,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             whenever(settingsRepository.getSettings()).thenReturn(settings)
 
             // Act
@@ -76,7 +88,13 @@ class GetSettingsUseCaseTest {
         val intervals = listOf(1, 15, 30, 45, 60)
 
         intervals.forEach { interval ->
-            val settings = Settings("1000001", interval)
+            val settings = Settings(
+                postalCode = "1000001",
+                newsIntervalMinutes = interval,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             whenever(settingsRepository.getSettings()).thenReturn(settings)
 
             // Act
@@ -90,7 +108,13 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should call repository getSettings method`() = runTest {
         // Arrange
-        val settings = Settings("1000001", 30)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         whenever(settingsRepository.getSettings()).thenReturn(settings)
 
         // Act
@@ -103,7 +127,13 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should directly delegate to repository`() = runTest {
         // Arrange
-        val settings = Settings("1234567", 45)
+        val settings = Settings(
+            postalCode = "1234567",
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         whenever(settingsRepository.getSettings()).thenReturn(settings)
 
         // Act
@@ -134,8 +164,20 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should handle consecutive calls correctly`() = runTest {
         // Arrange
-        val settings1 = Settings("1000001", 30)
-        val settings2 = Settings("5300001", 45)
+        val settings1 = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
+        val settings2 = Settings(
+            postalCode = "5300001",
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         whenever(settingsRepository.getSettings())
             .thenReturn(settings1)
@@ -154,7 +196,13 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should return settings regardless of validity`() = runTest {
         // Arrange - Invalid settings (but repository can return them)
-        val invalidSettings = Settings("123", 100)
+        val invalidSettings = Settings(
+            postalCode = "123",
+            newsIntervalMinutes = 100,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         whenever(settingsRepository.getSettings()).thenReturn(invalidSettings)
 
         // Act
@@ -169,7 +217,13 @@ class GetSettingsUseCaseTest {
     @Test
     fun `invoke should handle empty postal code from repository`() = runTest {
         // Arrange
-        val settings = Settings("", 30)
+        val settings = Settings(
+            postalCode = "",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         whenever(settingsRepository.getSettings()).thenReturn(settings)
 
         // Act

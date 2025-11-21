@@ -8,6 +8,9 @@ import org.junit.Before
 import org.junit.Test
 import org.mockito.Mock
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
@@ -28,8 +31,10 @@ class SettingsLocalDataSourceTest {
 
         // Setup editor mock chain
         whenever(sharedPreferences.edit()).thenReturn(editor)
-        whenever(editor.putString(org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(editor)
+        whenever(editor.putString(org.mockito.kotlin.any(), anyOrNull())).thenReturn(editor)
         whenever(editor.putInt(org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(editor)
+        whenever(editor.putBoolean(org.mockito.kotlin.any(), org.mockito.kotlin.any())).thenReturn(editor)
+        whenever(editor.putStringSet(org.mockito.kotlin.any(), anyOrNull())).thenReturn(editor)
     }
 
     @Test
@@ -76,7 +81,13 @@ class SettingsLocalDataSourceTest {
     @Test
     fun `saveSettings should save postal code and news interval`() = runTest {
         // Arrange
-        val settings = Settings("1000001", 30)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         dataSource.saveSettings(settings)
@@ -84,6 +95,9 @@ class SettingsLocalDataSourceTest {
         // Assert
         verify(editor).putString("postal_code", "1000001")
         verify(editor).putInt("news_interval", 30)
+        verify(editor).putString("rss_url", "https://test.com/rss")
+        verify(editor).putBoolean("enable_tts", false)
+        verify(editor).putString("rss_preset", null)
         verify(editor).apply()
     }
 
@@ -93,14 +107,27 @@ class SettingsLocalDataSourceTest {
         val postalCodes = listOf("1000001", "5300001", "0600000", "9999999")
 
         postalCodes.forEach { postalCode ->
-            val settings = Settings(postalCode, 30)
+            val settings = Settings(
+                postalCode = postalCode,
+                newsIntervalMinutes = 30,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
 
             // Act
             dataSource.saveSettings(settings)
+        }
 
-            // Assert
+        // Assert
+        postalCodes.forEach { postalCode ->
             verify(editor).putString("postal_code", postalCode)
         }
+        verify(editor, times(4)).putInt("news_interval", 30)
+        verify(editor, times(4)).putString("rss_url", "https://test.com/rss")
+        verify(editor, times(4)).putBoolean("enable_tts", false)
+        verify(editor, times(4)).putString("rss_preset", null)
+        verify(editor, times(4)).apply()
     }
 
     @Test
@@ -109,33 +136,58 @@ class SettingsLocalDataSourceTest {
         val intervals = listOf(1, 15, 30, 45, 60)
 
         intervals.forEach { interval ->
-            val settings = Settings("1000001", interval)
+            val settings = Settings(
+                postalCode = "1000001",
+                newsIntervalMinutes = interval,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
 
             // Act
             dataSource.saveSettings(settings)
+        }
 
-            // Assert
+        // Assert
+        intervals.forEach { interval ->
             verify(editor).putInt("news_interval", interval)
         }
+        verify(editor, times(5)).putString("postal_code", "1000001")
+        verify(editor, times(5)).putString("rss_url", "https://test.com/rss")
+        verify(editor, times(5)).putBoolean("enable_tts", false)
+        verify(editor, times(5)).putString("rss_preset", null)
+        verify(editor, times(5)).apply()
     }
 
     @Test
     fun `saveSettings should use apply instead of commit`() = runTest {
         // Arrange
-        val settings = Settings("1000001", 30)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         dataSource.saveSettings(settings)
 
         // Assert
+        verify(editor).putString("postal_code", "1000001")
+        verify(editor).putInt("news_interval", 30)
+        verify(editor).putString("rss_url", "https://test.com/rss")
+        verify(editor).putBoolean("enable_tts", false)
+        verify(editor).putString("rss_preset", null)
         verify(editor).apply()
-        verify(editor, org.mockito.kotlin.never()).commit()
+        verify(editor, never()).commit()
     }
 
     @Test
-    fun `hasSettings should return true when postal code exists`() = runTest {
+    fun `hasSettings should return true when both postal code and rss url exist`() = runTest {
         // Arrange
         whenever(sharedPreferences.contains("postal_code")).thenReturn(true)
+        whenever(sharedPreferences.contains("rss_url")).thenReturn(true)
 
         // Act
         val result = dataSource.hasSettings()
@@ -148,6 +200,7 @@ class SettingsLocalDataSourceTest {
     fun `hasSettings should return false when postal code does not exist`() = runTest {
         // Arrange
         whenever(sharedPreferences.contains("postal_code")).thenReturn(false)
+    whenever(sharedPreferences.contains("rss_url")).thenReturn(false)
 
         // Act
         val result = dataSource.hasSettings()
@@ -185,7 +238,13 @@ class SettingsLocalDataSourceTest {
     @Test
     fun `saveSettings should save empty postal code`() = runTest {
         // Arrange
-        val settings = Settings("", 30)
+        val settings = Settings(
+            postalCode = "",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         dataSource.saveSettings(settings)
@@ -193,13 +252,22 @@ class SettingsLocalDataSourceTest {
         // Assert
         verify(editor).putString("postal_code", "")
         verify(editor).putInt("news_interval", 30)
+        verify(editor).putString("rss_url", "https://test.com/rss")
+        verify(editor).putBoolean("enable_tts", false)
+        verify(editor).putString("rss_preset", null)
         verify(editor).apply()
     }
 
     @Test
     fun `saveSettings should call editor methods in correct order`() = runTest {
         // Arrange
-        val settings = Settings("1000001", 45)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         dataSource.saveSettings(settings)
@@ -208,6 +276,9 @@ class SettingsLocalDataSourceTest {
         val inOrder = org.mockito.kotlin.inOrder(editor)
         inOrder.verify(editor).putString("postal_code", "1000001")
         inOrder.verify(editor).putInt("news_interval", 45)
+        inOrder.verify(editor).putString("rss_url", "https://test.com/rss")
+        inOrder.verify(editor).putBoolean("enable_tts", false)
+        inOrder.verify(editor).putString("rss_preset", null)
         inOrder.verify(editor).apply()
     }
 
@@ -240,7 +311,13 @@ class SettingsLocalDataSourceTest {
         // We'll simulate the behavior by setting up mocks to return saved values
 
         // Arrange
-        val settings = Settings("1234567", 20)
+        val settings = Settings(
+            postalCode = "1234567",
+            newsIntervalMinutes = 20,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Simulate save
         whenever(sharedPreferences.getString("postal_code", "")).thenReturn("1234567")

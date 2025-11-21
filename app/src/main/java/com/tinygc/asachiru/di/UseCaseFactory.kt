@@ -76,7 +76,8 @@ class UseCaseFactory(private val context: Context) {
      */
     fun createGetLatestNewsUseCase(): GetLatestNewsUseCase {
         val newsRepository = repositoryFactory.createNewsRepository()
-        return GetLatestNewsUseCase(newsRepository)
+        val readArticleRepository = repositoryFactory.createReadArticleRepository()
+        return GetLatestNewsUseCase(newsRepository, readArticleRepository)
     }
 
     /**

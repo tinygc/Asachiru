@@ -1,16 +1,23 @@
 package com.tinygc.asachiru.data.datasource.local
 
+import android.content.Context
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.mockito.Mock
+import org.mockito.MockitoAnnotations
 
 class MusicLocalDataSourceTest {
+
+    @Mock
+    private lateinit var mockContext: Context
 
     private lateinit var dataSource: MusicLocalDataSource
 
     @Before
     fun setup() {
-        dataSource = MusicLocalDataSource()
+        MockitoAnnotations.openMocks(this)
+        dataSource = MusicLocalDataSource(mockContext)
     }
 
     @Test

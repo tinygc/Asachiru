@@ -3,11 +3,13 @@ package com.tinygc.asachiru.di
 import android.content.Context
 import com.tinygc.asachiru.data.repository.MusicRepositoryImpl
 import com.tinygc.asachiru.data.repository.NewsRepositoryImpl
+import com.tinygc.asachiru.data.repository.ReadArticleRepositoryImpl
 import com.tinygc.asachiru.data.repository.SettingsRepositoryImpl
 import com.tinygc.asachiru.data.repository.WeatherRepositoryImpl
 import com.tinygc.asachiru.domain.common.IMusicPlayer
 import com.tinygc.asachiru.domain.repository.MusicRepository
 import com.tinygc.asachiru.domain.repository.NewsRepository
+import com.tinygc.asachiru.domain.repository.ReadArticleRepository
 import com.tinygc.asachiru.domain.repository.SettingsRepository
 import com.tinygc.asachiru.domain.repository.WeatherRepository
 import com.tinygc.asachiru.presentation.util.MusicPlayer
@@ -69,4 +71,13 @@ class RepositoryFactory(private val context: Context) {
         val dataSource = dataSourceFactory.createMusicLocalDataSource()
         return MusicRepositoryImpl(dataSource, getMusicPlayer())
     }
+
+    /**
+     * ReadArticleRepositoryのインスタンスを生成
+     */
+    fun createReadArticleRepository(): ReadArticleRepository {
+        val dataSource = dataSourceFactory.createSettingsLocalDataSource()
+        return ReadArticleRepositoryImpl(dataSource)
+    }
 }
+

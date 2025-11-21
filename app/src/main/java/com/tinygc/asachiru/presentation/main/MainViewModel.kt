@@ -42,6 +42,7 @@ class MainViewModel(
     private val playMusicUseCase: PlayMusicUseCase,
     private val getCurrentTrackUseCase: GetCurrentTrackUseCase,
     private val settingsRepository: SettingsRepository,
+    private val readArticleRepository: com.tinygc.asachiru.domain.repository.ReadArticleRepository,
     private val musicPlayer: IMusicPlayer,
     // テスト用のパラメータ（デフォルト値は本番用）
     private val clockUpdateIntervalMs: Long = 1000L,
@@ -58,7 +59,8 @@ class MainViewModel(
     val stateMachine = NewsReadingStateMachine(
         scope = viewModelScope,
         onFetchNews = { fetchNewsArticles() },
-        onReadArticle = { article, ttsEnabled -> readArticle(article, ttsEnabled) }
+        onReadArticle = { article, ttsEnabled -> readArticle(article, ttsEnabled) },
+        onMarkAsRead = { articleId -> markArticleAsRead(articleId) }
     )
 
     init {
@@ -214,7 +216,7 @@ class MainViewModel(
     /**
      * ニュース記事を取得
      */
-    private suspend fun fetchNewsArticles(): List<com.tinygc.asachiru.domain.model.News> {
+    private suspend fun fetchNewsArticles(): com.tinygc.asachiru.domain.model.NewsResult {
         _uiState.update { it.copy(isNewsLoading = true) }
 
         return when (val result = getLatestNewsUseCase(10)) {
@@ -223,12 +225,15 @@ class MainViewModel(
                     it.copy(
                         isNewsLoading = false,
                         newsError = null,
-                        debugNewsList = result.data,
+                        debugNewsList = result.data.allArticles,
                         debugLastFetchTime = System.currentTimeMillis()
                     )
                 }
-                // domain.entity.News から domain.model.News に変換
-                result.data.map { convertToDomainNews(it) }
+                // domain.entity.NewsResult から domain.model.NewsResult に変換
+                com.tinygc.asachiru.domain.model.NewsResult(
+                    allArticles = result.data.allArticles.map { convertToDomainNews(it) },
+                    newArticles = result.data.newArticles.map { convertToDomainNews(it) }
+                )
             }
             is Result.Error -> {
                 _uiState.update {
@@ -237,7 +242,7 @@ class MainViewModel(
                         newsError = result.exception.message
                     )
                 }
-                emptyList()
+                com.tinygc.asachiru.domain.model.NewsResult(emptyList(), emptyList())
             }
         }
     }
@@ -555,8 +560,16 @@ class MainViewModel(
         }
     }
 
+    /**
+     * 記事を既読としてマーク
+     */
+    private suspend fun markArticleAsRead(articleId: String) {
+        readArticleRepository.markArticleAsRead(articleId)
+    }
+
     override fun onCleared() {
         super.onCleared()
         stateMachine.cleanup()
     }
 }
+

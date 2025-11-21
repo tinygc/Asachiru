@@ -2,6 +2,7 @@ package com.tinygc.asachiru.presentation.main
 
 import android.util.Log
 import com.tinygc.asachiru.domain.model.News
+import com.tinygc.asachiru.domain.model.NewsResult
 import com.tinygc.asachiru.domain.entity.Settings
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -16,16 +17,16 @@ import kotlinx.coroutines.launch
  */
 class NewsReadingStateMachine(
     private val scope: CoroutineScope,
-    private val onFetchNews: suspend () -> List<News>,
-    private val onReadArticle: suspend (News, Boolean) -> Unit
+    private val onFetchNews: suspend () -> NewsResult,
+    private val onReadArticle: suspend (News, Boolean) -> Unit,
+    private val onMarkAsRead: suspend (String) -> Unit
 ) {
     private val _state = MutableStateFlow<NewsReadingState>(NewsReadingState.Idle)
     val state: StateFlow<NewsReadingState> = _state.asStateFlow()
 
     private var timerJob: Job? = null
-    private var currentArticles: List<News> = emptyList()
-    private var displayedArticleIds: MutableSet<String> = mutableSetOf() // 既読記事ID
-    private var lastClearTimeMs: Long = System.currentTimeMillis() // 最後に既読IDをクリアした時刻
+    private var allArticles: List<News> = emptyList() // RSSから取得した全記事
+    private var newArticles: List<News> = emptyList() // 未読の新しい記事
     private var pausedAtMs: Long = 0L // 一時停止時の時刻
     private var cachedSettings: Settings? = null // 設定をキャッシュ
 
@@ -52,25 +53,21 @@ class NewsReadingStateMachine(
 
             is NewsReadingEvent.NewsFetched -> {
                 if (currentState is NewsReadingState.FetchingNews) {
-                    // 30分(1800秒)経過していたら既読記事IDをクリア
-                    val currentTimeMs = System.currentTimeMillis()
-                    val elapsedMinutes = (currentTimeMs - lastClearTimeMs) / (60 * 1000L)
-                    if (elapsedMinutes >= 30) {
-                        displayedArticleIds.clear()
-                        lastClearTimeMs = currentTimeMs
-                        Log.d("StateMachine", "30分経過: 既読記事IDをクリアして全記事を再読します")
-                    }
-                    
-                    // 新しい記事のみを抽出(既読記事IDと重複しないもの)
-                    val newArticles = event.articles.filter { it.id !in displayedArticleIds }
+                    // 全記事と新規記事を保存
+                    allArticles = event.newsResult.allArticles
+                    newArticles = event.newsResult.newArticles
                     
                     if (newArticles.isNotEmpty()) {
-                        // 新しい記事がある場合
-                        currentArticles = newArticles
-                        // 記事IDを既読リストに追加
-                        displayedArticleIds.addAll(newArticles.map { it.id })
-                        transitionToReadingArticle(0, newArticles, settings)
-                        Log.d("StateMachine", "New articles found: ${newArticles.size} (total displayed: ${displayedArticleIds.size})")
+                        // 新しい記事がある場合、最初の新規記事から読み上げ開始
+                        // newArticles[0]のallArticles内でのインデックスを取得
+                        val firstNewArticleId = newArticles[0].id
+                        val startIndex = allArticles.indexOfFirst { it.id == firstNewArticleId }
+                        if (startIndex >= 0) {
+                            transitionToReadingArticle(startIndex, allArticles, settings)
+                            Log.d("StateMachine", "New articles found: ${newArticles.size} / total: ${allArticles.size}, starting at index $startIndex")
+                        } else {
+                            Log.e("StateMachine", "First new article not found in allArticles!")
+                        }
                     } else {
                         // 新しい記事がない場合、5分待機してから再フェッチ
                         Log.d("StateMachine", "No new articles, waiting 5 minutes before retry")
@@ -82,21 +79,40 @@ class NewsReadingStateMachine(
             is NewsReadingEvent.ArticleCompleted -> {
                 when (currentState) {
                     is NewsReadingState.ReadingArticle -> {
+                        // 記事読了時に既読としてマーク
+                        scope.launch {
+                            onMarkAsRead(currentState.article.id)
+                        }
+                        
                         // ポップアップ表示中であれば遷移保留しフラグのみ立てる
                         if (currentState.isPaused) {
                             _state.value = currentState.copy(hasCompletedReading = true)
                             Log.d("StateMachine", "ArticleCompleted deferred (detail open) index=${currentState.articleIndex}")
                             return
                         }
-                        val nextIndex = currentState.articleIndex + 1
-                        if (nextIndex < currentState.totalArticles) {
-                            // TTS OFFの場合はインターバルなしで即次の記事へ
-                            if (!settings.enableTts) {
-                                transitionToReadingArticle(nextIndex, currentArticles, settings)
+                        
+                        // 次に読むべき記事を探す(newArticlesの範囲内で)
+                        val currentArticleId = currentState.article.id
+                        val currentIndexInNew = newArticles.indexOfFirst { it.id == currentArticleId }
+                        
+                        if (currentIndexInNew >= 0 && currentIndexInNew + 1 < newArticles.size) {
+                            // 次のnew記事がある
+                            val nextNewArticleId = newArticles[currentIndexInNew + 1].id
+                            val nextIndexInAll = allArticles.indexOfFirst { it.id == nextNewArticleId }
+                            
+                            if (nextIndexInAll >= 0) {
+                                // TTS OFFの場合はインターバルなしで即次の記事へ
+                                if (!settings.enableTts) {
+                                    transitionToReadingArticle(nextIndexInAll, allArticles, settings)
+                                } else {
+                                    transitionToArticleInterval(nextIndexInAll, allArticles.size)
+                                }
                             } else {
-                                transitionToArticleInterval(nextIndex, currentState.totalArticles)
+                                Log.e("StateMachine", "Next new article not found in allArticles!")
+                                handleEvent(NewsReadingEvent.AllArticlesCompleted, settings)
                             }
                         } else {
+                            // 全てのnew記事を読み終わった
                             handleEvent(NewsReadingEvent.AllArticlesCompleted, settings)
                         }
                     }
@@ -109,7 +125,7 @@ class NewsReadingStateMachine(
                     is NewsReadingState.ArticleInterval -> {
                         transitionToReadingArticle(
                             currentState.nextArticleIndex,
-                            currentArticles,
+                            allArticles,
                             settings
                         )
                     }
@@ -123,7 +139,20 @@ class NewsReadingStateMachine(
 
             is NewsReadingEvent.SessionIntervalExpired -> {
                 if (currentState is NewsReadingState.SessionInterval) {
-                    transitionToFetchingNews()
+                    // 広告終了後は最初の新規記事から再開(RSSフェッチはしない)
+                    if (newArticles.isNotEmpty()) {
+                        val firstNewArticleId = newArticles[0].id
+                        val startIndex = allArticles.indexOfFirst { it.id == firstNewArticleId }
+                        if (startIndex >= 0) {
+                            transitionToReadingArticle(startIndex, allArticles, settings)
+                        } else {
+                            // 見つからない場合はフェッチ
+                            transitionToFetchingNews()
+                        }
+                    } else {
+                        // 新規記事がない場合はフェッチ
+                        transitionToFetchingNews()
+                    }
                 }
             }
 
@@ -211,7 +240,7 @@ class NewsReadingStateMachine(
                                 val nextIndex = updated.articleIndex + 1
                                 if (nextIndex < updated.totalArticles) {
                                     if (!settingsLocal.enableTts) {
-                                        transitionToReadingArticle(nextIndex, currentArticles, settingsLocal)
+                                        transitionToReadingArticle(nextIndex, allArticles, settingsLocal)
                                     } else {
                                         transitionToArticleInterval(nextIndex, updated.totalArticles)
                                     }
@@ -259,7 +288,7 @@ class NewsReadingStateMachine(
                             // 前の記事があれば移動
                             val prevIndex = currentState.articleIndex - 1
                             cancelTimer()
-                            transitionToReadingArticle(prevIndex, currentArticles, settings)
+                            transitionToReadingArticle(prevIndex, allArticles, settings)
                         } else {
                             // 最初の記事で上キーを押した場合は何もしない（読み上げ継続）
                             Log.d("StateMachine", "NavigateToPrevious: Already at first article, ignoring")
@@ -270,27 +299,27 @@ class NewsReadingStateMachine(
                         val prevIndex = currentState.nextArticleIndex - 1
                         if (prevIndex >= 0) {
                             cancelTimer()
-                            transitionToReadingArticle(prevIndex, currentArticles, settings)
+                            transitionToReadingArticle(prevIndex, allArticles, settings)
                         }
                     }
                     is NewsReadingState.SessionInterval -> {
                         // SessionInterval(広告非表示=新記事なし待機)から最後の記事に戻る
-                        if (!currentState.showAd && currentArticles.isNotEmpty()) {
-                            Log.d("StateMachine", "NavigateToPrevious from SessionInterval(no ad): Going to last article (${currentArticles.size - 1})")
+                        if (!currentState.showAd && allArticles.isNotEmpty()) {
+                            Log.d("StateMachine", "NavigateToPrevious from SessionInterval(no ad): Going to last article (${allArticles.size - 1})")
                             cancelTimer()
-                            transitionToReadingArticle(currentArticles.size - 1, currentArticles, settings)
+                            transitionToReadingArticle(allArticles.size - 1, allArticles, settings)
                         } else {
                             Log.d("StateMachine", "NavigateToPrevious from SessionInterval: showAd=${currentState.showAd}, ignoring")
                         }
                     }
                     is NewsReadingState.FetchingNews -> {
                         // ニュース取得中(広告タイマー切れ後)は最後の記事に戻る
-                        if (currentArticles.isNotEmpty()) {
-                            Log.d("StateMachine", "NavigateToPrevious from FetchingNews: Going to last article (${currentArticles.size - 1})")
+                        if (allArticles.isNotEmpty()) {
+                            Log.d("StateMachine", "NavigateToPrevious from FetchingNews: Going to last article (${allArticles.size - 1})")
                             cancelTimer()
-                            transitionToReadingArticle(currentArticles.size - 1, currentArticles, settings)
+                            transitionToReadingArticle(allArticles.size - 1, allArticles, settings)
                         } else {
-                            Log.w("StateMachine", "NavigateToPrevious from FetchingNews: currentArticles is empty!")
+                            Log.w("StateMachine", "NavigateToPrevious from FetchingNews: allArticles is empty!")
                         }
                     }
                     else -> Log.d("StateMachine", "NavigateToPrevious in state: $currentState (no action)")
@@ -304,7 +333,7 @@ class NewsReadingStateMachine(
                             // 次の記事があれば移動
                             val nextIndex = currentState.articleIndex + 1
                             cancelTimer()
-                            transitionToReadingArticle(nextIndex, currentArticles, settings)
+                            transitionToReadingArticle(nextIndex, allArticles, settings)
                         } else {
                             // 最後の記事で下キーを押した場合は何もしない（読み上げ継続）
                             Log.d("StateMachine", "NavigateToNext: Already at last article, ignoring")
@@ -312,17 +341,23 @@ class NewsReadingStateMachine(
                     }
                     is NewsReadingState.ArticleInterval -> {
                         // インターバル中は次の記事にすぐ進む
-                        if (currentState.nextArticleIndex < currentArticles.size) {
+                        if (currentState.nextArticleIndex < allArticles.size) {
                             cancelTimer()
-                            transitionToReadingArticle(currentState.nextArticleIndex, currentArticles, settings)
+                            transitionToReadingArticle(currentState.nextArticleIndex, allArticles, settings)
                         }
                     }
                     is NewsReadingState.SessionInterval -> {
-                        // SessionInterval(広告非表示=新記事なし待機)から最初の記事に戻る
-                        if (!currentState.showAd && currentArticles.isNotEmpty()) {
-                            Log.d("StateMachine", "NavigateToNext from SessionInterval(no ad): Going to first article (0)")
-                            cancelTimer()
-                            transitionToReadingArticle(0, currentArticles, settings)
+                        // SessionInterval(広告非表示=新記事なし待機)から最初の新規記事に戻る
+                        if (!currentState.showAd && newArticles.isNotEmpty()) {
+                            val firstNewArticleId = newArticles[0].id
+                            val startIndex = allArticles.indexOfFirst { it.id == firstNewArticleId }
+                            if (startIndex >= 0) {
+                                Log.d("StateMachine", "NavigateToNext from SessionInterval(no ad): Going to first new article ($startIndex)")
+                                cancelTimer()
+                                transitionToReadingArticle(startIndex, allArticles, settings)
+                            } else {
+                                Log.w("StateMachine", "NavigateToNext from SessionInterval: first new article not found")
+                            }
                         } else {
                             Log.d("StateMachine", "NavigateToNext from SessionInterval: showAd=${currentState.showAd}, ignoring")
                         }
@@ -353,8 +388,8 @@ class NewsReadingStateMachine(
         _state.value = NewsReadingState.FetchingNews
         scope.launch {
             try {
-                val articles = onFetchNews()
-                cachedSettings?.let { handleEvent(NewsReadingEvent.NewsFetched(articles), it) }
+                val newsResult = onFetchNews()
+                cachedSettings?.let { handleEvent(NewsReadingEvent.NewsFetched(newsResult), it) }
             } catch (e: Exception) {
                 Log.e("StateMachine", "Failed to fetch news", e)
                 // フェッチ失敗時は待機に戻る
@@ -366,13 +401,19 @@ class NewsReadingStateMachine(
     /**
      * 記事読み上げ状態に遷移
      */
-    private fun transitionToReadingArticle(index: Int, articles: List<News>, settings: Settings) {
+    /**
+     * 記事読み上げ/表示状態に遷移
+     * @param index allArticlesの中のインデックス
+     * @param allArticles RSSから取得した全記事(ナビゲーション範囲)
+     * @param settings 設定
+     */
+    private fun transitionToReadingArticle(index: Int, allArticles: List<News>, settings: Settings) {
         cancelTimer()
-        val article = articles[index]
+        val article = allArticles[index]
 
         _state.value = NewsReadingState.ReadingArticle(
             articleIndex = index,
-            totalArticles = articles.size,
+            totalArticles = allArticles.size,
             article = article,
             estimatedEndTimeMs = 0L, // TTS完了まで時間不明
             isPaused = false,
@@ -393,7 +434,7 @@ class NewsReadingStateMachine(
                 
                 _state.value = NewsReadingState.ReadingArticle(
                     articleIndex = index,
-                    totalArticles = articles.size,
+                    totalArticles = allArticles.size,
                     article = article,
                     estimatedEndTimeMs = estimatedEndTimeMs,
                     isPaused = false,

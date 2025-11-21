@@ -23,7 +23,7 @@ data class SetupUiState(
     val isPostalCodeValid: Boolean = true,
 
     /** ニュース読み上げ間隔（1～60分）: 画面からは削除済みだが、Settings互換のため保持 */
-    val newsInterval: Int = 30,
+    val newsInterval: Int = 5,
 
     /** ニュース読み上げ間隔のバリデーション結果: UIでは使用しない */
     val isNewsIntervalValid: Boolean = true,

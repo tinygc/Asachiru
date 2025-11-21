@@ -8,7 +8,13 @@ class SettingsTest {
     @Test
     fun `isValid should return true for valid settings`() {
         // Arrange
-        val settings = Settings("1000001", 30)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         val result = settings.isValid()
@@ -20,7 +26,13 @@ class SettingsTest {
     @Test
     fun `isValid should return false for invalid postal code`() {
         // Arrange
-        val settings = Settings("123", 30)
+        val settings = Settings(
+            postalCode = "123",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         val result = settings.isValid()
@@ -32,7 +44,13 @@ class SettingsTest {
     @Test
     fun `isValid should return false for invalid news interval`() {
         // Arrange
-        val settings = Settings("1000001", 100)
+        val settings = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 100,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Act
         val result = settings.isValid()
@@ -48,7 +66,13 @@ class SettingsTest {
 
         // Act & Assert
         validCodes.forEach { code ->
-            val settings = Settings(code, 30)
+            val settings = Settings(
+                postalCode = code,
+                newsIntervalMinutes = 30,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             assertTrue("PostalCode $code should be valid", settings.isPostalCodeValid())
         }
     }
@@ -66,7 +90,13 @@ class SettingsTest {
 
         // Act & Assert
         invalidCodes.forEach { code ->
-            val settings = Settings(code, 30)
+            val settings = Settings(
+                postalCode = code,
+                newsIntervalMinutes = 30,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             assertFalse("PostalCode $code should be invalid", settings.isPostalCodeValid())
         }
     }
@@ -78,7 +108,13 @@ class SettingsTest {
 
         // Act & Assert
         validIntervals.forEach { interval ->
-            val settings = Settings("1000001", interval)
+            val settings = Settings(
+                postalCode = "1000001",
+                newsIntervalMinutes = interval,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             assertTrue("Interval $interval should be valid", settings.isNewsIntervalValid())
         }
     }
@@ -90,7 +126,13 @@ class SettingsTest {
 
         // Act & Assert
         invalidIntervals.forEach { interval ->
-            val settings = Settings("1000001", interval)
+            val settings = Settings(
+                postalCode = "1000001",
+                newsIntervalMinutes = interval,
+                rssUrl = "https://test.com/rss",
+                enableTts = false,
+                rssPreset = null
+            )
             assertFalse("Interval $interval should be invalid", settings.isNewsIntervalValid())
         }
     }
@@ -102,15 +144,36 @@ class SettingsTest {
 
         // Assert
         assertEquals("", default.postalCode)
-        assertEquals(30, default.newsIntervalMinutes)
+        assertEquals(5, default.newsIntervalMinutes)
+        assertNull(default.rssUrl)
+        assertFalse(default.enableTts)
+        assertNull(default.rssPreset)
     }
 
     @Test
     fun `Settings should be data class with correct equality`() {
         // Arrange
-        val settings1 = Settings("1000001", 30)
-        val settings2 = Settings("1000001", 30)
-        val settings3 = Settings("1000002", 45)
+        val settings1 = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
+        val settings2 = Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
+        val settings3 = Settings(
+            postalCode = "1000002",
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         // Assert
         assertEquals(settings1, settings2)

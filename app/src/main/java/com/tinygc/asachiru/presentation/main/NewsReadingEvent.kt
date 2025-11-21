@@ -1,6 +1,6 @@
 package com.tinygc.asachiru.presentation.main
 
-import com.tinygc.asachiru.domain.model.News
+import com.tinygc.asachiru.domain.model.NewsResult
 
 /**
  * ニュース読み上げに関するイベントを表す sealed class
@@ -18,9 +18,9 @@ sealed class NewsReadingEvent {
 
     /**
      * ニュース取得完了
-     * @param articles 取得した記事リスト
+     * @param newsResult 取得した記事(全記事と新規記事)
      */
-    data class NewsFetched(val articles: List<News>) : NewsReadingEvent()
+    data class NewsFetched(val newsResult: NewsResult) : NewsReadingEvent()
 
     /**
      * 記事の読み上げ/表示完了

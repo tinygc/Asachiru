@@ -33,6 +33,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
                     playMusicUseCase = useCaseFactory.createPlayMusicUseCase(),
                     getCurrentTrackUseCase = useCaseFactory.createGetCurrentTrackUseCase(),
                     settingsRepository = repositoryFactory.createSettingsRepository(),
+                    readArticleRepository = repositoryFactory.createReadArticleRepository(),
                     musicPlayer = repositoryFactory.getMusicPlayer()
                 ) as T
             }

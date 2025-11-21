@@ -196,11 +196,11 @@ class WeatherDtoTest {
     @Test
     fun `toEntity should handle mixed weather conditions with priority`() {
         // Arrange
-        // 悪い天気を優先（雪 > 雨 > 曇り > 晴れ）
+        // 最初の天気を優先（「のち」の前の天気）
         val conditions = listOf(
-            "晴れのち曇り" to WeatherCondition.CLOUDY,
-            "曇りのち雨" to WeatherCondition.RAINY,
-            "雨のち雪" to WeatherCondition.SNOWY,
+            "晴れのち曇り" to WeatherCondition.SUNNY,
+            "曇りのち雨" to WeatherCondition.CLOUDY,
+            "雨のち雪" to WeatherCondition.RAINY,
             "雪のち晴れ" to WeatherCondition.SNOWY
         )
 

@@ -4,12 +4,15 @@ import com.tinygc.asachiru.data.datasource.remote.NewsRssDataSource
 import com.tinygc.asachiru.data.dto.NewsDto
 import com.tinygc.asachiru.domain.common.AppException
 import com.tinygc.asachiru.domain.common.Result
+import com.tinygc.asachiru.domain.entity.Settings
+import com.tinygc.asachiru.domain.repository.SettingsRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.kotlin.*
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
@@ -21,12 +24,28 @@ import java.io.IOException
 class NewsRepositoryImplTest {
 
     private lateinit var newsRssDataSource: NewsRssDataSource
+    private lateinit var settingsRepository: SettingsRepository
     private lateinit var repository: NewsRepositoryImpl
 
     @Before
     fun setUp() {
         newsRssDataSource = mock()
-        repository = NewsRepositoryImpl(newsRssDataSource)
+        settingsRepository = mock()
+        
+        // Mock settings to return RSS URL
+        runTest {
+            whenever(settingsRepository.getSettings()).thenReturn(
+                Settings(
+                    postalCode = "100-0001",
+                    newsIntervalMinutes = 30,
+                    rssUrl = "https://test-rss.com/feed",
+                    enableTts = false,
+                    rssPreset = null
+                )
+            )
+        }
+        
+        repository = NewsRepositoryImpl(newsRssDataSource, settingsRepository)
     }
 
     @Test
@@ -37,7 +56,7 @@ class NewsRepositoryImplTest {
             NewsDto("Title 2", "Description 2", "https://example.com/2", "Mon, 01 Jan 2024 13:00:00 +0900"),
             NewsDto("Title 3", "Description 3", "https://example.com/3", "Mon, 01 Jan 2024 14:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 3)
@@ -61,7 +80,7 @@ class NewsRepositoryImplTest {
             NewsDto("Title 4", "Description 4", "https://example.com/4", "Mon, 01 Jan 2024 15:00:00 +0900"),
             NewsDto("Title 5", "Description 5", "https://example.com/5", "Mon, 01 Jan 2024 16:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 2)
@@ -81,7 +100,7 @@ class NewsRepositoryImplTest {
             NewsDto("Title 1", "Description 1", "https://example.com/1", "Mon, 01 Jan 2024 12:00:00 +0900"),
             NewsDto("Title 2", "Description 2", "https://example.com/2", "Mon, 01 Jan 2024 13:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 10)
@@ -95,7 +114,7 @@ class NewsRepositoryImplTest {
     @Test
     fun `getLatestNews should return empty list when no news available`() = runTest {
         // Given
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(emptyList())
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(emptyList())
 
         // When
         val result = repository.getLatestNews(count = 10)
@@ -116,7 +135,7 @@ class NewsRepositoryImplTest {
                 pubDate = "Mon, 01 Jan 2024 12:00:00 +0900"
             )
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 1)
@@ -133,7 +152,7 @@ class NewsRepositoryImplTest {
     @Test
     fun `getLatestNews should return NetworkException on IOException`() = runTest {
         // Given
-        whenever(newsRssDataSource.fetchLatestNews()).thenAnswer {
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenAnswer {
             throw IOException("Network error")
         }
 
@@ -150,7 +169,7 @@ class NewsRepositoryImplTest {
     @Test
     fun `getLatestNews should return ParseException on generic Exception`() = runTest {
         // Given
-        whenever(newsRssDataSource.fetchLatestNews()).thenThrow(RuntimeException("Parse error"))
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenThrow(RuntimeException("Parse error"))
 
         // When
         val result = repository.getLatestNews(count = 10)
@@ -168,7 +187,7 @@ class NewsRepositoryImplTest {
         val mockNewsList = listOf(
             NewsDto("Title 1", "Description 1", "https://example.com/1", "Mon, 01 Jan 2024 12:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 0)
@@ -185,7 +204,7 @@ class NewsRepositoryImplTest {
         val mockNewsList = listOf(
             NewsDto("Title 1", "Description 1", "https://example.com/1", "Mon, 01 Jan 2024 12:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = -5)
@@ -204,7 +223,7 @@ class NewsRepositoryImplTest {
             NewsDto("Second", "Description 2", "https://example.com/2", "Mon, 01 Jan 2024 14:00:00 +0900"),
             NewsDto("Third", "Description 3", "https://example.com/3", "Mon, 01 Jan 2024 13:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = 3)
@@ -223,7 +242,7 @@ class NewsRepositoryImplTest {
         val mockNewsList = listOf(
             NewsDto("Title 1", "Description 1", "https://example.com/1", "Mon, 01 Jan 2024 12:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         val result = repository.getLatestNews(count = Int.MAX_VALUE)
@@ -240,12 +259,12 @@ class NewsRepositoryImplTest {
         val mockNewsList = listOf(
             NewsDto("Title 1", "Description 1", "https://example.com/1", "Mon, 01 Jan 2024 12:00:00 +0900")
         )
-        whenever(newsRssDataSource.fetchLatestNews()).thenReturn(mockNewsList)
+        whenever(newsRssDataSource.fetchLatestNews(anyString())).thenReturn(mockNewsList)
 
         // When
         repository.getLatestNews(count = 1)
 
         // Then
-        verify(newsRssDataSource, times(1)).fetchLatestNews()
+        verify(newsRssDataSource, times(1)).fetchLatestNews(anyString())
     }
 }

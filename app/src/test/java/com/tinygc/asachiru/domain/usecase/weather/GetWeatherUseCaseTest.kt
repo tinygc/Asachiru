@@ -35,7 +35,13 @@ class GetWeatherUseCaseTest {
     fun `invoke should return weather when repository returns success`() = runTest {
         // Arrange
         val postalCode = "1000001"
-        val settings = Settings(postalCode, 30)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         val expectedWeather = Weather(
             condition = WeatherCondition.SUNNY,
             currentTemperature = 20,
@@ -62,7 +68,13 @@ class GetWeatherUseCaseTest {
     fun `invoke should return error when repository returns error`() = runTest {
         // Arrange
         val postalCode = "1000001"
-        val settings = Settings(postalCode, 30)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         val exception = AppException.NetworkException("Network error")
 
         whenever(settingsRepository.getSettings()).thenReturn(settings)
@@ -95,7 +107,13 @@ class GetWeatherUseCaseTest {
     fun `invoke should use postal code from settings`() = runTest {
         // Arrange
         val postalCode = "5300001"
-        val settings = Settings(postalCode, 45)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 45,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         val expectedWeather = Weather(
             condition = WeatherCondition.RAINY,
             currentTemperature = 18,
@@ -122,7 +140,13 @@ class GetWeatherUseCaseTest {
     fun `invoke should handle network exception from repository`() = runTest {
         // Arrange
         val postalCode = "1000001"
-        val settings = Settings(postalCode, 30)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         val networkException = AppException.NetworkException("Connection timeout")
 
         whenever(settingsRepository.getSettings()).thenReturn(settings)
@@ -143,7 +167,13 @@ class GetWeatherUseCaseTest {
     fun `invoke should handle API exception from repository`() = runTest {
         // Arrange
         val postalCode = "1000001"
-        val settings = Settings(postalCode, 30)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
         val apiException = AppException.ApiException(404, "City not found")
 
         whenever(settingsRepository.getSettings()).thenReturn(settings)
@@ -172,7 +202,13 @@ class GetWeatherUseCaseTest {
         )
 
         val postalCode = "1000001"
-        val settings = Settings(postalCode, 30)
+        val settings = Settings(
+            postalCode = postalCode,
+            newsIntervalMinutes = 30,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        )
 
         conditions.forEach { condition ->
             // Arrange

@@ -56,7 +56,7 @@ class SetupViewModelTest {
 
         // Then
         assertEquals("", state.postalCode)
-        assertEquals(30, state.newsInterval)
+        assertEquals(5, state.newsInterval)
         assertTrue(state.isPostalCodeValid)
         assertTrue(state.isNewsIntervalValid)
         assertFalse(state.isSaving)
@@ -107,52 +107,10 @@ class SetupViewModelTest {
     }
 
     @Test
-    fun `updateNewsInterval should update news interval and validation`() {
-        // Given
-        val interval = 45
-
-        // When
-        viewModel.updateNewsInterval(interval)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(interval, state.newsInterval)
-        assertTrue(state.isNewsIntervalValid)
-    }
-
-    @Test
-    fun `updateNewsInterval with value less than 1 should set validation to false`() {
-        // Given
-        val interval = 0
-
-        // When
-        viewModel.updateNewsInterval(interval)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(interval, state.newsInterval)
-        assertFalse(state.isNewsIntervalValid)
-    }
-
-    @Test
-    fun `updateNewsInterval with value greater than 60 should set validation to false`() {
-        // Given
-        val interval = 61
-
-        // When
-        viewModel.updateNewsInterval(interval)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(interval, state.newsInterval)
-        assertFalse(state.isNewsIntervalValid)
-    }
-
-    @Test
     fun `saveSettings should save valid settings successfully`() = runTest {
         // Given
         viewModel.updatePostalCode("1000001")
-        viewModel.updateNewsInterval(30)
+        viewModel.updateRssUrl("https://test.com/rss")
         whenever(saveSettingsUseCase(any())).thenReturn(Result.Success(Unit))
 
         // When
@@ -164,14 +122,20 @@ class SetupViewModelTest {
         assertFalse(state.isSaving)
         assertNull(state.saveError)
         assertTrue(state.isComplete)
-        verify(saveSettingsUseCase).invoke(Settings("1000001", 30))
+        verify(saveSettingsUseCase).invoke(Settings(
+            postalCode = "1000001",
+            newsIntervalMinutes = 5,
+            rssUrl = "https://test.com/rss",
+            enableTts = false,
+            rssPreset = null
+        ))
     }
 
     @Test
     fun `saveSettings should set error when save fails`() = runTest {
         // Given
         viewModel.updatePostalCode("1000001")
-        viewModel.updateNewsInterval(30)
+        viewModel.updateRssUrl("https://test.com/rss")
         val errorMessage = "Failed to save settings"
         whenever(saveSettingsUseCase(any())).thenReturn(
             Result.Error(AppException.SettingsException(errorMessage))
@@ -192,23 +156,6 @@ class SetupViewModelTest {
     fun `saveSettings should not save when postal code is invalid`() = runTest {
         // Given
         viewModel.updatePostalCode("123") // 不正な郵便番号
-        viewModel.updateNewsInterval(30)
-
-        // When
-        viewModel.saveSettings()
-        advanceUntilIdle()
-
-        // Then
-        val state = viewModel.uiState.value
-        assertFalse(state.isSaving)
-        assertFalse(state.isComplete)
-    }
-
-    @Test
-    fun `saveSettings should not save when news interval is invalid`() = runTest {
-        // Given
-        viewModel.updatePostalCode("1000001")
-        viewModel.updateNewsInterval(0) // 不正な間隔
 
         // When
         viewModel.saveSettings()
@@ -224,7 +171,7 @@ class SetupViewModelTest {
     fun `saveSettings should set isSaving to true during save`() = runTest {
         // Given
         viewModel.updatePostalCode("1000001")
-        viewModel.updateNewsInterval(30)
+        viewModel.updateRssUrl("https://test.com/rss")
         whenever(saveSettingsUseCase(any())).thenReturn(Result.Success(Unit))
 
         // When
@@ -261,39 +208,6 @@ class SetupViewModelTest {
     }
 
     @Test
-    fun `updateNewsInterval with boundary value 1 should be valid`() {
-        // When
-        viewModel.updateNewsInterval(1)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(1, state.newsInterval)
-        assertTrue(state.isNewsIntervalValid)
-    }
-
-    @Test
-    fun `updateNewsInterval with boundary value 60 should be valid`() {
-        // When
-        viewModel.updateNewsInterval(60)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(60, state.newsInterval)
-        assertTrue(state.isNewsIntervalValid)
-    }
-
-    @Test
-    fun `updateNewsInterval with negative value should set validation to false`() {
-        // When
-        viewModel.updateNewsInterval(-1)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(-1, state.newsInterval)
-        assertFalse(state.isNewsIntervalValid)
-    }
-
-    @Test
     fun `multiple updatePostalCode calls should update state correctly`() {
         // When
         viewModel.updatePostalCode("123")
@@ -303,17 +217,5 @@ class SetupViewModelTest {
         val state = viewModel.uiState.value
         assertEquals("1234567", state.postalCode)
         assertTrue(state.isPostalCodeValid)
-    }
-
-    @Test
-    fun `multiple updateNewsInterval calls should update state correctly`() {
-        // When
-        viewModel.updateNewsInterval(10)
-        viewModel.updateNewsInterval(50)
-
-        // Then
-        val state = viewModel.uiState.value
-        assertEquals(50, state.newsInterval)
-        assertTrue(state.isNewsIntervalValid)
     }
 }
