@@ -77,3 +77,6 @@ lint-baseline.xml
 
 # Android Profiling
 *.hprof
+
+# Claude Code local settings
+.claude/settings.local.json
