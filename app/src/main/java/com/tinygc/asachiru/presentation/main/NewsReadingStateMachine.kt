@@ -263,13 +263,82 @@ class NewsReadingStateMachine(
             }
 
             is NewsReadingEvent.BackgroundTransition -> {
-                // バックグラウンド遷移時は状態は保持するが、外部でBGM停止などを行う
+                // バックグラウンド遷移時はタイマーをキャンセルして一時停止
                 Log.d("StateMachine", "Background transition in state: $currentState")
+                when (currentState) {
+                    is NewsReadingState.ReadingArticle -> {
+                        if (!currentState.isPaused) {
+                            pausedAtMs = System.currentTimeMillis()
+                            cancelTimer()
+                            _state.value = currentState.copy(isPaused = true)
+                        }
+                    }
+                    is NewsReadingState.ArticleInterval -> {
+                        if (!currentState.isPaused) {
+                            pausedAtMs = System.currentTimeMillis()
+                            cancelTimer()
+                            _state.value = currentState.copy(isPaused = true)
+                        }
+                    }
+                    is NewsReadingState.WaitingForStart -> {
+                        // 開始待機中もタイマーをキャンセル
+                        cancelTimer()
+                    }
+                    else -> { /* 他の状態では何もしない */ }
+                }
             }
 
             is NewsReadingEvent.ForegroundTransition -> {
-                // フォアグラウンド復帰時は状態は保持するが、外部でBGM再開などを行う
+                // フォアグラウンド復帰時はタイマーを再開
                 Log.d("StateMachine", "Foreground transition in state: $currentState")
+                when (currentState) {
+                    is NewsReadingState.ReadingArticle -> {
+                        if (currentState.isPaused) {
+                            val pausedDurationMs = System.currentTimeMillis() - pausedAtMs
+                            val newEndTimeMs = currentState.estimatedEndTimeMs + pausedDurationMs
+                            _state.value = currentState.copy(
+                                isPaused = false,
+                                estimatedEndTimeMs = newEndTimeMs
+                            )
+                            // TTS OFFの場合のみタイマー再開（TTS ONの場合は読み上げ完了で遷移）
+                            if (!settings.enableTts) {
+                                val remainingMs = newEndTimeMs - System.currentTimeMillis()
+                                if (remainingMs > 0) {
+                                    startTimer(remainingMs) {
+                                        handleEvent(NewsReadingEvent.ArticleCompleted, settings)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    is NewsReadingState.ArticleInterval -> {
+                        if (currentState.isPaused) {
+                            val pausedDurationMs = System.currentTimeMillis() - pausedAtMs
+                            val newEndTimeMs = currentState.endTimeMs + pausedDurationMs
+                            _state.value = currentState.copy(
+                                isPaused = false,
+                                endTimeMs = newEndTimeMs
+                            )
+                            val remainingMs = newEndTimeMs - System.currentTimeMillis()
+                            startTimer(remainingMs.coerceAtLeast(0)) {
+                                handleEvent(NewsReadingEvent.IntervalExpired, settings)
+                            }
+                        }
+                    }
+                    is NewsReadingState.WaitingForStart -> {
+                        // 開始タイマーを再開
+                        val remainingMs = currentState.startTimeMs - System.currentTimeMillis()
+                        if (remainingMs > 0) {
+                            startTimer(remainingMs) {
+                                handleEvent(NewsReadingEvent.StartTimerExpired, settings)
+                            }
+                        } else {
+                            // すでに開始時刻を過ぎていたら即座に開始
+                            handleEvent(NewsReadingEvent.StartTimerExpired, settings)
+                        }
+                    }
+                    else -> { /* 他の状態では何もしない */ }
+                }
             }
 
             is NewsReadingEvent.NavigateToPrevious -> {
