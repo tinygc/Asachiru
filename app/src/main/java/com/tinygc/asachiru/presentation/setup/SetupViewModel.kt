@@ -60,6 +60,13 @@ class SetupViewModel(
     }
 
     /**
+     * BGM有効化を更新
+     */
+    fun updateEnableBgm(enable: Boolean) {
+        _uiState.update { it.copy(enableBgm = enable) }
+    }
+
+    /**
      * RSSプリセット名を更新
      */
     fun updateRssPreset(preset: String?) {
@@ -87,6 +94,7 @@ class SetupViewModel(
                 newsIntervalMinutes = currentState.newsInterval,
                 rssUrl = currentState.rssUrl,
                 enableTts = currentState.enableTts,
+                enableBgm = currentState.enableBgm,
                 rssPreset = currentState.rssPreset
             )
 

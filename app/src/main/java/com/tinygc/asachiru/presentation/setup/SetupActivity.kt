@@ -128,6 +128,11 @@ class SetupActivity : AppCompatActivity() {
             viewModel.updateEnableTts(isChecked)
         }
 
+        // BGM有効化チェックボックス
+        binding.enableBgmCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.updateEnableBgm(isChecked)
+        }
+
         // 保存ボタン
         binding.saveButton.setOnClickListener {
             viewModel.saveSettings()

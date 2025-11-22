@@ -81,11 +81,11 @@ class WeatherView @JvmOverloads constructor(
     }
 
     private val dateLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, context.resources.displayMetrics)
-        color = Color.WHITE
-        alpha = (255 * 0.8f).toInt() // 少し薄く表示
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics) // 14sp → 24sp（大きく）
+        color = Color.WHITE // デフォルトは白（後で動的に変更）
+        alpha = 255 // 100%の不透明度（クッキリ）
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
-        setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
     /**
@@ -207,11 +207,20 @@ class WeatherView @JvmOverloads constructor(
 
     /**
      * 日付ラベル（今日/明日）を描画（左上 - Material Design 3 - 8dpグリッド準拠）
+     * 「今日」は黄色で強調、「明日」は白で表示
      */
     private fun drawDateLabel(canvas: Canvas, weather: Weather) {
-        // 8dpグリッド準拠のパディング（48dp = 48f）
-        val paddingHorizontal = 48f
-        val y = height * 0.15f // Viewの高さの15%位置
+        // マージンを追加して少し内側に配置（64dp）
+        val paddingHorizontal = 64f
+        val y = height * 0.22f // Viewの高さの22%位置（少し下に）
+
+        // 「今日」は黄色、「明日」は白で色分け
+        dateLabelPaint.color = if (weather.dateLabel == "今日") {
+            Color.YELLOW // 今日を黄色で強調
+        } else {
+            Color.WHITE // 明日は白
+        }
+
         canvas.drawText(weather.dateLabel, paddingHorizontal, y, dateLabelPaint)
     }
 

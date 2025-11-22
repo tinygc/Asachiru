@@ -16,6 +16,9 @@ data class SetupUiState(
     /** TTS有効化 */
     val enableTts: Boolean = false,
 
+    /** BGM有効化 */
+    val enableBgm: Boolean = true,
+
     /** RSSプリセット名 */
     val rssPreset: String? = null,
 

@@ -8,6 +8,7 @@ data class Settings(
     val newsIntervalMinutes: Int,
     val rssUrl: String? = null,
     val enableTts: Boolean = false,
+    val enableBgm: Boolean = true,
     val rssPreset: String? = null
 ) {
     /**
@@ -40,6 +41,7 @@ data class Settings(
             newsIntervalMinutes = 5,
             rssUrl = null,
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
     }

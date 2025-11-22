@@ -1,5 +1,6 @@
 package com.tinygc.asachiru.presentation.main.views
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -9,6 +10,7 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
@@ -35,7 +37,10 @@ class NewsView @JvmOverloads constructor(
     private var enableTts: Boolean = false
     private var progressPercent: Float = 0f // 次の記事までのプログレス（0.0～1.0）
     private var animatedProgress: Float = 0f // アニメーション用の現在のプログレス値
-    
+
+    // TTS読み上げ中の点滅表示用
+    private var blinkAlpha: Float = 0f // 点滅のアルファ値（0.0～1.0）
+
     // QRコードキャッシュ
     private var qrCodeBitmap: Bitmap? = null
     private var qrCodeUrl: String? = null
@@ -78,6 +83,13 @@ class NewsView @JvmOverloads constructor(
     private val progressForegroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         // グラデーション効果は描画時に動的設定
+    }
+
+    // TTS読み上げ中の点滅表示用（薄い赤色）
+    private val ttsBlinkPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.RED
+        style = Paint.Style.FILL
+        // alpha値は描画時に動的設定
     }
 
     private val backgroundRect = RectF()
@@ -145,9 +157,19 @@ class NewsView @JvmOverloads constructor(
 
     /**
      * TTS有効状態の更新
+     * TTS ON時は点滅アニメーション開始、TTS OFF時は停止
      */
     fun setEnableTts(enable: Boolean) {
         this.enableTts = enable
+
+        // TTS状態に応じてアニメーション制御
+        if (enable) {
+            blinkAnimator.start()
+        } else {
+            blinkAnimator.cancel()
+            blinkAlpha = 0f // リセット
+        }
+
         invalidate()
     }
 
@@ -192,6 +214,11 @@ class NewsView @JvmOverloads constructor(
         // TTS OFF時はプログレスバーを最初に描画（Viewの一番上）
         if (!enableTts && progressPercent > 0f) {
             drawProgressBar(canvas)
+        }
+
+        // TTS ON時は読み上げ中を示す点滅表示（Viewの一番上）
+        if (enableTts && blinkAlpha > 0f) {
+            drawTtsBlinkIndicator(canvas)
         }
 
         // Glassmorphism背景を描画
@@ -385,6 +412,26 @@ class NewsView @JvmOverloads constructor(
             )
             canvas.drawRect(foregroundRect, progressForegroundPaint)
         }
+    }
+
+    /**
+     * TTS読み上げ中の点滅表示（画面最上部に赤く、滑らかにフェード）
+     */
+    private fun drawTtsBlinkIndicator(canvas: Canvas) {
+        val indicatorHeight = 8f // プログレスバーと同じ高さ
+        val indicatorY = 0f // 画面最上部
+
+        // 赤色（alpha 0～70%で点滅、滑らかなフェードイン/アウト）
+        val alpha = (blinkAlpha * 0.7f * 255).toInt() // 最大70%の不透明度
+        ttsBlinkPaint.alpha = alpha
+
+        val indicatorRect = RectF(
+            0f,
+            indicatorY,
+            width.toFloat(),
+            indicatorY + indicatorHeight
+        )
+        canvas.drawRect(indicatorRect, ttsBlinkPaint)
     }
 
     /**
@@ -597,5 +644,31 @@ class NewsView @JvmOverloads constructor(
         }
 
         return lines
+    }
+
+    // TTS読み上げ中の点滅アニメーション（4秒周期、sin波で滑らかなフェードイン/アウト）
+    private val blinkAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 4000 // 4秒周期（よりゆったり）
+        repeatCount = ValueAnimator.INFINITE
+        repeatMode = ValueAnimator.RESTART
+        addUpdateListener { animation ->
+            val fraction = animation.animatedFraction
+            // sin波を使って滑らかなフェードイン/アウト（0→1→0）
+            blinkAlpha = kotlin.math.sin(fraction * Math.PI).toFloat()
+            invalidate() // 再描画
+        }
+    }
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        // TTS ONの場合のみアニメーション開始
+        if (enableTts) {
+            blinkAnimator.start()
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        blinkAnimator.cancel()
     }
 }

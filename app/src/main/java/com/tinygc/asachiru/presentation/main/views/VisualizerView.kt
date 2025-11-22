@@ -31,8 +31,8 @@ class VisualizerView @JvmOverloads constructor(
 
     companion object {
         private const val BAR_COUNT = 50
-        private const val BAR_WIDTH = 16f
-        private const val BAR_SPACING = 6f
+        private const val BAR_WIDTH = 20f // 横幅UP（16f → 20f）
+        private const val BAR_SPACING = 8f // 間隔UP（6f → 8f）
         private const val MIN_FRAME_INTERVAL = 33L // 30fps (1000ms / 30 = 33ms)
 
         // パステルレインボーカラー

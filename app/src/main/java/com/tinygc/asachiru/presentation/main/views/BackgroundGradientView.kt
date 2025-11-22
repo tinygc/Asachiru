@@ -14,9 +14,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import java.util.Calendar
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.random.Random
+import kotlin.math.min
 
 /**
  * 時間帯に応じたグラデーション背景を表示するカスタムビュー
@@ -30,9 +28,10 @@ import kotlin.random.Random
  * 白文字の視認性を確保するため、暗めのトーンを基調としています。
  * 30秒周期で滑らかに変化（AccelerateDecelerateInterpolator使用）。
  *
- * Lo-Fi風のチルな雰囲気を演出するため、以下の効果を追加：
- * - アンビエント・ブロッブス: 大きなぼかされた円がゆっくり浮遊
- * - グレイン・ノイズ: フィルム風のざらつき質感
+ * モダンでチルな雰囲気を演出するため、以下の効果を追加：
+ * - ビネット効果: 四隅を暗くして中心に視線を集める
+ * - 発光エフェクト: 画面隅から柔らかい光が漏れる
+ * - 波紋効果: 中心から波紋が広がる禅的なアニメーション
  */
 class BackgroundGradientView @JvmOverloads constructor(
     context: Context,
@@ -41,24 +40,25 @@ class BackgroundGradientView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val blobPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val grainPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val vignettePaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val ripplePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeWidth = 5f // 控えめに調整
+    }
 
-    /**
-     * アンビエント・ブロッブ（浮遊する円）のデータクラス
-     */
-    private data class Blob(
-        var x: Float,
-        var y: Float,
-        val radius: Float,
-        val color: Int,
-        val speedX: Float,
-        val speedY: Float,
-        val phase: Float // 動きの位相差
-    )
+    // 波紋アニメーション用
+    private var rippleProgress = 0f
+    private val rippleCount = 3 // 3つの波紋
 
-    private val blobs = mutableListOf<Blob>()
-    private var blobAnimationTime = 0f
+    // 各波紋のランダムなオフセット（0.0～1.0）
+    private val rippleOffsets = FloatArray(rippleCount) { kotlin.random.Random.nextFloat() }
+
+    // 各波紋のランダムな周期（12～18秒）
+    private val rippleDurations = FloatArray(rippleCount) { 12000f + kotlin.random.Random.nextFloat() * 6000f }
+
+    // 発光エフェクト用
+    private var glowAnimationTime = 0f
 
     // 早朝（5:00～6:59）のグラデーション - 深い青紫から明るい青へ
     private val earlyMorningGradients = listOf(
@@ -202,8 +202,9 @@ class BackgroundGradientView @JvmOverloads constructor(
                 nextGradientIndex = 1
             }
 
-            // Blobアニメーション
-            blobAnimationTime += 0.016f // 約60fps想定
+            // 発光アニメーション
+            glowAnimationTime += 0.016f // 約60fps想定
+
             invalidate() // 再描画
         }
         addListener(object : AnimatorListenerAdapter() {
@@ -240,39 +241,6 @@ class BackgroundGradientView @JvmOverloads constructor(
         }
     }
 
-    /**
-     * Blobsを初期化
-     */
-    private fun initializeBlobs() {
-        if (blobs.isNotEmpty() || width == 0 || height == 0) return
-
-        val random = Random(System.currentTimeMillis())
-        val blobCount = 5 // チルな雰囲気のため控えめに
-
-        // 時間帯に応じたBlob色を取得
-        val baseColors = gradientColors[currentGradientIndex]
-
-        repeat(blobCount) {
-            val x = random.nextFloat() * width
-            val y = random.nextFloat() * height
-            val radius = 200f + random.nextFloat() * 400f // 200-600pxの大きな円
-
-            // グラデーション色をベースに、より透明度の高い色を生成
-            val baseColor = baseColors[random.nextInt(baseColors.size)]
-            val r = Color.red(baseColor)
-            val g = Color.green(baseColor)
-            val b = Color.blue(baseColor)
-            val alpha = 25 + random.nextInt(30) // 25-55の低透明度でチルな雰囲気
-            val color = Color.argb(alpha, r, g, b)
-
-            val speedX = (random.nextFloat() - 0.5f) * 0.3f // ゆっくり移動
-            val speedY = (random.nextFloat() - 0.5f) * 0.3f
-            val phase = random.nextFloat() * 6.28f // 0-2π
-
-            blobs.add(Blob(x, y, radius, color, speedX, speedY, phase))
-        }
-    }
-
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         animator.start()
@@ -283,15 +251,26 @@ class BackgroundGradientView @JvmOverloads constructor(
         animator.cancel()
     }
 
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        initializeBlobs()
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         // 1. ベースグラデーション描画
+        drawBaseGradient(canvas)
+
+        // 2. 発光エフェクト
+        drawGlowEffect(canvas)
+
+        // 3. 波紋効果
+        drawRippleEffect(canvas)
+
+        // 4. ビネット効果（最後に描画して全体を引き締める）
+        drawVignetteEffect(canvas)
+    }
+
+    /**
+     * ベースグラデーションを描画
+     */
+    private fun drawBaseGradient(canvas: Canvas) {
         val currentColors = gradientColors[currentGradientIndex]
         val nextColors = gradientColors[nextGradientIndex]
 
@@ -309,59 +288,103 @@ class BackgroundGradientView @JvmOverloads constructor(
 
         paint.shader = gradient
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
-
-        // 2. アンビエント・ブロッブス描画
-        drawBlobs(canvas)
-
-        // 3. グレイン・ノイズ・オーバーレイ
-        drawGrain(canvas)
     }
 
     /**
-     * アンビエント・ブロッブスを描画
+     * ビネット効果を描画（四隅を暗くする）
      */
-    private fun drawBlobs(canvas: Canvas) {
-        initializeBlobs()
+    private fun drawVignetteEffect(canvas: Canvas) {
+        val centerX = width / 2f
+        val centerY = height / 2f
+        val radius = min(width, height) * 0.8f // 画面の80%の半径
 
-        blobs.forEach { blob ->
-            // 波形の動き（サインとコサインで自然な動き）
-            val offsetX = cos((blobAnimationTime * blob.speedX + blob.phase).toDouble()).toFloat() * 50f
-            val offsetY = sin((blobAnimationTime * blob.speedY + blob.phase).toDouble()).toFloat() * 50f
+        // 中心から外側に向かって暗くなるRadialGradient
+        val vignetteGradient = RadialGradient(
+            centerX, centerY, radius,
+            intArrayOf(Color.TRANSPARENT, Color.argb(120, 0, 0, 0)),
+            floatArrayOf(0.3f, 1.0f),
+            Shader.TileMode.CLAMP
+        )
 
-            val currentX = blob.x + offsetX
-            val currentY = blob.y + offsetY
-
-            // RadialGradientでぼかし効果
-            val radialGradient = RadialGradient(
-                currentX, currentY, blob.radius,
-                intArrayOf(blob.color, Color.TRANSPARENT),
-                floatArrayOf(0f, 1f),
-                Shader.TileMode.CLAMP
-            )
-
-            blobPaint.shader = radialGradient
-            canvas.drawCircle(currentX, currentY, blob.radius, blobPaint)
-        }
+        vignettePaint.shader = vignetteGradient
+        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), vignettePaint)
     }
 
     /**
-     * グレイン・ノイズを描画（フィルム風のざらつき）
+     * 発光エフェクト（画面四隅から柔らかい光）
      */
-    private fun drawGrain(canvas: Canvas) {
-        val random = Random(System.currentTimeMillis())
-        grainPaint.style = Paint.Style.FILL
+    private fun drawGlowEffect(canvas: Canvas) {
+        // 左上の発光
+        drawGlow(canvas, width * 0.15f, height * 0.15f, glowAnimationTime)
 
-        // ランダムなドットを描画して粒状感を演出
-        val grainDensity = 0.002f // 控えめな密度
-        val pixelCount = (width * height * grainDensity).toInt()
+        // 右上の発光（位相をずらす）
+        drawGlow(canvas, width * 0.85f, height * 0.15f, glowAnimationTime + 1.5f)
 
-        repeat(pixelCount) {
-            val x = random.nextFloat() * width
-            val y = random.nextFloat() * height
-            val alpha = 10 + random.nextInt(20) // 10-30の低透明度
+        // 左下の発光（位相をずらす）
+        drawGlow(canvas, width * 0.15f, height * 0.85f, glowAnimationTime + 3.0f)
 
-            grainPaint.color = Color.argb(alpha, 255, 255, 255)
-            canvas.drawCircle(x, y, 1f, grainPaint)
+        // 右下の発光（位相をずらす）
+        drawGlow(canvas, width * 0.85f, height * 0.85f, glowAnimationTime + 4.5f)
+    }
+
+    /**
+     * 個別の発光を描画
+     */
+    private fun drawGlow(canvas: Canvas, x: Float, y: Float, time: Float) {
+        // サイン波で明るさを変化（ゆっくり呼吸するように）
+        val brightness = (kotlin.math.sin(time * 0.5) * 0.5 + 0.5).toFloat() // 0.0-1.0
+        val alpha = (40 + brightness * 40).toInt() // 40-80のアルファ値
+
+        val radius = 300f + brightness * 100f // 300-400pxの半径
+
+        // 現在のグラデーション色をベースにした発光色
+        val baseColor = gradientColors[currentGradientIndex][0]
+        val r = Color.red(baseColor)
+        val g = Color.green(baseColor)
+        val b = Color.blue(baseColor)
+
+        val glowGradient = RadialGradient(
+            x, y, radius,
+            intArrayOf(Color.argb(alpha, r, g, b), Color.TRANSPARENT),
+            floatArrayOf(0f, 1f),
+            Shader.TileMode.CLAMP
+        )
+
+        glowPaint.shader = glowGradient
+        canvas.drawCircle(x, y, radius, glowPaint)
+    }
+
+    /**
+     * 波紋効果を描画（中心から広がる円 - ランダムな発生タイミング）
+     */
+    private fun drawRippleEffect(canvas: Canvas) {
+        val centerX = width / 2f
+        val centerY = height / 2f
+        val baseMaxRadius = min(width, height) * 0.6f
+
+        // 白色でコントラストを出す
+        val r = 255
+        val g = 255
+        val b = 255
+
+        val currentTime = System.currentTimeMillis()
+
+        // 3つの波紋を独立した周期とオフセットで描画
+        for (i in 0 until rippleCount) {
+            // 各波紋の独自の周期とオフセットを使用
+            val duration = rippleDurations[i].toLong()
+            val offset = rippleOffsets[i]
+            val progress = ((currentTime % duration).toFloat() / duration.toFloat() + offset) % 1.0f
+
+            // 半径にも少しランダム性を持たせる（±10%）
+            val radiusVariation = 0.9f + (offset * 0.2f)
+            val maxRadius = baseMaxRadius * radiusVariation
+
+            val radius = maxRadius * progress
+            val alpha = ((1f - progress) * 80).toInt() // 徐々に透明に（控えめに）
+
+            ripplePaint.color = Color.argb(alpha, r, g, b)
+            canvas.drawCircle(centerX, centerY, radius, ripplePaint)
         }
     }
 

@@ -59,24 +59,34 @@ class MusicTrackView @JvmOverloads constructor(
     private val shadowRect = RectF()
     private val highlightRect = RectF()
 
-    // トラック名用
+    // トラック名用（控えめに調整）
     private val titlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, context.resources.displayMetrics) // 18sp → 14sp
         color = Color.WHITE
-        typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+        alpha = (255 * 0.7f).toInt() // 70%の不透明度（控えめに）
+        typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL) // Boldを通常に
         textAlign = Paint.Align.CENTER
-        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
-        setShadowLayer(8f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+        letterSpacing = 0.02f
+        setShadowLayer(4f, 1f, 1f, Color.argb(120, 0, 0, 0)) // 影を控えめに
     }
 
-    // アーティスト名用
-    private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
+    // 音符マーク用（クッキリ見せる）
+    private val iconPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 16f, context.resources.displayMetrics) // 少し大きめ
         color = Color.WHITE
-        alpha = (255 * 0.8f).toInt() // 80%の不透明度
+        alpha = 255 // 100%の不透明度
         textAlign = Paint.Align.CENTER
-        letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
-        setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+        setShadowLayer(6f, 2f, 2f, Color.argb(150, 0, 0, 0)) // 影を強めに
+    }
+
+    // アーティスト名用（控えめに調整）
+    private val artistPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10f, context.resources.displayMetrics) // 12sp → 10sp
+        color = Color.WHITE
+        alpha = (255 * 0.6f).toInt() // 60%の不透明度（控えめに）
+        textAlign = Paint.Align.CENTER
+        letterSpacing = 0.02f
+        setShadowLayer(3f, 1f, 1f, Color.argb(100, 0, 0, 0)) // 影を控えめに
     }
 
     // エラーメッセージ用
@@ -154,47 +164,32 @@ class MusicTrackView @JvmOverloads constructor(
     }
 
     /**
-     * Material Design 3 + Neumorphism背景を描画
-     * - 外側の影（エレベーション）
-     * - 半透明背景
-     * - 内側のハイライト（Neumorphism）
-     * - 境界線
+     * シンプルな細いボーダーのみのデザイン
+     * - 細い白い枠線（1.5px）
+     * - 内側は透明
+     * - ミニマルでクリーンな印象
      */
     private fun drawGlassmorphismBackground(canvas: Canvas) {
         val padding = 24f
-        val cornerRadius = 48f
-        val shadowOffset = 8f
+        val cornerRadius = 16f // 角丸を控えめに
 
-        // 外側の影（右下にずらして描画）
-        shadowRect.set(
-            padding + shadowOffset,
-            padding + shadowOffset,
-            width.toFloat() - padding + shadowOffset,
-            height.toFloat() - padding + shadowOffset
-        )
-        canvas.drawRoundRect(shadowRect, cornerRadius, cornerRadius, shadowPaint)
-
-        // メイン背景
+        // 細いボーダーのみ描画
         backgroundRect.set(
             padding,
             padding,
             width.toFloat() - padding,
             height.toFloat() - padding
         )
-        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
 
-        // 内側のハイライト（左上に小さく描画）Neumorphism効果
-        val highlightInset = 4f
-        highlightRect.set(
-            padding + highlightInset,
-            padding + highlightInset,
-            width.toFloat() - padding - highlightInset * 8,
-            height.toFloat() - padding - highlightInset * 8
-        )
-        canvas.drawRoundRect(highlightRect, cornerRadius - highlightInset, cornerRadius - highlightInset, highlightPaint)
+        // 細い白い枠線（1.5px）
+        val borderPaintThin = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            style = Paint.Style.STROKE
+            strokeWidth = 1.5f
+            color = Color.WHITE
+            alpha = (255 * 0.5f).toInt() // 50%の不透明度で控えめに
+        }
 
-        // 境界線（エレベーション強調）
-        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, borderPaint)
+        canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, borderPaintThin)
     }
 
     /**
@@ -234,19 +229,33 @@ class MusicTrackView @JvmOverloads constructor(
         val paddingHorizontal = 48f
         val availableWidth = width - (paddingHorizontal * 2) // 左右パディング
 
-        // トラック名（中央より少し上）
-        val titleText = "🎵 ${music.title}"
+        // 音符マーク（クッキリ見せる - タイトルの左側に配置）
+        val icon = "🎵"
+        val iconWidth = iconPaint.measureText(icon)
+
+        // タイトル（音符の右側）
+        val titleText = music.title
         val titleWidth = titlePaint.measureText(titleText)
 
-        if (titleWidth > availableWidth) {
-            val scale = availableWidth / titleWidth
+        // 音符とタイトルの合計幅（間隔8dp込み）
+        val spacing = 8f
+        val totalWidth = iconWidth + spacing + titleWidth
+
+        if (totalWidth > availableWidth) {
+            val scale = availableWidth / totalWidth
             canvas.save()
             canvas.scale(scale, scale, centerX, centerY - 20f)
         }
 
-        canvas.drawText(titleText, centerX, centerY - 20f, titlePaint)
+        // 音符を描画（左側）
+        val iconX = centerX - totalWidth / 2f + iconWidth / 2f
+        canvas.drawText(icon, iconX, centerY - 20f, iconPaint)
 
-        if (titleWidth > availableWidth) {
+        // タイトルを描画（右側）
+        val titleX = iconX + iconWidth / 2f + spacing + titleWidth / 2f
+        canvas.drawText(titleText, titleX, centerY - 20f, titlePaint)
+
+        if (totalWidth > availableWidth) {
             canvas.restore()
         }
 

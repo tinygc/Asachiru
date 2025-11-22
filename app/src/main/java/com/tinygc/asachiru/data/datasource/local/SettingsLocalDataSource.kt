@@ -16,6 +16,7 @@ class SettingsLocalDataSource(
         private const val KEY_NEWS_INTERVAL = "news_interval"
         private const val KEY_RSS_URL = "rss_url"
         private const val KEY_ENABLE_TTS = "enable_tts"
+        private const val KEY_ENABLE_BGM = "enable_bgm"
         private const val KEY_RSS_PRESET = "rss_preset"
         private const val KEY_READ_ARTICLE_IDS = "read_article_ids"
     }
@@ -29,6 +30,7 @@ class SettingsLocalDataSource(
         val newsInterval = sharedPreferences.getInt(KEY_NEWS_INTERVAL, 30)
         val rssUrl = sharedPreferences.getString(KEY_RSS_URL, null)
         val enableTts = sharedPreferences.getBoolean(KEY_ENABLE_TTS, false)
+        val enableBgm = sharedPreferences.getBoolean(KEY_ENABLE_BGM, true)
         val rssPreset = sharedPreferences.getString(KEY_RSS_PRESET, null)
 
         Settings(
@@ -36,6 +38,7 @@ class SettingsLocalDataSource(
             newsIntervalMinutes = newsInterval,
             rssUrl = rssUrl,
             enableTts = enableTts,
+            enableBgm = enableBgm,
             rssPreset = rssPreset
         )
     }
@@ -50,6 +53,7 @@ class SettingsLocalDataSource(
             .putInt(KEY_NEWS_INTERVAL, settings.newsIntervalMinutes)
             .putString(KEY_RSS_URL, settings.rssUrl)
             .putBoolean(KEY_ENABLE_TTS, settings.enableTts)
+            .putBoolean(KEY_ENABLE_BGM, settings.enableBgm)
             .putString(KEY_RSS_PRESET, settings.rssPreset)
             .apply()
     }

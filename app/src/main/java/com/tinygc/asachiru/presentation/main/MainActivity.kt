@@ -1,8 +1,10 @@
 package com.tinygc.asachiru.presentation.main
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.appcompat.app.AppCompatActivity
+import com.tinygc.asachiru.presentation.setup.SetupActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -32,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var lastVisualizerSessionId: Int = -1
     private val audioPermission = android.Manifest.permission.RECORD_AUDIO
     private val requestCodeAudio = 1001
+    private var isNavigatingToSetup = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,14 +162,9 @@ class MainActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return when (keyCode) {
             KeyEvent.KEYCODE_DPAD_CENTER -> {
-                // 決定キー: 詳細表示切り替え（ニュース表示中のみ）
-                val state = viewModel.stateMachine.state.value
-                if (state is NewsReadingState.ReadingArticle) {
-                    viewModel.toggleNewsDetail()
-                    true
-                } else {
-                    false
-                }
+                // 決定キー: 長押し検出のためトラッキング開始
+                event?.startTracking()
+                true
             }
             KeyEvent.KEYCODE_BACK -> {
                 // 戻るキー: 詳細表示中なら閉じる、通常時はデフォルト動作
@@ -196,6 +194,41 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * 決定キー短押し: 詳細表示切り替え
+     */
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER -> {
+                // 長押しでなければ短押し処理（詳細表示切り替え）
+                if (event?.isTracking == true && event.isLongPress.not()) {
+                    val state = viewModel.stateMachine.state.value
+                    if (state is NewsReadingState.ReadingArticle) {
+                        viewModel.toggleNewsDetail()
+                    }
+                }
+                true
+            }
+            else -> super.onKeyUp(keyCode, event)
+        }
+    }
+
+    /**
+     * 決定キー長押し: 初期設定画面へ遷移
+     */
+    override fun onKeyLongPress(keyCode: Int, event: KeyEvent?): Boolean {
+        return when (keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER -> {
+                // 初期設定画面へ遷移（アプリ終了処理をスキップするためフラグを立てる）
+                isNavigatingToSetup = true
+                val intent = Intent(this, SetupActivity::class.java)
+                startActivity(intent)
+                true
+            }
+            else -> super.onKeyLongPress(keyCode, event)
+        }
+    }
+
     override fun onResume() {
         super.onResume()
         viewModel.onResume()
@@ -212,6 +245,13 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         // 完全に見えなくなった時に停止
         viewModel.onStop()
+
+        // 初期設定画面への遷移中はアプリを終了させない
+        if (isNavigatingToSetup) {
+            isNavigatingToSetup = false
+            return
+        }
+
         // AdMobの広告を破棄してからアプリを終了
         // (ClipboardServiceエラー回避のため)
         binding.adView.destroy()
