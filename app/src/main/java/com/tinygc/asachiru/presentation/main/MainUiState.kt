@@ -35,6 +35,7 @@ data class MainUiState(
     val currentTrack: Music? = null,
     val isMusicPlaying: Boolean = false,
     val currentPosition: Long = 0L, // 現在の再生位置（ミリ秒）
+    val enableBgm: Boolean = true, // BGM有効フラグ
 
     // デバッグ情報
     val debugNewsList: List<News> = emptyList(),

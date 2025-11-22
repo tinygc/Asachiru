@@ -70,7 +70,14 @@ class MainViewModel(
             startClockUpdate()
             loadWeather()
             startWeatherAutoRefresh()
-            startMusicPlayback()
+            // BGM設定を読み込んでから再生開始
+            viewModelScope.launch {
+                val settings = settingsRepository.getSettings()
+                _uiState.update { it.copy(enableBgm = settings.enableBgm) }
+                if (settings.enableBgm) {
+                    startMusicPlayback()
+                }
+            }
             startTrackInfoUpdate()
             startNewsStateMachine()
             observeStateMachine()
@@ -441,10 +448,13 @@ class MainViewModel(
      */
     fun onResume() {
         refreshWeather()
-        // BGM再生を再開
+        // BGM設定を確認してから再生を再開
         viewModelScope.launch {
-            playMusicUseCase()
             val settings = settingsRepository.getSettings()
+            _uiState.update { it.copy(enableBgm = settings.enableBgm) }
+            if (settings.enableBgm) {
+                playMusicUseCase()
+            }
             stateMachine.handleEvent(NewsReadingEvent.ForegroundTransition, settings)
         }
     }
