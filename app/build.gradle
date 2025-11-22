@@ -3,6 +3,13 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+// local.propertiesから署名情報を読み込む
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file('local.properties')
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace 'com.tinygc.asachiru'
     compileSdk 34
@@ -17,10 +24,20 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        release {
+            storeFile file(localProperties['RELEASE_STORE_FILE'] ?: '../asachiru-release.jks')
+            storePassword localProperties['RELEASE_STORE_PASSWORD'] ?: ''
+            keyAlias localProperties['RELEASE_KEY_ALIAS'] ?: 'asachiru'
+            keyPassword localProperties['RELEASE_KEY_PASSWORD'] ?: ''
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
