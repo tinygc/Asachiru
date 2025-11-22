@@ -3,6 +3,7 @@ package com.tinygc.asachiru.presentation.setup
 import com.tinygc.asachiru.domain.common.AppException
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.Settings
+import com.tinygc.asachiru.domain.usecase.settings.GetSettingsUseCase
 import com.tinygc.asachiru.domain.usecase.settings.SaveSettingsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -31,17 +32,33 @@ import kotlin.test.assertTrue
 class SetupViewModelTest {
 
     @Mock
+    private lateinit var getSettingsUseCase: GetSettingsUseCase
+
+    @Mock
     private lateinit var saveSettingsUseCase: SaveSettingsUseCase
 
     private lateinit var viewModel: SetupViewModel
 
     private val testDispatcher = StandardTestDispatcher()
 
+    private val emptySettings = Settings(
+        postalCode = "",
+        newsIntervalMinutes = 5,
+        rssUrl = null,
+        enableTts = false,
+        enableBgm = true,
+        rssPreset = null
+    )
+
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-        viewModel = SetupViewModel(saveSettingsUseCase)
+        // GetSettingsUseCaseのデフォルトモック設定（初回起動を想定）
+        kotlinx.coroutines.runBlocking {
+            whenever(getSettingsUseCase()).thenReturn(emptySettings)
+        }
+        viewModel = SetupViewModel(getSettingsUseCase, saveSettingsUseCase)
     }
 
     @After
@@ -127,6 +144,7 @@ class SetupViewModelTest {
             newsIntervalMinutes = 5,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         ))
     }

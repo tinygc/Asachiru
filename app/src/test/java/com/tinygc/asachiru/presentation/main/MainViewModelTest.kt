@@ -69,6 +69,7 @@ class MainViewModelTest {
         newsIntervalMinutes = 30,
         rssUrl = "https://test.com/rss",
         enableTts = false,
+        enableBgm = true,
         rssPreset = null
     )
     private val testMusic = Music("1", "Test Track", "Test Artist", 1, 180_000L)
