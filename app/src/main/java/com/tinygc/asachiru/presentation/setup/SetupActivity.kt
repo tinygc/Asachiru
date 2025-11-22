@@ -158,6 +158,36 @@ class SetupActivity : AppCompatActivity() {
      * @param state UI状態
      */
     private fun updateUI(state: SetupUiState) {
+        // 郵便番号の値を反映（TextWatcherの無限ループを避けるため、異なる場合のみ更新）
+        if (binding.postalCodeEditText.text.toString() != state.postalCode) {
+            binding.postalCodeEditText.setText(state.postalCode)
+            binding.postalCodeEditText.setSelection(state.postalCode.length)
+        }
+
+        // RSSプリセットの選択を反映
+        state.rssPreset?.let { preset ->
+            val position = RssPresets.PRESET_NAMES.indexOf(preset)
+            if (position >= 0 && binding.rssPresetSpinner.selectedItemPosition != position) {
+                binding.rssPresetSpinner.setSelection(position)
+            }
+        }
+
+        // カスタムURLの値を反映（カスタムURL選択時のみ）
+        if (state.rssPreset == RssPresets.CUSTOM_URL) {
+            binding.rssCustomUrlEditText.visibility = View.VISIBLE
+            if (binding.rssCustomUrlEditText.text.toString() != state.rssUrl) {
+                binding.rssCustomUrlEditText.setText(state.rssUrl)
+            }
+        }
+
+        // チェックボックスの状態を反映
+        if (binding.enableTtsCheckbox.isChecked != state.enableTts) {
+            binding.enableTtsCheckbox.isChecked = state.enableTts
+        }
+        if (binding.enableBgmCheckbox.isChecked != state.enableBgm) {
+            binding.enableBgmCheckbox.isChecked = state.enableBgm
+        }
+
         // 郵便番号バリデーションエラーは、フォーカス変更時にのみ表示するため、
         // ここでは何もしない（入力中に表示されないようにするため）
 

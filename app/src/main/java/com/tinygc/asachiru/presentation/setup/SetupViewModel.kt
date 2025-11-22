@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tinygc.asachiru.domain.common.Result
 import com.tinygc.asachiru.domain.entity.Settings
+import com.tinygc.asachiru.domain.usecase.settings.GetSettingsUseCase
 import com.tinygc.asachiru.domain.usecase.settings.SaveSettingsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,11 +18,44 @@ import kotlinx.coroutines.launch
  * ユーザー入力のバリデーションと設定の保存を管理します。
  */
 class SetupViewModel(
+    private val getSettingsUseCase: GetSettingsUseCase,
     private val saveSettingsUseCase: SaveSettingsUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SetupUiState())
     val uiState: StateFlow<SetupUiState> = _uiState.asStateFlow()
+
+    init {
+        loadExistingSettings()
+    }
+
+    /**
+     * 既存の設定を読み込む
+     */
+    private fun loadExistingSettings() {
+        viewModelScope.launch {
+            try {
+                val settings = getSettingsUseCase()
+                // 設定が存在する場合はUIStateに反映
+                if (settings.postalCode.isNotEmpty()) {
+                    _uiState.update {
+                        it.copy(
+                            postalCode = settings.postalCode,
+                            isPostalCodeValid = validatePostalCode(settings.postalCode),
+                            rssUrl = settings.rssUrl ?: "",
+                            isRssUrlValid = validateRssUrl(settings.rssUrl ?: ""),
+                            enableTts = settings.enableTts,
+                            enableBgm = settings.enableBgm,
+                            rssPreset = settings.rssPreset,
+                            newsInterval = settings.newsIntervalMinutes
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                // 設定読み込みエラーは無視（初回起動時など）
+            }
+        }
+    }
 
     /**
      * 郵便番号を更新

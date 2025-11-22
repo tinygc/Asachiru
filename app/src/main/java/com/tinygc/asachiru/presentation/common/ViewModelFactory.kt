@@ -39,6 +39,7 @@ class ViewModelFactory(private val context: Context) : ViewModelProvider.Factory
             }
             modelClass.isAssignableFrom(SetupViewModel::class.java) -> {
                 SetupViewModel(
+                    getSettingsUseCase = useCaseFactory.createGetSettingsUseCase(),
                     saveSettingsUseCase = useCaseFactory.createSaveSettingsUseCase()
                 ) as T
             }
