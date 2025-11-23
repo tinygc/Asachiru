@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>asachiru（朝チル）- Android TV App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.8;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .hero {
+            text-align: center;
+            color: white;
+            padding: 60px 20px;
+        }
+        .hero h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .hero .tagline {
+            font-size: 1.3em;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        .features {
+            display: grid;
+            gap: 15px;
+        }
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .feature-icon {
+            font-size: 2em;
+            min-width: 50px;
+            text-align: center;
+        }
+        .links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .link-btn {
+            display: inline-block;
+            padding: 12px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .link-btn.secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 30px;
+            opacity: 0.8;
+        }
+        .footer a {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>asachiru</h1>
+        <p class="tagline">朝の支度を快適にサポートするAndroid TVアプリ</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>主な機能</h2>
+            <div class="features">
+                <div class="feature">
+                    <span class="feature-icon">🌤️</span>
+                    <div>
+                        <strong>天気予報</strong><br>
+                        郵便番号から自動で地域の天気を表示
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">📰</span>
+                    <div>
+                        <strong>ニュース読み上げ</strong><br>
+                        RSSフィードからニュースを取得し、TTSで読み上げ
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🎵</span>
+                    <div>
+                        <strong>BGM & ビジュアライザー</strong><br>
+                        リラックスできる音楽と美しいビジュアライザー
+                    </div>
+                </div>
+                <div class="feature">
+                    <span class="feature-icon">🕐</span>
+                    <div>
+                        <strong>デジタル時計</strong><br>
+                        見やすい大きな時計表示
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>法的情報</h2>
+            <div class="links">
+                <a href="privacy-policy.html" class="link-btn">プライバシーポリシー</a>
+                <a href="terms-of-service.html" class="link-btn secondary">利用規約</a>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>開発者情報</h2>
+            <p><strong>開発者:</strong> tinygc</p>
+            <p><strong>お問い合わせ:</strong> tinygc404@gmail.com</p>
+            <div class="links" style="margin-top: 15px;">
+                <a href="https://github.com/tinygc/asachiru" class="link-btn secondary">GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>&copy; 2025 tinygc. All rights reserved.</p>
+    </div>
+</body>
+</html>
