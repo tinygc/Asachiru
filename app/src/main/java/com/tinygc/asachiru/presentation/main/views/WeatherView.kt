@@ -227,6 +227,7 @@ class WeatherView @JvmOverloads constructor(
     /**
      * 天気アイコンを描画（左側中央 - Material Design 3 - 8dpグリッド準拠）
      * 複数アイコンで長い場合は動的にスケーリング
+     * 絵文字は天気に応じた色、テキストは白で描画
      */
     private fun drawWeatherIcon(canvas: Canvas, weather: Weather) {
         // iconTextをそのまま使用（例：「☀のち☁」）
@@ -242,14 +243,38 @@ class WeatherView @JvmOverloads constructor(
         val iconWidth = iconPaint.measureText(icon)
 
         // アイコンが最大幅を超える場合はスケーリング
-        if (iconWidth > maxIconWidth) {
-            val scale = maxIconWidth / iconWidth
+        val scale = if (iconWidth > maxIconWidth) maxIconWidth / iconWidth else 1f
+
+        if (scale < 1f) {
             canvas.save()
             canvas.scale(scale, scale, paddingHorizontal, y)
-            canvas.drawText(icon, paddingHorizontal, y, iconPaint)
+        }
+
+        // 1文字ずつ描画（絵文字は色付き、テキストは白）
+        var currentX = paddingHorizontal
+        for (char in icon) {
+            val charStr = char.toString()
+            val charColor = getCharColor(char)
+            iconPaint.color = charColor
+            canvas.drawText(charStr, currentX, y, iconPaint)
+            currentX += iconPaint.measureText(charStr)
+        }
+
+        if (scale < 1f) {
             canvas.restore()
-        } else {
-            canvas.drawText(icon, paddingHorizontal, y, iconPaint)
+        }
+    }
+
+    /**
+     * 文字に応じた色を返す（絵文字は天気色、それ以外は白）
+     */
+    private fun getCharColor(char: Char): Int {
+        return when (char) {
+            '☀' -> Color.parseColor("#FFD54F") // 晴れ: 黄色
+            '☁' -> Color.parseColor("#B0BEC5") // 曇り: グレー
+            '☂' -> Color.parseColor("#64B5F6") // 雨: 青
+            '❄' -> Color.parseColor("#81D4FA") // 雪: 水色
+            else -> Color.WHITE // テキストは白
         }
     }
 
