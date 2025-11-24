@@ -131,7 +131,7 @@
         android:visibility="gone"
         android:elevation="10dp"
         app:adSize="LEADERBOARD"
-        app:adUnitId="ca-app-pub-3940256099942544/6300978111"
+        app:adUnitId="ca-app-pub-4454020110016010/3966288443"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
