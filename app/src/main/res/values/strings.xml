@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">朝チル (AsaChil)</string>
+    <!-- app_name はbuild.gradleのresValueで設定 -->
 
     <!-- Setup Screen -->
     <string name="setup_title">初回設定</string>
