@@ -326,34 +326,16 @@ class NewsView @JvmOverloads constructor(
         // タイトルのY位置（時刻の下）
         val titleY = timeY + lineSpacing + textPaint.textSize
 
-        // 時刻を描画
-        val timeWidth = timePaint.measureText(timeText)
+        // 時刻を描画（省略表示）
         val availableWidth = width - (paddingHorizontal * 2)
+        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
 
-        if (timeWidth > availableWidth) {
-            val scale = availableWidth / timeWidth
-            canvas.save()
-            canvas.scale(scale, scale, paddingHorizontal, 0f)
-            canvas.drawText(timeText, paddingHorizontal, timeY, timePaint)
-            canvas.restore()
-        } else {
-            canvas.drawText(timeText, paddingHorizontal, timeY, timePaint)
-        }
-
-        // タイトルを描画
+        // タイトルを描画（省略表示）
         textPaint.color = Color.WHITE
-        val titleText = "📰 ${news.title}"
-        val titleWidth = textPaint.measureText(titleText)
-
-        if (titleWidth > availableWidth) {
-            val scale = availableWidth / titleWidth
-            canvas.save()
-            canvas.scale(scale, scale, paddingHorizontal, 0f)
-            canvas.drawText(titleText, paddingHorizontal, titleY, textPaint)
-            canvas.restore()
-        } else {
-            canvas.drawText(titleText, paddingHorizontal, titleY, textPaint)
-        }
+        val fullTitleText = "📰 ${news.title}"
+        val displayTitle = ellipsizeText(fullTitleText, textPaint, availableWidth)
+        canvas.drawText(displayTitle, paddingHorizontal, titleY, textPaint)
     }
 
     /**
@@ -644,6 +626,33 @@ class NewsView @JvmOverloads constructor(
         }
 
         return lines
+    }
+
+    /**
+     * テキストを指定幅で省略表示（...）
+     */
+    private fun ellipsizeText(text: String, paint: Paint, maxWidth: Float): String {
+        val textWidth = paint.measureText(text)
+        if (textWidth <= maxWidth) {
+            return text
+        }
+
+        // "..." の幅を計算
+        val ellipsis = "..."
+        val ellipsisWidth = paint.measureText(ellipsis)
+        val availableWidth = maxWidth - ellipsisWidth
+
+        // 文字を1つずつ追加して、maxWidthを超えない最大長を見つける
+        var truncatedText = ""
+        for (i in text.indices) {
+            val testText = truncatedText + text[i]
+            if (paint.measureText(testText) > availableWidth) {
+                break
+            }
+            truncatedText = testText
+        }
+
+        return truncatedText + ellipsis
     }
 
     // TTS読み上げ中の点滅アニメーション（4秒周期、sin波で滑らかなフェードイン/アウト）
