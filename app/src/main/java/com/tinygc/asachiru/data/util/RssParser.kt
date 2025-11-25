@@ -9,11 +9,6 @@ import java.io.InputStream
  * RSSをパースするユーティリティ
  */
 object RssParser {
-    /**
-     * RSS XMLをパースしてNewsDtoリストを返す
-     * @param inputStream RSS XMLのInputStream
-     * @return NewsDtoリスト
-     */
     fun parse(inputStream: InputStream): List<NewsDto> {
         val newsList = mutableListOf<NewsDto>()
 
@@ -52,11 +47,12 @@ object RssParser {
                 XmlPullParser.END_TAG -> {
                     if (parser.name == "item") {
                         // itemタグの終了 → NewsDto作成
-                        if (title != null && description != null && link != null && pubDate != null) {
+                        // title, link, pubDateは必須、descriptionはオプショナル
+                        if (title != null && link != null && pubDate != null) {
                             newsList.add(
                                 NewsDto(
                                     title = title,
-                                    description = description,
+                                    description = description ?: "", // descriptionがない場合は空文字列
                                     link = link,
                                     pubDate = pubDate
                                 )

@@ -43,9 +43,9 @@ android {
 
     signingConfigs {
         release {
-            storeFile file(localProperties['RELEASE_STORE_FILE'] ?: '../asachiru-release.jks')
+            storeFile file(localProperties['RELEASE_STORE_FILE'] ?: '../feedwatch-release.jks')
             storePassword localProperties['RELEASE_STORE_PASSWORD'] ?: ''
-            keyAlias localProperties['RELEASE_KEY_ALIAS'] ?: 'asachiru'
+            keyAlias localProperties['RELEASE_KEY_ALIAS'] ?: 'feedwatch'
             keyPassword localProperties['RELEASE_KEY_PASSWORD'] ?: ''
         }
     }

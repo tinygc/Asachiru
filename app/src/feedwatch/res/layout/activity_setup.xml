@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0A0A"
+    android:padding="32dp">
+
+    <!-- タイトル -->
+    <TextView
+        android:id="@+id/title_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⚙️ 初回設定"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        android:shadowColor="#000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="4"
+        android:layout_marginBottom="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 郵便番号 -->
+    <TextView
+        android:id="@+id/postal_code_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📮 郵便番号（7桁）"
+        android:textColor="#E0E0E0"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.03"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="14dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text_view" />
+
+    <EditText
+        android:id="@+id/postal_code_edit_text"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:background="@drawable/input_bg_selector"
+        android:elevation="4dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center"
+        android:hint="例: 1000001"
+        android:inputType="number"
+        android:imeOptions="actionDone"
+        android:maxLength="7"
+        android:padding="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#999999"
+        android:textSize="14sp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
+
+    <!-- RSS配信元（フル幅） -->
+    <TextView
+        android:id="@+id/rss_preset_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📰 RSS配信元"
+        android:textColor="#E0E0E0"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.03"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text" />
+
+    <Spinner
+        android:id="@+id/rss_preset_spinner"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:background="@drawable/input_bg_selector"
+        android:elevation="4dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:padding="12dp"
+        android:popupBackground="#2A2A2A"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_label" />
+
+    <EditText
+        android:id="@+id/rss_custom_url_edit_text"
+        android:layout_width="0dp"
+        android:layout_height="52dp"
+        android:background="@drawable/input_bg_selector"
+        android:elevation="4dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:gravity="center_vertical"
+        android:hint="🔗 カスタムURL入力"
+        android:inputType="textUri"
+        android:imeOptions="actionDone"
+        android:padding="12dp"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#999999"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner" />
+
+    <!-- TTS設定 -->
+    <CheckBox
+        android:id="@+id/enable_tts_checkbox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🔊 読み上げ機能を有効にする"
+        android:textColor="#E0E0E0"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.02"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:background="@drawable/checkbox_focus_bg"
+        android:padding="12dp"
+        android:checked="false"
+        android:layout_marginTop="14dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text" />
+
+    <!-- BGM設定は削除（feedwatch専用） -->
+
+    <TextView
+        android:id="@+id/tts_copyright_notice"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="⚠️ 著作権は各コンテンツ提供者に帰属します"
+        android:textColor="#FFB74D"
+        android:textSize="11sp"
+        android:textStyle="italic"
+        android:letterSpacing="0.01"
+        android:gravity="start"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox" />
+
+    <!-- 保存ボタン -->
+    <Button
+        android:id="@+id/save_button"
+        android:layout_width="300dp"
+        android:layout_height="60dp"
+        android:background="@drawable/rounded_button_bg"
+        android:elevation="6dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:text="💾 保存して開始"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:letterSpacing="0.05"
+        android:stateListAnimator="@null"
+        android:layout_marginTop="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

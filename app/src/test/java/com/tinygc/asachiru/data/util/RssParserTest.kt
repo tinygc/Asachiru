@@ -314,4 +314,39 @@ $items
         assertEquals("政治ニュース", result[0].title)
         assertTrue(result[0].link.contains("nhk.or.jp"))
     }
+
+    @Test
+    fun `parse should handle RSS without description (like Yahoo News)`() {
+        // Arrange
+        val rssXml = """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <rss version="2.0">
+                <channel>
+                    <title>Yahoo!ニュース</title>
+                    <item>
+                        <title>日本版「政府効率化省」を設置</title>
+                        <link>https://news.yahoo.co.jp/pickup/6560181</link>
+                        <pubDate>Tue, 25 Nov 2025 05:25:22 GMT</pubDate>
+                    </item>
+                    <item>
+                        <title>福井知事が辞職表明 セクハラ疑惑</title>
+                        <link>https://news.yahoo.co.jp/pickup/6560191</link>
+                        <pubDate>Tue, 25 Nov 2025 07:15:51 GMT</pubDate>
+                    </item>
+                </channel>
+            </rss>
+        """.trimIndent()
+
+        val inputStream = ByteArrayInputStream(rssXml.toByteArray())
+
+        // Act
+        val result = RssParser.parse(inputStream)
+
+        // Assert
+        assertEquals(2, result.size)
+        assertEquals("日本版「政府効率化省」を設置", result[0].title)
+        assertEquals("", result[0].description) // descriptionがない場合は空文字列
+        assertEquals("https://news.yahoo.co.jp/pickup/6560181", result[0].link)
+        assertEquals("Tue, 25 Nov 2025 05:25:22 GMT", result[0].pubDate)
+    }
 }
