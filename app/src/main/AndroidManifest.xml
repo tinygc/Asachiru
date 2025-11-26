@@ -10,6 +10,11 @@
         android:name="android.software.leanback"
         android:required="true" />
 
+    <!-- RECORD_AUDIO権限から暗黙的に追加される機能をオプションに -->
+    <uses-feature
+        android:name="android.hardware.microphone"
+        android:required="false" />
+
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
