@@ -30,6 +30,12 @@ android {
             versionCode 1
             versionName "1.0"
             resValue "string", "app_name", "朝チル (AsaChil)"
+            // Asachiru用のAdMob App ID
+            manifestPlaceholders = [
+                admobAppId: "ca-app-pub-4454020110016010~4810797955"
+            ]
+            // Asachiru用の広告ユニットID
+            resValue "string", "admob_banner_ad_unit_id", "ca-app-pub-4454020110016010/3966288443"
         }
 
         feedwatch {
@@ -38,6 +44,12 @@ android {
             versionCode 1
             versionName "1.0"
             resValue "string", "app_name", "RSS FeedWatch"
+            // FeedWatch用のAdMob App ID
+            manifestPlaceholders = [
+                admobAppId: "ca-app-pub-4454020110016010~3627678411"
+            ]
+            // FeedWatch用の広告ユニットID
+            resValue "string", "admob_banner_ad_unit_id", "ca-app-pub-4454020110016010/7480003958"
         }
     }
 

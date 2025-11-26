@@ -1,10 +1,22 @@
-# 朝チル (AsaChil)
+# Asachiru / FeedWatch - Android TV アプリケーション
 
 ## 概要
 
-朝の時間につけっぱなしにする用途で、時計・天気・ニュース読み上げをチルい音楽とともに提供するAndroid TVアプリケーションです。
+このリポジトリには、2つのAndroid TVアプリケーションが含まれています：
 
+### 1. 朝チル (AsaChil)
+朝の時間につけっぱなしにする用途で、時計・天気・ニュース読み上げをチルい音楽とともに提供するAndroid TVアプリケーションです。
 パステルカラーでカラフルなピクセルアート風デザインで、リラックスした朝の時間を演出します。
+
+### 2. RSS FeedWatch
+お気に入りのRSSフィードをAndroid TVで快適にチェックできるRSSリーダーアプリケーションです。
+音声読み上げ（TTS）機能を搭載し、大画面で情報を快適に閲覧できます。
+
+**Application ID**:
+- AsaChil: `com.tinygc.asachiru`
+- FeedWatch: `com.tinygc.feedwatch`
+
+**Product Flavors**: 両アプリは同一のコードベースから、Product Flavors機能を使用して管理されています。
 
 ## 主要機能
 
@@ -325,6 +337,66 @@ cd asachiru
 - GitHub: [@tinygc](https://github.com/tinygc)
 - Email: tinygc404@gmail.com
 
+## RSS FeedWatch - Play Storeリリース情報
+
+### リリースドキュメント
+
+FeedWatchのPlay Storeへのリリースに関する詳細なドキュメントは以下を参照してください：
+
+| ドキュメント | 内容 |
+|------------|------|
+| [`FEEDWATCH_RELEASE_SUMMARY.md`](FEEDWATCH_RELEASE_SUMMARY.md) | **リリース完全ガイド（最初に読む）** |
+| [`ADMOB_SETUP_GUIDE_FEEDWATCH.md`](ADMOB_SETUP_GUIDE_FEEDWATCH.md) | AdMob設定ガイド |
+| [`RELEASE_BUILD_GUIDE_FEEDWATCH.md`](RELEASE_BUILD_GUIDE_FEEDWATCH.md) | リリースビルドガイド |
+| [`GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md`](GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md) | Play Console登録ガイド |
+| [`PLAY_STORE_LISTING_FEEDWATCH.md`](PLAY_STORE_LISTING_FEEDWATCH.md) | ストアリスティング情報 |
+| [`PRIVACY_POLICY_FEEDWATCH.md`](PRIVACY_POLICY_FEEDWATCH.md) | プライバシーポリシー |
+
+### クイックスタート
+
+FeedWatchをPlay Storeにリリースする手順：
+
+1. **AdMob登録**: FeedWatch用のAdMobアプリを登録し、App IDを取得
+2. **App ID設定**: `app/build.gradle` の feedwatch flavor に取得したIDを設定
+3. **AABビルド**: `.\gradlew.bat :app:bundleFeedwatchRelease` を実行
+4. **Play Console**: Google Play Consoleでアプリを登録
+5. **リリース**: AABをアップロードして公開
+
+詳細は [`FEEDWATCH_RELEASE_SUMMARY.md`](FEEDWATCH_RELEASE_SUMMARY.md) を参照してください。
+
+### 重要な注意事項
+
+- ⚠️ FeedWatchは**Asachiruとは別のAdMob App ID**が必要です
+- ⚠️ 署名鍵（keystore）も**別ファイル**を使用: `feedwatch-release.jks`
+- ⚠️ `local.properties` に署名情報を設定してください（Gitにはコミットされません）
+
+## Product Flavorsによる管理
+
+このプロジェクトは、Gradle Product Flavorsを使用して複数のアプリを管理しています：
+
+### ビルド方法
+
+```bash
+# AsaChil用のビルド
+.\gradlew.bat :app:assembleAsachiruDebug    # Debug版
+.\gradlew.bat :app:bundleAsachiruRelease    # Release版（AAB）
+
+# FeedWatch用のビルド
+.\gradlew.bat :app:assembleFeedwatchDebug   # Debug版
+.\gradlew.bat :app:bundleFeedwatchRelease   # Release版（AAB）
+```
+
+### Flavor設定
+
+各Flavorは以下の設定を持ちます：
+
+| 項目 | AsaChil | FeedWatch |
+|-----|---------|-----------|
+| Application ID | com.tinygc.asachiru | com.tinygc.feedwatch |
+| アプリ名 | 朝チル (AsaChil) | RSS FeedWatch |
+| AdMob App ID | （Asachiru用） | （FeedWatch用、要設定） |
+| Keystore | asachiru-release.jks | feedwatch-release.jks |
+
 ## ライセンス
 
 TBD
@@ -332,4 +404,4 @@ TBD
 ---
 
 **文書作成日**: 2025-11-06
-**最終更新日**: 2025-11-19
+**最終更新日**: 2025-11-25

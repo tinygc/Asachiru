@@ -131,7 +131,7 @@
         android:visibility="gone"
         android:elevation="10dp"
         app:adSize="LEADERBOARD"
-        app:adUnitId="ca-app-pub-4454020110016010/3966288443"
+        app:adUnitId="@string/admob_banner_ad_unit_id"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

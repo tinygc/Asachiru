@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- app_name はbuild.gradleのresValueで設定 -->
+    <!-- admob_banner_ad_unit_id はbuild.gradleのresValueでflavor毎に設定 -->
 
     <!-- Setup Screen -->
     <string name="setup_title">初回設定</string>
