@@ -191,7 +191,7 @@ export JAVA_HOME="/path/to/jdk17"
 
 AABファイルが正常に作成できたら、次は Google Play Console での登録作業に進みます。
 
-詳細は `GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md` を参照してください。
+詳細は `GOOGLE_PLAY_CONSOLE_GUIDE.md` を参照してください。
 
 ---
 

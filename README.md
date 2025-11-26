@@ -345,12 +345,12 @@ FeedWatchのPlay Storeへのリリースに関する詳細なドキュメント�
 
 | ドキュメント | 内容 |
 |------------|------|
-| [`FEEDWATCH_RELEASE_SUMMARY.md`](FEEDWATCH_RELEASE_SUMMARY.md) | **リリース完全ガイド（最初に読む）** |
-| [`ADMOB_SETUP_GUIDE_FEEDWATCH.md`](ADMOB_SETUP_GUIDE_FEEDWATCH.md) | AdMob設定ガイド |
-| [`RELEASE_BUILD_GUIDE_FEEDWATCH.md`](RELEASE_BUILD_GUIDE_FEEDWATCH.md) | リリースビルドガイド |
-| [`GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md`](GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md) | Play Console登録ガイド |
-| [`PLAY_STORE_LISTING_FEEDWATCH.md`](PLAY_STORE_LISTING_FEEDWATCH.md) | ストアリスティング情報 |
-| [`PRIVACY_POLICY_FEEDWATCH.md`](PRIVACY_POLICY_FEEDWATCH.md) | プライバシーポリシー |
+| [`RELEASE_SUMMARY.md`](docs/feedwatch/RELEASE_SUMMARY.md) | **リリース完全ガイド（最初に読む）** |
+| [`ADMOB_SETUP_GUIDE.md`](docs/feedwatch/ADMOB_SETUP_GUIDE.md) | AdMob設定ガイド |
+| [`RELEASE_BUILD_GUIDE.md`](docs/feedwatch/RELEASE_BUILD_GUIDE.md) | リリースビルドガイド |
+| [`GOOGLE_PLAY_CONSOLE_GUIDE.md`](docs/feedwatch/GOOGLE_PLAY_CONSOLE_GUIDE.md) | Play Console登録ガイド |
+| [`PLAY_STORE_LISTING.md`](docs/feedwatch/PLAY_STORE_LISTING.md) | ストアリスティング情報 |
+| [`PRIVACY_POLICY.md`](docs/feedwatch/PRIVACY_POLICY.md) | プライバシーポリシー |
 
 ### クイックスタート
 
@@ -362,7 +362,7 @@ FeedWatchをPlay Storeにリリースする手順：
 4. **Play Console**: Google Play Consoleでアプリを登録
 5. **リリース**: AABをアップロードして公開
 
-詳細は [`FEEDWATCH_RELEASE_SUMMARY.md`](FEEDWATCH_RELEASE_SUMMARY.md) を参照してください。
+詳細は [`docs/feedwatch/RELEASE_SUMMARY.md`](docs/feedwatch/RELEASE_SUMMARY.md) を参照してください。
 
 ### 重要な注意事項
 

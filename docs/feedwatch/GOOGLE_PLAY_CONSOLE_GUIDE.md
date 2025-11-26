@@ -110,7 +110,7 @@
 
 ```
 プライバシーポリシーURL:
-https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY_FEEDWATCH.md
+https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY.md
 ```
 
 **注意**: GitHubのRawコンテンツURLではなく、通常のページURLを使用してください。
@@ -152,7 +152,7 @@ RSS FeedWatch
 ```
 
 #### 詳細な説明（4000文字以内）
-※ `PLAY_STORE_LISTING_FEEDWATCH.md` の内容をコピー&ペースト
+※ `PLAY_STORE_LISTING.md` の内容をコピー&ペースト
 
 #### アプリアイコン
 - `FeedWatch_HiresoIcon.png` をアップロード（512x512）

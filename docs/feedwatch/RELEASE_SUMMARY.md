@@ -18,8 +18,8 @@
 
 ### ドキュメントとアセット
 
-- [x] プライバシーポリシー作成済み（`PRIVACY_POLICY_FEEDWATCH.md`）
-- [x] ストアリスティング情報作成済み（`PLAY_STORE_LISTING_FEEDWATCH.md`）
+- [x] プライバシーポリシー作成済み（`PRIVACY_POLICY.md`）
+- [x] ストアリスティング情報作成済み（`PLAY_STORE_LISTING.md`）
 - [x] グラフィックアセット準備済み
   - [x] ハイレゾアイコン（512x512）: `FeedWatch_HiresoIcon.png`
   - [x] フィーチャーグラフィック（1024x500）: `FeedWatch_FeatureGraph.png`
@@ -42,7 +42,7 @@
 
 #### 1.1 AdMobで新しいアプリを登録
 
-詳細な手順は [`ADMOB_SETUP_GUIDE_FEEDWATCH.md`](ADMOB_SETUP_GUIDE_FEEDWATCH.md) を参照してください。
+詳細な手順は [`ADMOB_SETUP_GUIDE.md`](ADMOB_SETUP_GUIDE.md) を参照してください。
 
 **手順概要**:
 1. https://admob.google.com/ にアクセス
@@ -77,7 +77,7 @@ feedwatch {
 
 ### ステップ2: リリースビルドの作成
 
-詳細な手順は [`RELEASE_BUILD_GUIDE_FEEDWATCH.md`](RELEASE_BUILD_GUIDE_FEEDWATCH.md) を参照してください。
+詳細な手順は [`RELEASE_BUILD_GUIDE.md`](RELEASE_BUILD_GUIDE.md) を参照してください。
 
 #### 2.1 local.properties の設定確認
 
@@ -129,7 +129,7 @@ Test-Path app\build\outputs\bundle\feedwatchRelease\app-feedwatch-release.aab
 
 ### ステップ3: Google Play Console での登録
 
-詳細な手順は [`GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md`](GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md) を参照してください。
+詳細な手順は [`GOOGLE_PLAY_CONSOLE_GUIDE.md`](GOOGLE_PLAY_CONSOLE_GUIDE.md) を参照してください。
 
 #### 3.1 新しいアプリを作成
 
@@ -154,7 +154,7 @@ Test-Path app\build\outputs\bundle\feedwatchRelease\app-feedwatch-release.aab
 5. **ニュースアプリ**: はい（RSSリーダーとして動作）
 6. **プライバシーポリシー**:
    ```
-   https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY_FEEDWATCH.md
+   https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY.md
    ```
 7. **データの安全性**: 広告識別子（AAID）を収集・共有
 
@@ -166,7 +166,7 @@ Test-Path app\build\outputs\bundle\feedwatchRelease\app-feedwatch-release.aab
 |-----|------|---------|
 | アプリ名 | RSS FeedWatch | - |
 | 簡単な説明 | お気に入りのRSSフィードをAndroid TVで快適にチェック。音声読み上げ対応。 | - |
-| 詳細な説明 | （`PLAY_STORE_LISTING_FEEDWATCH.md` の内容をコピー） | `PLAY_STORE_LISTING_FEEDWATCH.md` |
+| 詳細な説明 | （`PLAY_STORE_LISTING.md` の内容をコピー） | `PLAY_STORE_LISTING.md` |
 | アプリアイコン | 512x512 PNG | `image/FeedWatch_HiresoIcon.png` |
 | フィーチャーグラフィック | 1024x500 PNG | `image/FeedWatch_FeatureGraph.png` |
 | TVバナー | 320x180 PNG | `image/FeedWatch_TvBanner.png` |
@@ -216,7 +216,7 @@ https://play.google.com/store/apps/details?id=com.tinygc.feedwatch
 
 - ⚠️ **Asachiruとは別のAdMob App IDが必須**
 - 設定場所: `app/build.gradle` の feedwatch flavor
-- 設定方法: [`ADMOB_SETUP_GUIDE_FEEDWATCH.md`](ADMOB_SETUP_GUIDE_FEEDWATCH.md) を参照
+- 設定方法: [`ADMOB_SETUP_GUIDE.md`](ADMOB_SETUP_GUIDE.md) を参照
 
 ### 2. 署名鍵（Keystore）について
 
@@ -274,11 +274,11 @@ echo $env:JAVA_HOME
 
 | ドキュメント | 内容 |
 |------------|------|
-| [`PRIVACY_POLICY_FEEDWATCH.md`](PRIVACY_POLICY_FEEDWATCH.md) | プライバシーポリシー |
-| [`PLAY_STORE_LISTING_FEEDWATCH.md`](PLAY_STORE_LISTING_FEEDWATCH.md) | ストアリスティング情報 |
-| [`ADMOB_SETUP_GUIDE_FEEDWATCH.md`](ADMOB_SETUP_GUIDE_FEEDWATCH.md) | AdMob設定ガイド |
-| [`RELEASE_BUILD_GUIDE_FEEDWATCH.md`](RELEASE_BUILD_GUIDE_FEEDWATCH.md) | リリースビルドガイド |
-| [`GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md`](GOOGLE_PLAY_CONSOLE_GUIDE_FEEDWATCH.md) | Play Console登録ガイド |
+| [`PRIVACY_POLICY.md`](PRIVACY_POLICY.md) | プライバシーポリシー |
+| [`PLAY_STORE_LISTING.md`](PLAY_STORE_LISTING.md) | ストアリスティング情報 |
+| [`ADMOB_SETUP_GUIDE.md`](ADMOB_SETUP_GUIDE.md) | AdMob設定ガイド |
+| [`RELEASE_BUILD_GUIDE.md`](RELEASE_BUILD_GUIDE.md) | リリースビルドガイド |
+| [`GOOGLE_PLAY_CONSOLE_GUIDE.md`](GOOGLE_PLAY_CONSOLE_GUIDE.md) | Play Console登録ガイド |
 
 ---
 

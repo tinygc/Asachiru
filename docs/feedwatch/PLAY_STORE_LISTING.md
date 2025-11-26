@@ -127,7 +127,7 @@ tinygc404@gmail.com
 
 ### プライバシーポリシーURL
 ```
-https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY_FEEDWATCH.md
+https://github.com/tinygc/asachiru/blob/master/PRIVACY_POLICY.md
 ```
 
 ## リリース情報
