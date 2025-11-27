@@ -113,6 +113,13 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
+     * dp値をピクセル値に変換するヘルパー関数
+     */
+    private fun Float.dp(): Float {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, context.resources.displayMetrics)
+    }
+
+    /**
      * ニュースを更新
      * 初回表示時はフェードインアニメーションで表示されます。
      * @param news 表示するニュース（nullの場合は非表示）
@@ -157,15 +164,24 @@ class NewsView @JvmOverloads constructor(
 
     /**
      * TTS有効状態の更新
-     * TTS ON時は点滅アニメーション開始、TTS OFF時は停止
+     * TTS機能のON/OFF設定値を保持します
      */
     fun setEnableTts(enable: Boolean) {
         this.enableTts = enable
+        invalidate()
+    }
 
-        // TTS状態に応じてアニメーション制御
-        if (enable) {
+    /**
+     * TTS読み上げ中状態の更新
+     * 読み上げ中は点滅アニメーション開始、完了時は停止
+     */
+    fun setIsSpeaking(speaking: Boolean) {
+        // TTS読み上げ状態に応じてアニメーション制御
+        if (speaking && enableTts) {
+            // TTS有効かつ読み上げ中の場合のみアニメーション開始
             blinkAnimator.start()
         } else {
+            // 読み上げ完了時またはTTS無効時はアニメーション停止
             blinkAnimator.cancel()
             blinkAlpha = 0f // リセット
         }
@@ -236,24 +252,13 @@ class NewsView @JvmOverloads constructor(
 
     /**
      * Material Design 3 + Neumorphism背景を描画
-     * - 外側の影（エレベーション）
      * - 半透明背景
      * - 内側のハイライト（Neumorphism）
      * - 境界線
      */
     private fun drawGlassmorphismBackground(canvas: Canvas) {
-        val padding = 24f
-        val cornerRadius = 48f
-        val shadowOffset = 8f
-
-        // 外側の影（右下にずらして描画）
-        shadowRect.set(
-            padding + shadowOffset,
-            padding + shadowOffset,
-            width.toFloat() - padding + shadowOffset,
-            height.toFloat() - padding + shadowOffset
-        )
-        canvas.drawRoundRect(shadowRect, cornerRadius, cornerRadius, shadowPaint)
+        val padding = 8f.dp()
+        val cornerRadius = 16f.dp()
 
         // メイン背景
         backgroundRect.set(
@@ -265,12 +270,12 @@ class NewsView @JvmOverloads constructor(
         canvas.drawRoundRect(backgroundRect, cornerRadius, cornerRadius, backgroundPaint)
 
         // 内側のハイライト（左上に小さく描画）Neumorphism効果
-        val highlightInset = 4f
+        val highlightInset = 2f.dp()
         highlightRect.set(
             padding + highlightInset,
             padding + highlightInset,
-            width.toFloat() - padding - highlightInset * 8,
-            height.toFloat() - padding - highlightInset * 8
+            width.toFloat() - padding - highlightInset * 4,
+            height.toFloat() - padding - highlightInset * 4
         )
         canvas.drawRoundRect(highlightRect, cornerRadius - highlightInset, cornerRadius - highlightInset, highlightPaint)
 
@@ -286,8 +291,8 @@ class NewsView @JvmOverloads constructor(
         val text = "Error: $errorMessage"
         val textWidth = textPaint.measureText(text)
 
-        // 8dpグリッド準拠のパディング（48dp = 48f）
-        val paddingHorizontal = 48f
+        // 8dpグリッド準拠のパディング（48dp）
+        val paddingHorizontal = 48f.dp()
         val availableWidth = width - (paddingHorizontal * 2) // 左右パディング
 
         if (textWidth > availableWidth) {
@@ -307,9 +312,9 @@ class NewsView @JvmOverloads constructor(
      * ニュースタイトルと時刻を描画（垂直方向中央寄せ - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
-        // 8dpグリッド準拠のパディング（48dp = 48f）
-        val paddingHorizontal = 48f
-        val lineSpacing = 20f // 時刻とタイトルの間隔
+        // 8dpグリッド準拠のパディング（48dp）
+        val paddingHorizontal = 48f.dp()
+        val lineSpacing = timePaint.textSize * 0.4f // 時刻のテキストサイズの40%を行間に
 
         // 記事の公開時刻を取得
         val timeText = formatPublishTime(news.publishedAt)
@@ -357,7 +362,7 @@ class NewsView @JvmOverloads constructor(
      * プログレスバーを描画（TTS OFF時、画面最上部にモダンデザイン）
      */
     private fun drawProgressBar(canvas: Canvas) {
-        val progressBarHeight = 8f // 8dpのバー
+        val progressBarHeight = 4f.dp()  // 控えめに4dpに変更
         
         // 画面最上部に配置
         val progressBarY = 0f
@@ -400,7 +405,7 @@ class NewsView @JvmOverloads constructor(
      * TTS読み上げ中の点滅表示（画面最上部に赤く、滑らかにフェード）
      */
     private fun drawTtsBlinkIndicator(canvas: Canvas) {
-        val indicatorHeight = 8f // プログレスバーと同じ高さ
+        val indicatorHeight = 8f.dp() // プログレスバーと同じ高さ
         val indicatorY = 0f // 画面最上部
 
         // 赤色（alpha 0～70%で点滅、滑らかなフェードイン/アウト）
@@ -430,28 +435,15 @@ class NewsView @JvmOverloads constructor(
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
 
         // モダンなグラデーションカード背景
-        val cardPadding = 80f
-        val cardCornerRadius = 32f
+        val cardPadding = 40f.dp()
+        val cardCornerRadius = 16f.dp()
         val cardRect = RectF(
             cardPadding,
             cardPadding,
             width.toFloat() - cardPadding,
             height.toFloat() - cardPadding
         )
-        
-        // カードの影（深いエレベーション）
-        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(100, 0, 0, 0)
-            style = Paint.Style.FILL
-        }
-        val shadowRect = RectF(
-            cardPadding + 12f,
-            cardPadding + 12f,
-            width.toFloat() - cardPadding + 12f,
-            height.toFloat() - cardPadding + 12f
-        )
-        canvas.drawRoundRect(shadowRect, cardCornerRadius, cardCornerRadius, shadowPaint)
-        
+
         // グラデーション背景（ダークモード風）
         val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = android.graphics.LinearGradient(
@@ -472,47 +464,97 @@ class NewsView @JvmOverloads constructor(
         val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(180, 100, 120, 255) // 薄い青紫
             style = Paint.Style.STROKE
-            strokeWidth = 3f
+            strokeWidth = 3f.dp()
         }
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
         // テキストペイント（明るい白）
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
             color = Color.argb(240, 240, 245, 255)
             letterSpacing = 0.03f
-            setShadowLayer(4f, 2f, 2f, Color.argb(100, 0, 0, 0)) // テキストに影
+            setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), Color.argb(100, 0, 0, 0)) // テキストに影
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 28f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
             color = Color.argb(255, 255, 255, 255)
             letterSpacing = 0.02f
             isFakeBoldText = true
-            setShadowLayer(6f, 3f, 3f, Color.argb(150, 0, 0, 0))
+            setShadowLayer(6f.dp(), 3f.dp(), 3f.dp(), Color.argb(150, 0, 0, 0))
         }
+
+        // 行間をテキストサイズに対する相対値で定義（画面密度に自動対応）
+        val titleLineSpacing = detailTitlePaint.textSize * 1.5f // タイトル行間: テキストサイズの150%
+        val textLineSpacing = detailTextPaint.textSize * 1.3f // 本文行間: テキストサイズの130%
+
+        // QRコードのサイズとパディングを定義（drawQRCodeと同じ値）
+        val qrSize = 200f.dp()
+        val qrPaddingValue = 50f.dp()
+        val qrTotalWidth = qrSize + qrPaddingValue * 2  // QRコードが占有する幅
+        
+        // QRコードの上端Y座標を事前に計算（テキストとの余裕を持たせるため、少し上にマージンを追加）
+        val qrTop = cardRect.bottom - qrSize - qrPaddingValue
+        val qrSafeZone = qrTop - (textLineSpacing * 2)  // QRコードの少し上から幅を制限開始
 
         // タイトル、概要を描画
-        val startX = cardPadding + 50f
-        var currentY = cardPadding + 140f
+        val startX = cardPadding + 30f.dp()
+        var currentY = cardPadding + 40f.dp()
 
-        // タイトル
-        val titleLines = wrapText(news.title, detailTitlePaint, width - (cardPadding + 50f) * 2)
-        titleLines.forEach { line ->
-            canvas.drawText(line, startX, currentY, detailTitlePaint)
-            currentY += 130f  // 行間を広げた（110f → 130f）
+        // 全幅テキスト幅（QRコードより上で使用）
+        val fullTextMaxWidth = width - (cardPadding + 30f.dp()) * 2
+        // 制限幅テキスト幅（QRコードと重なる高さで使用）
+        val restrictedTextMaxWidth = width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
+
+        // タイトル描画（行ごとに幅を動的に調整）
+        val titleWords = news.title.split("")
+        var currentTitleLine = ""
+        titleWords.forEach { char ->
+            val testLine = currentTitleLine + char
+            // 次の行がQRコードのセーフゾーンに入るかチェック
+            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
+            val lineWidth = detailTitlePaint.measureText(testLine)
+            
+            if (lineWidth > maxWidth && currentTitleLine.isNotEmpty()) {
+                // 現在の行を描画
+                canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
+                currentY += titleLineSpacing
+                currentTitleLine = char
+            } else {
+                currentTitleLine = testLine
+            }
         }
-        
-        currentY += 30f
+        // 最後の行を描画
+        if (currentTitleLine.isNotEmpty()) {
+            canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
+            currentY += titleLineSpacing
+        }
 
-        // 概要（descriptionがあれば表示、なければtitleを再表示）
+        currentY += detailTitlePaint.textSize * 0.5f // タイトルと概要の間隔: タイトルサイズの50%
+
+        // 概要描画（行ごとに幅を動的に調整）
         val description = news.description.ifBlank { news.title }
-        val maxWidth = width - (cardPadding + 50f) * 2
-        val lines = wrapText(description, detailTextPaint, maxWidth)
-
-        lines.forEach { line ->
-            canvas.drawText(line, startX, currentY, detailTextPaint)
-            currentY += 110f  // 行間を広げた（90f → 110f）
+        val descWords = description.split("")
+        var currentDescLine = ""
+        descWords.forEach { char ->
+            val testLine = currentDescLine + char
+            // 次の行がQRコードのセーフゾーンに入るかチェック
+            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
+            val lineWidth = detailTextPaint.measureText(testLine)
+            
+            if (lineWidth > maxWidth && currentDescLine.isNotEmpty()) {
+                // 現在の行を描画
+                canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
+                currentY += textLineSpacing
+                currentDescLine = char
+            } else {
+                currentDescLine = testLine
+            }
+        }
+        // 最後の行を描画
+        if (currentDescLine.isNotEmpty()) {
+            canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
+            currentY += textLineSpacing
         }
         
         // QRコード表示（右下）
@@ -525,7 +567,7 @@ class NewsView @JvmOverloads constructor(
             letterSpacing = 0.02f
         }
         val hintText = "🔙 戻るキーで閉じる"
-        val hintY = height.toFloat() - cardPadding - 40f
+        val hintY = height.toFloat() - cardPadding - 20f.dp()
         canvas.drawText(hintText, startX, hintY, hintPaint)
     }
 
@@ -534,31 +576,34 @@ class NewsView @JvmOverloads constructor(
      */
     private fun drawQRCode(canvas: Canvas, url: String, cardRect: RectF) {
         // URLが変わった場合のみQRコードを再生成
+        val qrSizePixels = 200f.dp().toInt()
         if (qrCodeUrl != url || qrCodeBitmap == null) {
             qrCodeUrl = url
-            qrCodeBitmap = generateQRCode(url, 300)
+            qrCodeBitmap = generateQRCode(url, qrSizePixels)
         }
         
         val bitmap = qrCodeBitmap ?: return
-        
-        // QRコードを右下に配置（画面端から十分なマージン）
-        val qrSize = 300f
-        val qrPadding = 100f  // カード端からのマージンを広めに
+
+        // QRコードを右下に配置（画面端から適度なマージン）
+        val qrSize = 200f.dp()
+        val qrPadding = 50f.dp()  // カード端からのマージン
         val qrLeft = cardRect.right - qrSize - qrPadding
         val qrTop = cardRect.bottom - qrSize - qrPadding
-        
+
         // 白い背景
         val qrBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.WHITE
             style = Paint.Style.FILL
         }
+        val qrBgMargin = 10f.dp()
         val qrBgRect = RectF(
-            qrLeft - 20f,
-            qrTop - 20f,
-            qrLeft + qrSize + 20f,
-            qrTop + qrSize + 20f
+            qrLeft - qrBgMargin,
+            qrTop - qrBgMargin,
+            qrLeft + qrSize + qrBgMargin,
+            qrTop + qrSize + qrBgMargin
         )
-        canvas.drawRoundRect(qrBgRect, 16f, 16f, qrBgPaint)
+        val qrBgCornerRadius = 8f.dp()
+        canvas.drawRoundRect(qrBgRect, qrBgCornerRadius, qrBgCornerRadius, qrBgPaint)
         
         // QRコード描画
         canvas.drawBitmap(
@@ -577,7 +622,7 @@ class NewsView @JvmOverloads constructor(
         val labelText = "記事URL"
         val labelWidth = qrLabelPaint.measureText(labelText)
         val labelX = qrLeft + (qrSize - labelWidth) / 2
-        val labelY = qrTop - 30f
+        val labelY = qrTop - 15f.dp()
         canvas.drawText(labelText, labelX, labelY, qrLabelPaint)
     }
     

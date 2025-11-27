@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Asachiru専用 ローファイ/チルアウト風パステルカラーパレット -->
+
+    <!-- 背景グラデーション（朝焼け風） -->
+    <color name="bg_gradient_top">#E0D4FF</color>        <!-- ラベンダー（上部） -->
+    <color name="bg_gradient_middle">#FFD4C4</color>     <!-- サーモンピンク（中部） -->
+    <color name="bg_gradient_bottom">#FFE4D4</color>     <!-- ピーチオレンジ（下部） -->
+
+    <!-- パステルアクセントカラー -->
+    <color name="pastel_pink">#FFB5B5</color>            <!-- パステルピンク -->
+    <color name="pastel_lavender">#C4B5FD</color>        <!-- パステルラベンダー -->
+    <color name="pastel_sky_blue">#B5E5FF</color>        <!-- パステルスカイブルー -->
+    <color name="pastel_mint">#B5FFDA</color>            <!-- パステルミント -->
+    <color name="pastel_peach">#FFD4A4</color>           <!-- パステルピーチ -->
+    <color name="pastel_coral">#FFB5A4</color>           <!-- パステルコーラル -->
+
+    <!-- テキストカラー -->
+    <color name="text_primary">#6B5B7F</color>           <!-- 濃いめのラベンダー（主要テキスト） -->
+    <color name="text_secondary">#9B8BA4</color>         <!-- 薄めのラベンダー（副テキスト） -->
+    <color name="text_white">#FFFFFF</color>             <!-- 白（強調テキスト） -->
+    <color name="text_soft_shadow">#E0D4E0</color>       <!-- ソフトなシャドウ -->
+
+    <!-- カード/UI要素 -->
+    <color name="card_bg">#FFFBFF</color>                <!-- ほぼ白のカード背景 -->
+    <color name="card_bg_semi">#F5EEFF</color>           <!-- 薄いラベンダー背景 -->
+    <color name="card_border">#E0C4FF</color>            <!-- カード境界線 -->
+    <color name="card_shadow">#D4B5E0</color>            <!-- カードシャドウ -->
+
+    <!-- 装飾パーティクル -->
+    <color name="particle_yellow">#FFEB3B</color>        <!-- 黄色パーティクル -->
+    <color name="particle_pink">#FF8FAB</color>          <!-- ピンクパーティクル -->
+    <color name="particle_mint">#80FFDB</color>          <!-- ミントパーティクル -->
+    <color name="particle_blue">#80D4FF</color>          <!-- ブルーパーティクル -->
+
+    <!-- プログレスバー -->
+    <color name="progress_bar">#C4B5FD</color>           <!-- ラベンダープログレスバー -->
+    <color name="progress_bar_tts">#FFB5A4</color>       <!-- コーラル（TTS読み上げ中） -->
+</resources>

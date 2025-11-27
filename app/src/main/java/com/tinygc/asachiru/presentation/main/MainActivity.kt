@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.updateNews(state.currentNews)
                         binding.newsView.setShowDetail(state.showNewsDetail)
                         binding.newsView.setEnableTts(state.enableTts)
+                        binding.newsView.setIsSpeaking(state.isSpeaking)
                         binding.newsView.setProgress(state.newsProgressPercent)
                         
                         // 詳細表示時はNewsViewを全画面表示にする

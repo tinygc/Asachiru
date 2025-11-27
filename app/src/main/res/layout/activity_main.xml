@@ -114,7 +114,7 @@
     <com.tinygc.asachiru.presentation.main.views.NewsView
         android:id="@+id/news_view"
         android:layout_width="0dp"
-        android:layout_height="100dp"
+        android:layout_height="120dp"
         android:layout_marginStart="50dp"
         android:layout_marginEnd="50dp"
         android:layout_marginBottom="50dp"
@@ -136,5 +136,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
+
+    <!-- キー操作ヒント（画面下部中央） -->
+    <TextView
+        android:id="@+id/key_hint_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="🎮 決定キー長押しで設定"
+        android:textColor="#CCFFFFFF"
+        android:textSize="14sp"
+        android:letterSpacing="0.05"
+        android:shadowColor="#80000000"
+        android:shadowDx="2"
+        android:shadowDy="2"
+        android:shadowRadius="4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

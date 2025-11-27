@@ -43,6 +43,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_text_view" />
 
+    <TextView
+        android:id="@+id/postal_code_description"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="※ 天気予報の地域設定に使用します"
+        android:textColor="#FFB74D"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        android:letterSpacing="0.02"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="4dp"
+        android:layout_marginStart="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
+
     <EditText
         android:id="@+id/postal_code_edit_text"
         android:layout_width="0dp"
@@ -60,10 +79,10 @@
         android:textColor="#FFFFFF"
         android:textColorHint="#999999"
         android:textSize="14sp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
+        app:layout_constraintTop_toBottomOf="@id/postal_code_description" />
 
     <!-- RSS配信元（フル幅） -->
     <TextView

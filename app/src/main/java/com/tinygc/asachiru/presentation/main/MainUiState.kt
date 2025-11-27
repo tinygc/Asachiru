@@ -25,6 +25,7 @@ data class MainUiState(
     val newsError: String? = null,
     val showNewsDetail: Boolean = false,
     val enableTts: Boolean = false,
+    val isSpeaking: Boolean = false, // TTS読み上げ中かどうか
     val newsProgressPercent: Float = 0f, // 次の記事までの進行度（0.0～1.0、TTS OFF時のみ有効）
 
     // 広告

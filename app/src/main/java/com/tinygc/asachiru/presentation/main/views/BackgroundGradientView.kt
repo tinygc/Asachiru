@@ -60,6 +60,98 @@ class BackgroundGradientView @JvmOverloads constructor(
     // 発光エフェクト用
     private var glowAnimationTime = 0f
 
+    // ===========================================
+    // Asachiru専用 ローファイ/チルアウト風パステルグラデーション
+    // ===========================================
+
+    // 早朝（5:00～6:59）のグラデーション - ラベンダーからピンクへの朝焼け
+    private val earlyMorningGradientsAsachiru = listOf(
+        intArrayOf(
+            Color.parseColor("#E0D4FF"), // ラベンダー
+            Color.parseColor("#FFD4E9"), // ピンクラベンダー
+            Color.parseColor("#FFE4D4"), // ピーチ
+            Color.parseColor("#FFF4E4")  // クリーム
+        ),
+        intArrayOf(
+            Color.parseColor("#C4B5FD"), // パステルラベンダー
+            Color.parseColor("#FFB5D4"), // パステルピンク
+            Color.parseColor("#FFD4C4"), // サーモンピンク
+            Color.parseColor("#FFECD4")  // パステルピーチ
+        ),
+        intArrayOf(
+            Color.parseColor("#D4C4FF"), // ライラック
+            Color.parseColor("#FFC4E9"), // ロゼ
+            Color.parseColor("#FFD4B5"), // アプリコット
+            Color.parseColor("#FFE4C4")  // ペールオレンジ
+        )
+    )
+
+    // 朝～昼（7:00～16:59）のグラデーション - スカイブルーからミントへ
+    private val dayGradientsAsachiru = listOf(
+        intArrayOf(
+            Color.parseColor("#B5E5FF"), // パステルスカイブルー
+            Color.parseColor("#D4F0FF"), // ライトスカイブルー
+            Color.parseColor("#E4FAFF"), // ペールスカイブルー
+            Color.parseColor("#F4FFFF")  // ほぼ白
+        ),
+        intArrayOf(
+            Color.parseColor("#B5FFDA"), // パステルミント
+            Color.parseColor("#D4FFE9"), // ライトミント
+            Color.parseColor("#E4FFF4"), // ペールミント
+            Color.parseColor("#F4FFFA")  // ほぼ白
+        ),
+        intArrayOf(
+            Color.parseColor("#B5F0FF"), // アクアブルー
+            Color.parseColor("#D4FAFF"), // ライトアクア
+            Color.parseColor("#E4FCFF"), // ペールアクア
+            Color.parseColor("#F4FEFF")  // ほぼ白
+        )
+    )
+
+    // 夕方（17:00～18:59）のグラデーション - コーラルからピーチへの夕焼け
+    private val eveningGradientsAsachiru = listOf(
+        intArrayOf(
+            Color.parseColor("#FFB5A4"), // パステルコーラル
+            Color.parseColor("#FFD4C4"), // サーモンピンク
+            Color.parseColor("#FFE4D4"), // ピーチ
+            Color.parseColor("#FFF4E4")  // クリーム
+        ),
+        intArrayOf(
+            Color.parseColor("#FFC494"), // パステルオレンジ
+            Color.parseColor("#FFD4A4"), // パステルピーチ
+            Color.parseColor("#FFE4B5"), // ライトピーチ
+            Color.parseColor("#FFF4C4")  // ライトクリーム
+        ),
+        intArrayOf(
+            Color.parseColor("#FFB5C4"), // ピンクコーラル
+            Color.parseColor("#FFD4D4"), // ライトピンク
+            Color.parseColor("#FFE4E4"), // ペールピンク
+            Color.parseColor("#FFF4F4")  // ほぼ白
+        )
+    )
+
+    // 夜（19:00～4:59）のグラデーション - ラベンダーからディープパープルへ
+    private val nightGradientsAsachiru = listOf(
+        intArrayOf(
+            Color.parseColor("#C4B5FD"), // パステルラベンダー
+            Color.parseColor("#B5A4ED"), // パステルパープル
+            Color.parseColor("#D4C4FD"), // ライトラベンダー
+            Color.parseColor("#E0D4FF")  // ペールラベンダー
+        ),
+        intArrayOf(
+            Color.parseColor("#B5A4ED"), // パステルパープル
+            Color.parseColor("#C4B5FD"), // パステルラベンダー
+            Color.parseColor("#D4C4FF"), // ライラック
+            Color.parseColor("#E4D4FF")  // ペールライラック
+        ),
+        intArrayOf(
+            Color.parseColor("#A4B5ED"), // パステルペリウィンクル
+            Color.parseColor("#B5C4FD"), // ライトブルーパープル
+            Color.parseColor("#C4D4FF"), // ペールペリウィンクル
+            Color.parseColor("#D4E4FF")  // ペールブルー
+        )
+    )
+
     // 早朝（5:00～6:59）のグラデーション - 深い青紫から明るい青へ
     private val earlyMorningGradients = listOf(
         intArrayOf(
@@ -172,13 +264,16 @@ class BackgroundGradientView @JvmOverloads constructor(
         )
     )
 
-    // 現在の時間帯に応じたグラデーションを取得
+    // 現在の時間帯に応じたグラデーションを取得（フレーバーによって分岐）
     private val gradientColors: List<IntArray>
-        get() = when (getCurrentTimeOfDay()) {
-            TimeOfDay.EARLY_MORNING -> earlyMorningGradients
-            TimeOfDay.DAY -> dayGradients
-            TimeOfDay.EVENING -> eveningGradients
-            TimeOfDay.NIGHT -> nightGradients
+        get() {
+            val isAsachiru = com.tinygc.asachiru.BuildConfig.FLAVOR == "asachiru"
+            return when (getCurrentTimeOfDay()) {
+                TimeOfDay.EARLY_MORNING -> if (isAsachiru) earlyMorningGradientsAsachiru else earlyMorningGradients
+                TimeOfDay.DAY -> if (isAsachiru) dayGradientsAsachiru else dayGradients
+                TimeOfDay.EVENING -> if (isAsachiru) eveningGradientsAsachiru else eveningGradients
+                TimeOfDay.NIGHT -> if (isAsachiru) nightGradientsAsachiru else nightGradients
+            }
         }
 
     private var currentGradientIndex = 0

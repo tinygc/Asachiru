@@ -21,6 +21,21 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        asachiruRelease {
+            storeFile file(localProperties['ASACHIRU_STORE_FILE'] ?: '../asachiru-release.jks')
+            storePassword localProperties['ASACHIRU_STORE_PASSWORD'] ?: ''
+            keyAlias localProperties['ASACHIRU_KEY_ALIAS'] ?: 'asachiru'
+            keyPassword localProperties['ASACHIRU_KEY_PASSWORD'] ?: ''
+        }
+        feedwatchRelease {
+            storeFile file(localProperties['FEEDWATCH_STORE_FILE'] ?: '../feedwatch-release.jks')
+            storePassword localProperties['FEEDWATCH_STORE_PASSWORD'] ?: ''
+            keyAlias localProperties['FEEDWATCH_KEY_ALIAS'] ?: 'feedwatch'
+            keyPassword localProperties['FEEDWATCH_KEY_PASSWORD'] ?: ''
+        }
+    }
+
     flavorDimensions = ["app"]
 
     productFlavors {
@@ -36,13 +51,15 @@ android {
             ]
             // Asachiru用の広告ユニットID
             resValue "string", "admob_banner_ad_unit_id", "ca-app-pub-4454020110016010/3966288443"
+            // Asachiru用の署名設定
+            signingConfig signingConfigs.asachiruRelease
         }
 
         feedwatch {
             dimension "app"
             applicationId "com.tinygc.feedwatch"
-            versionCode 2
-            versionName "1.0.1-compat"
+            versionCode 3
+            versionName "1.0.2"
             resValue "string", "app_name", "RSS FeedWatch"
             // FeedWatch用のAdMob App ID
             manifestPlaceholders = [
@@ -50,15 +67,8 @@ android {
             ]
             // FeedWatch用の広告ユニットID
             resValue "string", "admob_banner_ad_unit_id", "ca-app-pub-4454020110016010/7480003958"
-        }
-    }
-
-    signingConfigs {
-        release {
-            storeFile file(localProperties['RELEASE_STORE_FILE'] ?: '../feedwatch-release.jks')
-            storePassword localProperties['RELEASE_STORE_PASSWORD'] ?: ''
-            keyAlias localProperties['RELEASE_KEY_ALIAS'] ?: 'feedwatch'
-            keyPassword localProperties['RELEASE_KEY_PASSWORD'] ?: ''
+            // FeedWatch用の署名設定
+            signingConfig signingConfigs.feedwatchRelease
         }
     }
 
@@ -66,7 +76,6 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
         debug {
             debuggable true

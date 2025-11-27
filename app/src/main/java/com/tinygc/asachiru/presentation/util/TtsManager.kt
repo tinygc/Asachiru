@@ -82,6 +82,8 @@ class TtsManager(
                 continuation.resume(Unit)
             }
 
+            @Deprecated("Deprecated in Java")
+            @Suppress("OVERRIDE_DEPRECATION")
             override fun onError(utteranceId: String?) {
                 restoreVolumeIfNeeded()
                 continuation.resume(Unit)

@@ -47,7 +47,7 @@ class MainViewModel(
     // テスト用のパラメータ（デフォルト値は本番用）
     private val clockUpdateIntervalMs: Long = 1000L,
     private val trackUpdateIntervalMs: Long = 1000L,
-    private val weatherRefreshIntervalMs: Long = 30 * 60 * 1000L,
+    private val weatherRefreshIntervalMs: Long = 30 * 60 * 1000L, // 30分ごとに更新
     // テスト時にinitブロックの自動起動をスキップするフラグ
     private val skipAutoStart: Boolean = false
 ) : ViewModel() {
@@ -276,10 +276,15 @@ class MainViewModel(
     private suspend fun readArticle(article: com.tinygc.asachiru.domain.model.News, ttsEnabled: Boolean) {
         val entityNews = convertToEntityNews(article)
         if (ttsEnabled) {
+            // 読み上げ開始
+            _uiState.update { it.copy(isSpeaking = true) }
             readNewsUseCase(
                 newsList = listOf(entityNews),
                 onNewsChanged = { },
-                onComplete = { }
+                onComplete = {
+                    // 読み上げ完了
+                    _uiState.update { it.copy(isSpeaking = false) }
+                }
             )
         }
         // TTS無効時は表示のみ（State Machineがタイマー管理）
