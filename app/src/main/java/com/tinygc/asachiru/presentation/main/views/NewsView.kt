@@ -112,11 +112,77 @@ class NewsView @JvmOverloads constructor(
         setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
+    init {
+        // フレーバーに応じた色設定
+        if (isAsachiru()) {
+            // Asachiru: パステルカラーの柔らかい半透明背景
+            backgroundPaint.color = getFlavorColor(
+                Color.argb((255 * 0.85f).toInt(), 255, 250, 255), // ほぼ白の半透明
+                0x50202020.toInt()
+            )
+            highlightPaint.color = getFlavorColor(
+                Color.argb((255 * 0.25f).toInt(), 255, 235, 250), // ラベンダーの薄い透明
+                Color.argb((255 * 0.25f).toInt(), 135, 206, 250)
+            )
+            borderPaint.color = getFlavorColor(
+                Color.argb(200, 200, 180, 255), // ラベンダーボーダー
+                Color.argb(100, 100, 149, 237)
+            )
+            progressBackgroundPaint.color = getFlavorColor(
+                Color.argb((255 * 0.3f).toInt(), 220, 200, 250), // ラベンダー背景
+                Color.argb((255 * 0.25f).toInt(), 135, 206, 250)
+            )
+            progressForegroundPaint.shader = if (isAsachiru()) {
+                // Asachiru: パステルグラデーション
+                LinearGradient(
+                    0f, 0f, width.toFloat(), 0f,
+                    intArrayOf(
+                        Color.argb((255 * 0.75f).toInt(), 200, 180, 255), // パステルラベンダー
+                        Color.argb((255 * 0.85f).toInt(), 180, 220, 255)  // パステルスカイブルー
+                    ),
+                    null,
+                    Shader.TileMode.CLAMP
+                )
+            } else {
+                // FeedWatch: 既存のグラデーション
+                LinearGradient(
+                    0f, 0f, width.toFloat(), 0f,
+                    intArrayOf(
+                        Color.argb((255 * 0.75f).toInt(), 100, 180, 255),
+                        Color.argb((255 * 0.85f).toInt(), 0, 220, 255)
+                    ),
+                    null,
+                    Shader.TileMode.CLAMP
+                )
+            }
+            ttsBlinkPaint.color = getFlavorColor(
+                Color.argb(200, 255, 180, 180), // パステルコーラル
+                Color.argb(200, 255, 100, 100)
+            )
+        }
+    }
+
     /**
      * dp値をピクセル値に変換するヘルパー関数
      */
     private fun Float.dp(): Float {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, this, context.resources.displayMetrics)
+    }
+
+    /**
+     * Asachiruフレーバーかどうかを判定
+     */
+    private fun isAsachiru(): Boolean {
+        return com.tinygc.asachiru.BuildConfig.FLAVOR == "asachiru"
+    }
+
+    /**
+     * フレーバーに応じたカラーを取得
+     * @param asachiruColor Asachiru用のカラー値（直接指定）
+     * @param feedwatchColor FeedWatch用のカラー値（直接指定）
+     */
+    private fun getFlavorColor(asachiruColor: Int, feedwatchColor: Int): Int {
+        return if (isAsachiru()) asachiruColor else feedwatchColor
     }
 
     /**
@@ -427,9 +493,43 @@ class NewsView @JvmOverloads constructor(
     private fun drawDetailPopup(canvas: Canvas) {
         val news = currentNews ?: return
 
-        // ダークな半透明背景（ぼかし風）
+        // フレーバー別の色定義
+        val overlayColor = getFlavorColor(
+            Color.argb(230, 255, 250, 255), // Asachiru: ほぼ白の半透明
+            Color.argb(240, 10, 10, 15)     // FeedWatch: ダーク
+        )
+        val cardGradientTop = getFlavorColor(
+            Color.argb(250, 255, 245, 255), // Asachiru: ペールラベンダー
+            Color.argb(250, 30, 35, 45)     // FeedWatch: ダークブルー
+        )
+        val cardGradientBottom = getFlavorColor(
+            Color.argb(250, 250, 235, 255), // Asachiru: ライトラベンダー
+            Color.argb(250, 20, 25, 35)     // FeedWatch: より暗いダークブルー
+        )
+        val borderColor = getFlavorColor(
+            Color.argb(180, 200, 180, 255), // Asachiru: パステルラベンダー
+            Color.argb(180, 100, 120, 255)  // FeedWatch: 薄い青紫
+        )
+        val textColor = getFlavorColor(
+            Color.argb(240, 107, 91, 127),  // Asachiru: 濃いめのラベンダー（#6B5B7F）
+            Color.argb(240, 240, 245, 255)  // FeedWatch: 明るい白
+        )
+        val titleColor = getFlavorColor(
+            Color.argb(255, 107, 91, 127),  // Asachiru: 濃いめのラベンダー（#6B5B7F）
+            Color.argb(255, 255, 255, 255)  // FeedWatch: 白
+        )
+        val hintColor = getFlavorColor(
+            Color.argb(150, 155, 139, 164), // Asachiru: 薄めのラベンダー
+            Color.argb(150, 180, 185, 200)  // FeedWatch: グレー
+        )
+        val shadowColor = getFlavorColor(
+            Color.argb(80, 200, 180, 230),  // Asachiru: ラベンダーシャドウ
+            Color.argb(100, 0, 0, 0)        // FeedWatch: 黒シャドウ
+        )
+
+        // 半透明背景（ぼかし風）
         val overlayPaint = Paint().apply {
-            color = Color.argb(240, 10, 10, 15)
+            color = overlayColor
             style = Paint.Style.FILL
         }
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
@@ -444,15 +544,12 @@ class NewsView @JvmOverloads constructor(
             height.toFloat() - cardPadding
         )
 
-        // グラデーション背景（ダークモード風）
+        // グラデーション背景
         val gradientPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = android.graphics.LinearGradient(
                 cardRect.left, cardRect.top,
                 cardRect.right, cardRect.bottom,
-                intArrayOf(
-                    Color.argb(250, 30, 35, 45),   // 濃いダークブルー
-                    Color.argb(250, 20, 25, 35)    // より暗いダークブルー
-                ),
+                intArrayOf(cardGradientTop, cardGradientBottom),
                 null,
                 android.graphics.Shader.TileMode.CLAMP
             )
@@ -462,26 +559,26 @@ class NewsView @JvmOverloads constructor(
         
         // 境界線（アクセントカラー）
         val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(180, 100, 120, 255) // 薄い青紫
+            color = borderColor
             style = Paint.Style.STROKE
             strokeWidth = 3f.dp()
         }
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
-        // テキストペイント（明るい白）
+        // テキストペイント
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
-            color = Color.argb(240, 240, 245, 255)
+            color = textColor
             letterSpacing = 0.03f
-            setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), Color.argb(100, 0, 0, 0)) // テキストに影
+            setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), shadowColor)
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
-            color = Color.argb(255, 255, 255, 255)
+            color = titleColor
             letterSpacing = 0.02f
             isFakeBoldText = true
-            setShadowLayer(6f.dp(), 3f.dp(), 3f.dp(), Color.argb(150, 0, 0, 0))
+            setShadowLayer(6f.dp(), 3f.dp(), 3f.dp(), shadowColor)
         }
 
         // 行間をテキストサイズに対する相対値で定義（画面密度に自動対応）
@@ -563,7 +660,7 @@ class NewsView @JvmOverloads constructor(
         // フッター情報（閉じるヒント）
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
-            color = Color.argb(150, 180, 185, 200)
+            color = hintColor
             letterSpacing = 0.02f
         }
         val hintText = "🔙 戻るキーで閉じる"
