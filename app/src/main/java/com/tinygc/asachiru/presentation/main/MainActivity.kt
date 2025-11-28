@@ -51,6 +51,11 @@ class MainActivity : AppCompatActivity() {
         // ViewModelFactoryを使用してViewModelを生成
         viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
+        // 設定ボタンのクリックリスナー（タッチ操作対応）
+        binding.settingsButton.setOnClickListener {
+            navigateToSetup()
+        }
+
         observeViewModel()
         checkAudioPermission()
     }
@@ -245,6 +250,16 @@ class MainActivity : AppCompatActivity() {
             }
             else -> super.onKeyLongPress(keyCode, event)
         }
+    }
+
+    /**
+     * 設定画面へ遷移（タッチ操作対応）
+     */
+    private fun navigateToSetup() {
+        // 初期設定画面へ遷移（アプリ終了処理をスキップするためフラグを立てる）
+        isNavigatingToSetup = true
+        val intent = Intent(this, SetupActivity::class.java)
+        startActivity(intent)
     }
 
     override fun onResume() {

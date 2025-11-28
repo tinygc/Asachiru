@@ -83,30 +83,30 @@
     <!-- 時計（左上） -->
     <com.tinygc.asachiru.presentation.main.views.ClockView
         android:id="@+id/clock_view"
-        android:layout_width="360dp"
-        android:layout_height="180dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginTop="40dp"
+        android:layout_width="320dp"
+        android:layout_height="160dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 天気（右上） -->
     <com.tinygc.asachiru.presentation.main.views.WeatherView
         android:id="@+id/weather_view"
-        android:layout_width="360dp"
-        android:layout_height="180dp"
-        android:layout_marginTop="40dp"
-        android:layout_marginEnd="50dp"
+        android:layout_width="320dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- 音楽トラック名（右上・天気の下に控えめ表示） -->
     <com.tinygc.asachiru.presentation.main.views.MusicTrackView
         android:id="@+id/music_track_view"
-        android:layout_width="320dp"
+        android:layout_width="280dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="50dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="16dp"
         app:layout_constraintTop_toBottomOf="@id/weather_view"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -114,10 +114,10 @@
     <com.tinygc.asachiru.presentation.main.views.NewsView
         android:id="@+id/news_view"
         android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginBottom="50dp"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="70dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -137,20 +137,22 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <!-- キー操作ヒント（画面下部中央） -->
-    <TextView
-        android:id="@+id/key_hint_view"
+    <!-- 設定ボタン（画面下部中央） -->
+    <Button
+        android:id="@+id/settings_button"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
         android:layout_marginBottom="16dp"
-        android:text="🎮 決定キー長押しで設定"
-        android:textColor="#CCFFFFFF"
+        android:text="⚙️ 設定"
+        android:textColor="#FFFFFF"
         android:textSize="14sp"
         android:letterSpacing="0.05"
-        android:shadowColor="#80000000"
-        android:shadowDx="2"
-        android:shadowDy="2"
-        android:shadowRadius="4"
+        android:background="@drawable/rounded_button_bg"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
