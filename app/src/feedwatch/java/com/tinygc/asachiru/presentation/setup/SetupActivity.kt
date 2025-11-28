@@ -1,10 +1,12 @@
 package com.tinygc.asachiru.presentation.setup
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import com.tinygc.asachiru.R
@@ -16,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.tinygc.asachiru.data.RssPresets
 import com.tinygc.asachiru.databinding.ActivitySetupBinding
+import com.tinygc.asachiru.domain.util.DeviceUtils
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import com.tinygc.asachiru.presentation.main.MainActivity
 import kotlinx.coroutines.launch
@@ -63,9 +66,14 @@ class SetupActivity : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {}
         })
 
-        // 郵便番号入力欄のフォーカス変更時にバリデーション
-        binding.postalCodeEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
+        // 郵便番号入力欄のフォーカス変更時にバリデーション＆キーボード表示
+        binding.postalCodeEditText.setOnFocusChangeListener { view, hasFocus ->
+            if (hasFocus) {
+                // スマホの場合、フォーカス取得時にキーボードを表示
+                if (DeviceUtils.isPhone(applicationContext)) {
+                    showKeyboard(view)
+                }
+            } else {
                 val currentState = viewModel.uiState.value
                 if (!currentState.isPostalCodeValid && currentState.postalCode.isNotEmpty()) {
                     binding.postalCodeEditText.error = "郵便番号は7桁の数字で入力してください"
@@ -92,6 +100,10 @@ class SetupActivity : AppCompatActivity() {
                     // フォーカス移動は少し遅延させる
                     binding.rssCustomUrlEditText.postDelayed({
                         binding.rssCustomUrlEditText.requestFocus()
+                        // スマホの場合、キーボードを表示
+                        if (DeviceUtils.isPhone(applicationContext)) {
+                            showKeyboard(binding.rssCustomUrlEditText)
+                        }
                     }, 100)
                 } else if (selected != "選択してください") {
                     binding.rssCustomUrlEditText.visibility = View.GONE
@@ -219,5 +231,15 @@ class SetupActivity : AppCompatActivity() {
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    /**
+     * ソフトキーボードを表示
+     *
+     * @param view フォーカスされたView
+     */
+    private fun showKeyboard(view: View) {
+        val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        inputMethodManager?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
     }
 }
