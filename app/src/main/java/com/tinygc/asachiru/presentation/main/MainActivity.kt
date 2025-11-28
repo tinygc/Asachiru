@@ -3,6 +3,7 @@ package com.tinygc.asachiru.presentation.main
 import android.content.Intent
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.tinygc.asachiru.presentation.setup.SetupActivity
 import androidx.lifecycle.Lifecycle
@@ -41,6 +42,9 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 画面を常にオンに保つ（アンビエントモード防止）
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
 
         // ViewModelFactoryを生成して保持
         viewModelFactory = ViewModelFactory(applicationContext)
