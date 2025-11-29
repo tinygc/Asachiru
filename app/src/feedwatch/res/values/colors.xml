@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FeedWatch専用 シンプル・ダークテーマカラーパレット -->
+
+    <!-- 背景グラデーション（ダーク） -->
+    <color name="bg_gradient_top">#0A0A0A</color>        <!-- ほぼ黒（上部） -->
+    <color name="bg_gradient_middle">#0A0A0A</color>     <!-- ほぼ黒（中部） -->
+    <color name="bg_gradient_bottom">#0A0A0A</color>     <!-- ほぼ黒（下部） -->
+
+    <!-- アクセントカラー -->
+    <color name="pastel_pink">#FF6B6B</color>            <!-- レッド系アクセント -->
+    <color name="pastel_lavender">#9B59B6</color>        <!-- パープル系アクセント -->
+    <color name="pastel_sky_blue">#3498DB</color>        <!-- ブルー系アクセント -->
+    <color name="pastel_mint">#2ECC71</color>            <!-- グリーン系アクセント -->
+    <color name="pastel_peach">#FFB74D</color>           <!-- オレンジ系アクセント -->
+    <color name="pastel_coral">#E74C3C</color>           <!-- コーラル系アクセント -->
+
+    <!-- テキストカラー -->
+    <color name="text_primary">#FFFFFF</color>           <!-- 白（主要テキスト） -->
+    <color name="text_secondary">#999999</color>         <!-- グレー（副テキスト） -->
+    <color name="text_white">#FFFFFF</color>             <!-- 白（強調テキスト） -->
+    <color name="text_soft_shadow">#000000</color>       <!-- 黒いシャドウ -->
+
+    <!-- カード/UI要素 -->
+    <color name="card_bg">#1A1A1A</color>                <!-- ダークグレーのカード背景 -->
+    <color name="card_bg_semi">#2A2A2A</color>           <!-- セミダークグレー背景 -->
+    <color name="card_border">#333333</color>            <!-- カード境界線 -->
+    <color name="card_shadow">#000000</color>            <!-- カードシャドウ -->
+
+    <!-- 装飾パーティクル -->
+    <color name="particle_yellow">#FFEB3B</color>        <!-- 黄色パーティクル -->
+    <color name="particle_pink">#FF8FAB</color>          <!-- ピンクパーティクル -->
+    <color name="particle_mint">#80FFDB</color>          <!-- ミントパーティクル -->
+    <color name="particle_blue">#80D4FF</color>          <!-- ブルーパーティクル -->
+
+    <!-- プログレスバー -->
+    <color name="progress_bar">#3498DB</color>           <!-- ブループログレスバー -->
+    <color name="progress_bar_tts">#E74C3C</color>       <!-- レッド（TTS読み上げ中） -->
+</resources>
