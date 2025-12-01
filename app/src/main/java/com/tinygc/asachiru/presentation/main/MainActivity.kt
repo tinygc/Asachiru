@@ -2,7 +2,9 @@ package com.tinygc.asachiru.presentation.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import com.tinygc.asachiru.presentation.setup.SetupActivity
@@ -14,8 +16,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import com.tinygc.asachiru.BuildConfig
 import com.tinygc.asachiru.databinding.ActivityMainBinding
+import com.tinygc.asachiru.domain.util.DeviceUtils
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 /**
  * メイン画面のActivity
@@ -37,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     private val requestCodeAudio = 1001
     private var isNavigatingToSetup = false
 
+    // スマホでのフリック検出用GestureDetector
+    private lateinit var gestureDetector: GestureDetector
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -51,7 +58,59 @@ class MainActivity : AppCompatActivity() {
         // ViewModelFactoryを使用してViewModelを生成
         viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
 
+        // スマホ用フリック検出のGestureDetector初期化
+        gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onFling(
+                e1: MotionEvent?,
+                e2: MotionEvent,
+                velocityX: Float,
+                velocityY: Float
+            ): Boolean {
+                // スマホのみフリック検出を有効化
+                if (!DeviceUtils.isPhone(applicationContext)) {
+                    return false
+                }
+
+                val diffX = e2.x - (e1?.x ?: 0f)
+                val diffY = e2.y - (e1?.y ?: 0f)
+
+                // 横方向のフリックかどうか判定（横移動が縦移動の2倍以上）
+                if (abs(diffX) > abs(diffY) * 2 && abs(diffX) > 100) {
+                    // 左右フリックでTTS切り替え
+                    viewModel.toggleTts()
+                    return true
+                }
+                
+                // 縦方向のフリックかどうか判定（縦移動が横移動の2倍以上）
+                if (abs(diffY) > abs(diffX) * 2 && abs(diffY) > 100) {
+                    if (diffY < 0) {
+                        // 上フリック: 前のニュースへ
+                        viewModel.navigateToPreviousNews()
+                    } else {
+                        // 下フリック: 次のニュースへ
+                        viewModel.navigateToNextNews()
+                    }
+                    return true
+                }
+                
+                return false
+            }
+
+            // シングルタップで詳細表示切り替え（スマホのみ）
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                if (DeviceUtils.isPhone(applicationContext)) {
+                    val state = viewModel.stateMachine.state.value
+                    if (state is NewsReadingState.ReadingArticle) {
+                        viewModel.toggleNewsDetail()
+                    }
+                    return true
+                }
+                return false
+            }
+        })
+
         // 設定ボタンのクリックリスナー（タッチ操作対応）
+        // 設定ボタンのタップはこちらで処理され、GestureDetectorには伝播しない
         binding.settingsButton.setOnClickListener {
             navigateToSetup()
         }
@@ -304,6 +363,19 @@ class MainActivity : AppCompatActivity() {
         // アプリ終了時に既読記事情報をクリア
         viewModel.clearReadArticles()
         android.util.Log.d("MainActivity", "onDestroy: 既読記事情報をクリア")
+    }
+
+    /**
+     * タッチイベントの処理（スマホでのフリック検出）
+     */
+    override fun onTouchEvent(event: MotionEvent?): Boolean {
+        // スマホの場合のみGestureDetectorで処理
+        if (DeviceUtils.isPhone(applicationContext) && event != null) {
+            if (gestureDetector.onTouchEvent(event)) {
+                return true
+            }
+        }
+        return super.onTouchEvent(event)
     }
 
     private fun hasAudioPermission(): Boolean {

@@ -115,6 +115,14 @@ class NewsView @JvmOverloads constructor(
     }
 
     init {
+        // スマホとTVでテキストサイズを調整
+        if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
+            // スマホ: 適度なフォントサイズ（読みやすさとはみ出し防止のバランス）
+            textPaint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
+            timePaint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, context.resources.displayMetrics)
+        }
+        // TV用はデフォルトのまま（textPaint: 24sp, timePaint: 16sp）
+
         // フレーバーに応じた色設定
         if (isAsachiru()) {
             // Asachiru: パステルカラーの柔らかい半透明背景
@@ -380,8 +388,12 @@ class NewsView @JvmOverloads constructor(
      * ニュースタイトルと時刻を描画（垂直方向中央寄せ - Material Design 3 - 8dpグリッド準拠）
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
-        // 8dpグリッド準拠のパディング（48dp）
-        val paddingHorizontal = 48f.dp()
+        // スマホとTVで異なるパディング
+        val paddingHorizontal = if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
+            16f.dp() // スマホ: 16dp（画面が小さいため）
+        } else {
+            48f.dp() // TV: 48dp（8dpグリッド準拠）
+        }
         val lineSpacing = timePaint.textSize * 0.4f // 時刻のテキストサイズの40%を行間に
 
         // 記事の公開時刻を取得
