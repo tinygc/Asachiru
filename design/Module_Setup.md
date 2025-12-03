@@ -10,7 +10,6 @@
 
 ### 2.1 設定項目
 1. 郵便番号（7桁、ハイフンなし）
-2. ニュース読み上げ間隔（1～60分）
 
 ### 2.2 設定タイミング
 - アプリ初回起動時に設定画面を表示
@@ -21,7 +20,6 @@
 
 ### 2.4 バリデーション
 - 郵便番号: 7桁の数字のみ許可
-- ニュース読み上げ間隔: 1～60の整数のみ許可
 
 ---
 
@@ -315,9 +313,7 @@ package com.tinygc.asachiru.presentation.setup
  */
 data class SetupUiState(
     val postalCode: String = "",
-    val newsInterval: Int = 30,
     val isPostalCodeValid: Boolean = true,
-    val isNewsIntervalValid: Boolean = true,
     val isSaving: Boolean = false,
     val saveError: String? = null,
     val isComplete: Boolean = false
@@ -363,33 +359,22 @@ class SetupViewModel(
     }
 
     /**
-     * ニュース読み上げ間隔を更新
-     */
-    fun updateNewsInterval(interval: Int) {
-        _uiState.update {
-            it.copy(
-                newsInterval = interval,
-                isNewsIntervalValid = validateNewsInterval(interval)
-            )
-        }
-    }
-
-    /**
      * 設定を保存
      */
     fun saveSettings() {
         val currentState = _uiState.value
 
-        if (!currentState.isPostalCodeValid || !currentState.isNewsIntervalValid) {
+        if (!currentState.isPostalCodeValid) {
             return
         }
 
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
 
+            // newsIntervalMinutesはデフォルト値(30)が使用される想定
             val settings = Settings(
                 postalCode = currentState.postalCode,
-                newsIntervalMinutes = currentState.newsInterval
+                newsIntervalMinutes = 30
             )
 
             when (val result = saveSettingsUseCase(settings)) {
@@ -420,13 +405,6 @@ class SetupViewModel(
     private fun validatePostalCode(postalCode: String): Boolean {
         return postalCode.length == 7 && postalCode.all { it.isDigit() }
     }
-
-    /**
-     * ニュース読み上げ間隔のバリデーション
-     */
-    private fun validateNewsInterval(interval: Int): Boolean {
-        return interval in 1..60
-    }
 }
 ```
 
@@ -454,56 +432,37 @@ import kotlinx.coroutines.launch
  */
 class SetupActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: SetupViewModel
-    private lateinit var postalCodeEditText: EditText
-    private lateinit var newsIntervalSeekBar: SeekBar
-    private lateinit var newsIntervalTextView: TextView
-    private lateinit var saveButton: Button
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_setup)
-
-        viewModel = ViewModelProvider(this, ViewModelFactory())
-            .get(SetupViewModel::class.java)
-
-        setupViews()
-        observeViewModel()
-    }
-
-    private fun setupViews() {
-        postalCodeEditText = findViewById(R.id.postal_code_edit_text)
-        newsIntervalSeekBar = findViewById(R.id.news_interval_seek_bar)
-        newsIntervalTextView = findViewById(R.id.news_interval_text_view)
-        saveButton = findViewById(R.id.save_button)
-
-        // 郵便番号入力
-        postalCodeEditText.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) {
-                viewModel.updatePostalCode(postalCodeEditText.text.toString())
+            private lateinit var viewModel: SetupViewModel
+            private lateinit var postalCodeEditText: EditText
+            private lateinit var saveButton: Button
+    
+            override fun onCreate(savedInstanceState: Bundle?) {
+                super.onCreate(savedInstanceState)
+                setContentView(R.layout.activity_setup)
+    
+                viewModel = ViewModelProvider(this, ViewModelFactory())
+                    .get(SetupViewModel::class.java)
+    
+                setupViews()
+                observeViewModel()
             }
-        }
-
-        // ニュース読み上げ間隔
-        newsIntervalSeekBar.min = 1
-        newsIntervalSeekBar.max = 60
-        newsIntervalSeekBar.progress = 30
-        newsIntervalSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                newsIntervalTextView.text = "$progress 分"
-                viewModel.updateNewsInterval(progress)
+    
+            private fun setupViews() {
+                postalCodeEditText = findViewById(R.id.postal_code_edit_text)
+                saveButton = findViewById(R.id.save_button)
+    
+                // 郵便番号入力
+                postalCodeEditText.setOnFocusChangeListener { _, hasFocus ->
+                    if (!hasFocus) {
+                        viewModel.updatePostalCode(postalCodeEditText.text.toString())
+                    }
+                }
+    
+                // 保存ボタン
+                saveButton.setOnClickListener {
+                    viewModel.saveSettings()
+                }
             }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
-        })
-
-        // 保存ボタン
-        saveButton.setOnClickListener {
-            viewModel.saveSettings()
-        }
-    }
-
     private fun observeViewModel() {
         lifecycleScope.launch {
             viewModel.uiState.collect { state ->
