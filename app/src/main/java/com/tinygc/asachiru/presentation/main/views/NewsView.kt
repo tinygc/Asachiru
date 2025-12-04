@@ -498,6 +498,35 @@ class NewsView @JvmOverloads constructor(
             )
             canvas.drawRect(foregroundRect, progressForegroundPaint)
         }
+
+        // 「次へ」テキストを描画（プログレスバーの右側）
+        drawProgressNextLabel(canvas, progressBarY, progressBarHeight)
+    }
+
+    /**
+     * プログレスバーの右側に「次へ」テキストを描画
+     */
+    private fun drawProgressNextLabel(canvas: Canvas, progressBarY: Float, progressBarHeight: Float) {
+        val nextText = "次へ"
+        val labelTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10f, context.resources.displayMetrics)
+        
+        val progressLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            textSize = labelTextSize
+            color = Color.WHITE
+            alpha = (255 * 0.6f).toInt() // 控えめな透明度
+            letterSpacing = 0.02f
+        }
+
+        // テキスト幅を計算
+        val textWidth = progressLabelPaint.measureText(nextText)
+        
+        // 右上に配置（パディング付き）
+        val paddingRight = 16f.dp()
+        val paddingTop = 16f.dp()
+        val textX = width.toFloat() - paddingRight - textWidth
+        val textY = paddingTop
+
+        canvas.drawText(nextText, textX, textY, progressLabelPaint)
     }
 
     /**
