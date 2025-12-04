@@ -405,6 +405,7 @@ class NewsView @JvmOverloads constructor(
 
     /**
      * ニュースタイトルと時刻を描画（垂直方向中央寄せ - Material Design 3 - 8dpグリッド準拠）
+     * FeedWatch: 2行表示対応
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
         // スマホとTVで異なるパディング
@@ -418,6 +419,28 @@ class NewsView @JvmOverloads constructor(
         // 記事の公開時刻を取得
         val timeText = formatPublishTime(news.publishedAt)
 
+        val availableWidth = width - (paddingHorizontal * 2)
+
+        if (isAsachiru()) {
+            // Asachiru: 1行表示（従来通り）
+            drawNewsTitleSingleLine(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
+        } else {
+            // FeedWatch: 2行表示
+            drawNewsTitleTwoLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
+        }
+    }
+
+    /**
+     * 1行表示（Asachiru用）
+     */
+    private fun drawNewsTitleSingleLine(
+        canvas: Canvas,
+        news: News,
+        timeText: String,
+        paddingHorizontal: Float,
+        lineSpacing: Float,
+        availableWidth: Float
+    ) {
         // 全体の高さを計算
         val totalTextHeight = timePaint.textSize + lineSpacing + textPaint.textSize
 
@@ -431,7 +454,6 @@ class NewsView @JvmOverloads constructor(
         val titleY = timeY + lineSpacing + textPaint.textSize
 
         // 時刻を描画（省略表示）
-        val availableWidth = width - (paddingHorizontal * 2)
         val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
         canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
 
@@ -440,6 +462,88 @@ class NewsView @JvmOverloads constructor(
         val fullTitleText = "📰 ${news.title}"
         val displayTitle = ellipsizeText(fullTitleText, textPaint, availableWidth)
         canvas.drawText(displayTitle, paddingHorizontal, titleY, textPaint)
+    }
+
+    /**
+     * 2行表示（FeedWatch用）
+     */
+    private fun drawNewsTitleTwoLines(
+        canvas: Canvas,
+        news: News,
+        timeText: String,
+        paddingHorizontal: Float,
+        lineSpacing: Float,
+        availableWidth: Float
+    ) {
+        val titleLineSpacing = textPaint.textSize * 0.3f // タイトル行間
+
+        // 全体の高さを計算（時刻 + タイトル2行）
+        val totalTextHeight = timePaint.textSize + lineSpacing + (textPaint.textSize * 2) + titleLineSpacing
+
+        // 垂直方向の中央位置を計算
+        val centerY = height / 2f
+
+        // 時刻のY位置（中央から上にオフセット）
+        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+
+        // タイトル1行目のY位置（時刻の下）
+        val titleLine1Y = timeY + lineSpacing + textPaint.textSize
+
+        // タイトル2行目のY位置
+        val titleLine2Y = titleLine1Y + textPaint.textSize + titleLineSpacing
+
+        // 時刻を描画（省略表示）
+        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
+
+        // タイトルを2行に分割して描画（常に2行分のスペースを確保）
+        textPaint.color = Color.WHITE
+        val fullTitleText = "📰 ${news.title}"
+        val (line1, line2) = splitTextIntoTwoLines(fullTitleText, textPaint, availableWidth)
+        
+        // 1行目を描画
+        canvas.drawText(line1, paddingHorizontal, titleLine1Y, textPaint)
+        // 2行目を描画（空でも常に描画位置は確保済み）
+        canvas.drawText(line2, paddingHorizontal, titleLine2Y, textPaint)
+    }
+
+    /**
+     * テキストを2行に分割する
+     * @return Pair<1行目, 2行目>（2行目は省略記号付きで切り詰め）
+     */
+    private fun splitTextIntoTwoLines(text: String, paint: Paint, maxWidth: Float): Pair<String, String> {
+        // テキストが1行に収まる場合
+        if (paint.measureText(text) <= maxWidth) {
+            return Pair(text, "")
+        }
+
+        // 1行目に収まる最大の文字数を探す
+        var line1EndIndex = text.length
+        for (i in text.indices) {
+            val subText = text.substring(0, i + 1)
+            if (paint.measureText(subText) > maxWidth) {
+                line1EndIndex = i
+                break
+            }
+        }
+
+        // 単語の途中で切れないように調整（スペースや句読点で区切る）
+        val breakChars = listOf(' ', '　', '、', '。', '・', '/', ':', '：', '）', '」', '』', '】')
+        var adjustedEndIndex = line1EndIndex
+        for (i in (line1EndIndex - 1) downTo maxOf(0, line1EndIndex - 10)) {
+            if (text[i] in breakChars) {
+                adjustedEndIndex = i + 1
+                break
+            }
+        }
+
+        val line1 = text.substring(0, adjustedEndIndex).trim()
+        val remainingText = text.substring(adjustedEndIndex).trim()
+
+        // 2行目を省略表示
+        val line2 = ellipsizeText(remainingText, paint, maxWidth)
+
+        return Pair(line1, line2)
     }
 
     /**

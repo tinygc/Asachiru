@@ -41,6 +41,9 @@ class MainActivity : AppCompatActivity() {
     private val audioPermission = android.Manifest.permission.RECORD_AUDIO
     private val requestCodeAudio = 1001
     private var isNavigatingToSetup = false
+    
+    // NewsViewの元のレイアウトパラメータを保存（詳細表示から戻る時にXMLの設定を復元するため）
+    private var originalNewsViewLayoutParams: androidx.constraintlayout.widget.ConstraintLayout.LayoutParams? = null
 
     // スマホでのフリック検出用GestureDetector
     private lateinit var gestureDetector: GestureDetector
@@ -221,39 +224,38 @@ class MainActivity : AppCompatActivity() {
     
     /**
      * NewsViewのレイアウトを詳細表示状態に応じて切り替え
+     * 通常時はXMLで定義されたレイアウトを使用、詳細表示時は全画面表示
      */
     private fun updateNewsViewLayout(isDetailShown: Boolean) {
-        val layoutParams = binding.newsView.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+        val currentLayoutParams = binding.newsView.layoutParams as androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
         
         if (isDetailShown) {
+            // 初回のみ元のレイアウトパラメータを保存（コピーを作成）
+            if (originalNewsViewLayoutParams == null) {
+                originalNewsViewLayoutParams = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(currentLayoutParams)
+            }
+            
             // 詳細表示時: 全画面表示
-            layoutParams.width = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
-            layoutParams.height = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
-            layoutParams.setMargins(0, 0, 0, 0)
+            currentLayoutParams.width = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
+            currentLayoutParams.height = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_PARENT
+            currentLayoutParams.setMargins(0, 0, 0, 0)
             
             // 最前面に表示
             binding.newsView.bringToFront()
             // 親Viewの再描画を強制
             (binding.newsView.parent as? android.view.ViewGroup)?.invalidate()
-        } else {
-            // 通常時: 画面下部に配置
-            layoutParams.width = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.MATCH_CONSTRAINT
-            layoutParams.height = resources.displayMetrics.density.toInt() * 100 // 100dp
-            layoutParams.setMargins(
-                (50 * resources.displayMetrics.density).toInt(),
-                0,
-                (50 * resources.displayMetrics.density).toInt(),
-                (50 * resources.displayMetrics.density).toInt()
-            )
             
-            // ConstraintLayoutの制約を再設定
-            layoutParams.bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-            layoutParams.startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
-            layoutParams.endToEnd = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+            binding.newsView.layoutParams = currentLayoutParams
+            binding.newsView.requestLayout()
+        } else {
+            // 通常時: XMLで定義されたレイアウトを復元
+            originalNewsViewLayoutParams?.let { original ->
+                binding.newsView.layoutParams = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(original)
+                binding.newsView.requestLayout()
+                // 復元後にクリア（次回詳細表示時に再度保存するため）
+                originalNewsViewLayoutParams = null
+            }
         }
-        
-        binding.newsView.layoutParams = layoutParams
-        binding.newsView.requestLayout()
     }
 
     /**
