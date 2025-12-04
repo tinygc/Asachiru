@@ -61,3 +61,22 @@
  - テスト修正完了時は `test:` prefix を使用してください
  - Pushする前に、変更ファイル一覧を確認して、意図した変更がすべて含まれているか確認してください
 
+## UI/UX実装の注意点（2025-12-04 反省）
+ - **ImageViewとDrawableのサイズ不一致問題**：
+   - ImageView（56dp）の中に小さいDrawable（24dp）を配置すると、余白が発生して意図しない隙間ができる
+   - マイナスマージン（例：`layout_marginBottom="-16dp"`）を使用して、ImageView内の余白をキャンセルすることで解決
+   - または、ImageView内でscaleType="center"とscaleY/scaleXを使ってDrawableを拡大する方法もある
+ - **解像度依存を避ける**：
+   - Androidでは`px`ではなく`dp`（密度非依存ピクセル）を使用してスケーラブルなUIを実現する
+   - TV（大画面）とスマホ（小画面）で同じレイアウトが適切に表示されるように設計する
+ - **透過表示（alpha）の活用**：
+   - 視覚的に目立ちすぎる要素には`android:alpha="0.5"`などで透明度を調整する
+   - 控えめで洗練されたUIになる
+ - **要素の配置と被り防止**：
+   - 複数のUI要素が重なる場合、ConstraintLayoutの制約を調整して配置を変更する
+   - 例：キー操作ヒントが三角形と被る場合、`layout_constraintEnd`を使って右寄せにする
+ - **ADBでのスクリーンショット確認**：
+   - UI実装後は必ずエミュレータでスクリーンショットを取得して視覚的に確認する
+   - `adb shell screencap -p /sdcard/screenshot.png` → `adb pull /sdcard/screenshot.png` で取得
+   - 意図した表示になっているか、ユーザーと一緒に確認してから次に進む
+
