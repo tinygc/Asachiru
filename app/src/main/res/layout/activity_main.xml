@@ -197,11 +197,12 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <!-- 設定ボタン（画面下部中央） -->
+    <!-- 設定ボタン（画面右下） -->
     <Button
         android:id="@+id/settings_button"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="⚙️ 設定"
         android:textColor="#FFFFFF"
@@ -214,7 +215,6 @@
         android:focusableInTouchMode="true"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
