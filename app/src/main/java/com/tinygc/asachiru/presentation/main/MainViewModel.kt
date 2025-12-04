@@ -112,7 +112,9 @@ class MainViewModel(
                                 currentNews = convertToEntityNews(state.article),
                                 newsProgressPercent = calculateProgress(state),
                                 showAd = false, // 記事表示中は広告非表示
-                                adRemainingSeconds = 0L
+                                adRemainingSeconds = 0L,
+                                currentArticleIndex = state.articleIndex,
+                                totalArticles = state.totalArticles
                             ) 
                         }
                     }
@@ -124,7 +126,9 @@ class MainViewModel(
                                 currentNews = null,
                                 newsProgressPercent = calculateProgress(state),
                                 showAd = false, // インターバル中も広告非表示
-                                adRemainingSeconds = 0L
+                                adRemainingSeconds = 0L,
+                                currentArticleIndex = state.nextArticleIndex - 1,
+                                totalArticles = state.totalArticles
                             ) 
                         }
                     }
@@ -144,7 +148,9 @@ class MainViewModel(
                                 currentNews = null,
                                 newsProgressPercent = 0f,
                                 showAd = showAd,
-                                adRemainingSeconds = adRemainingSeconds
+                                adRemainingSeconds = adRemainingSeconds,
+                                currentArticleIndex = 0,
+                                totalArticles = 0
                             ) 
                         }
                     }
@@ -156,7 +162,9 @@ class MainViewModel(
                                 currentNews = null,
                                 newsProgressPercent = 0f,
                                 showAd = false, // SessionInterval以外の状態では広告非表示
-                                adRemainingSeconds = 0L
+                                adRemainingSeconds = 0L,
+                                currentArticleIndex = 0,
+                                totalArticles = 0
                             ) 
                         }
                     }

@@ -31,7 +31,8 @@ import kotlin.math.abs
  */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityMainBinding
+    // ViewBinding: activity_main.xmlに合わせて再生成されたbindingを使う
+    private lateinit var binding: com.tinygc.asachiru.databinding.ActivityMainBinding
     private lateinit var viewModel: MainViewModel
     private lateinit var viewModelFactory: com.tinygc.asachiru.presentation.common.ViewModelFactory
     // MusicPlayerへのアクセス（Visualizer用 - RepositoryFactoryグローバルシングルトン）
@@ -148,6 +149,11 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     // ニュースの更新
+                           // 上下矢印の表示制御
+                        val isFirst = state.currentArticleIndex <= 0
+                        val isLast = state.currentArticleIndex >= state.totalArticles - 1
+                        binding.arrowUp.visibility = if (isFirst) android.view.View.GONE else android.view.View.VISIBLE
+                        binding.arrowDown.visibility = if (isLast) android.view.View.GONE else android.view.View.VISIBLE
                     if (state.newsError != null) {
                         binding.newsView.showError(state.newsError)
                     } else {

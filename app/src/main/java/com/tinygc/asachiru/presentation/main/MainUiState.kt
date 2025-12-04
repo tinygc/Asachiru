@@ -42,4 +42,8 @@ data class MainUiState(
     val debugNewsList: List<News> = emptyList(),
     val debugLastFetchTime: Long = 0L,
     val debugNextNewsRemainingSeconds: Long = 0L // 次のニュースまでの残り秒数
+    ,
+    // 記事ナビゲーション用
+    val currentArticleIndex: Int = 0, // 現在の記事インデックス
+    val totalArticles: Int = 0 // 記事総数
 )

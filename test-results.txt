@@ -24,17 +24,17 @@ Daemon will be stopped at the end of the build
 > Task :app:compileAsachiruDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileAsachiruDebug UP-TO-DATE
 > Task :app:compileAsachiruDebugJavaWithJavac UP-TO-DATE
-> Task :app:bundleAsachiruDebugClassesToRuntimeJar UP-TO-DATE
-> Task :app:bundleAsachiruDebugClassesToCompileJar UP-TO-DATE
 > Task :app:preAsachiruDebugUnitTestBuild UP-TO-DATE
-> Task :app:javaPreCompileAsachiruDebugUnitTest UP-TO-DATE
+> Task :app:javaPreCompileAsachiruDebugUnitTest FROM-CACHE
 > Task :app:mergeAsachiruDebugShaders UP-TO-DATE
 > Task :app:compileAsachiruDebugShaders NO-SOURCE
 > Task :app:generateAsachiruDebugAssets UP-TO-DATE
 > Task :app:mergeAsachiruDebugAssets UP-TO-DATE
-> Task :app:packageAsachiruDebugUnitTestForUnitTest UP-TO-DATE
-> Task :app:processAsachiruDebugUnitTestManifest UP-TO-DATE
-> Task :app:generateAsachiruDebugUnitTestConfig UP-TO-DATE
+> Task :app:bundleAsachiruDebugClassesToRuntimeJar
+> Task :app:bundleAsachiruDebugClassesToCompileJar
+> Task :app:packageAsachiruDebugUnitTestForUnitTest
+> Task :app:processAsachiruDebugUnitTestManifest
+> Task :app:generateAsachiruDebugUnitTestConfig
 > Task :app:processAsachiruDebugJavaRes UP-TO-DATE
 > Task :app:buildKotlinToolingMetadata UP-TO-DATE
 > Task :app:preAsachiruReleaseBuild UP-TO-DATE
@@ -45,7 +45,7 @@ Daemon will be stopped at the end of the build
 > Task :app:packageAsachiruReleaseResources UP-TO-DATE
 > Task :app:processAsachiruReleaseNavigationResources UP-TO-DATE
 > Task :app:parseAsachiruReleaseLocalResources UP-TO-DATE
-> Task :app:dataBindingGenBaseClassesAsachiruRelease UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesAsachiruRelease FROM-CACHE
 > Task :app:generateAsachiruReleaseBuildConfig UP-TO-DATE
 > Task :app:checkAsachiruReleaseAarMetadata UP-TO-DATE
 > Task :app:compileAsachiruReleaseNavigationResources UP-TO-DATE
@@ -55,22 +55,14 @@ Daemon will be stopped at the end of the build
 > Task :app:processAsachiruReleaseMainManifest UP-TO-DATE
 > Task :app:processAsachiruReleaseManifest UP-TO-DATE
 > Task :app:processAsachiruReleaseManifestForPackage UP-TO-DATE
-> Task :app:processAsachiruReleaseResources UP-TO-DATE
-> Task :app:compileAsachiruReleaseKotlin UP-TO-DATE
 > Task :app:javaPreCompileAsachiruRelease UP-TO-DATE
-> Task :app:compileAsachiruReleaseJavaWithJavac UP-TO-DATE
-> Task :app:bundleAsachiruReleaseClassesToRuntimeJar UP-TO-DATE
-> Task :app:bundleAsachiruReleaseClassesToCompileJar UP-TO-DATE
 > Task :app:preAsachiruReleaseUnitTestBuild UP-TO-DATE
-> Task :app:javaPreCompileAsachiruReleaseUnitTest UP-TO-DATE
+> Task :app:javaPreCompileAsachiruReleaseUnitTest FROM-CACHE
 > Task :app:mergeAsachiruReleaseShaders UP-TO-DATE
 > Task :app:compileAsachiruReleaseShaders NO-SOURCE
 > Task :app:generateAsachiruReleaseAssets UP-TO-DATE
 > Task :app:mergeAsachiruReleaseAssets UP-TO-DATE
-> Task :app:packageAsachiruReleaseUnitTestForUnitTest UP-TO-DATE
-> Task :app:processAsachiruReleaseUnitTestManifest UP-TO-DATE
-> Task :app:generateAsachiruReleaseUnitTestConfig UP-TO-DATE
-> Task :app:processAsachiruReleaseJavaRes UP-TO-DATE
+> Task :app:processAsachiruReleaseUnitTestManifest
 > Task :app:preFeedwatchDebugBuild UP-TO-DATE
 > Task :app:dataBindingMergeDependencyArtifactsFeedwatchDebug UP-TO-DATE
 > Task :app:generateFeedwatchDebugResValues UP-TO-DATE
@@ -93,93 +85,169 @@ Daemon will be stopped at the end of the build
 > Task :app:compileFeedwatchDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileFeedwatchDebug UP-TO-DATE
 > Task :app:compileFeedwatchDebugJavaWithJavac UP-TO-DATE
-> Task :app:bundleFeedwatchDebugClassesToRuntimeJar UP-TO-DATE
-> Task :app:bundleFeedwatchDebugClassesToCompileJar UP-TO-DATE
 > Task :app:preFeedwatchDebugUnitTestBuild UP-TO-DATE
-> Task :app:javaPreCompileFeedwatchDebugUnitTest UP-TO-DATE
+> Task :app:javaPreCompileFeedwatchDebugUnitTest FROM-CACHE
 > Task :app:mergeFeedwatchDebugShaders UP-TO-DATE
 > Task :app:compileFeedwatchDebugShaders NO-SOURCE
 > Task :app:generateFeedwatchDebugAssets UP-TO-DATE
 > Task :app:mergeFeedwatchDebugAssets UP-TO-DATE
-> Task :app:packageFeedwatchDebugUnitTestForUnitTest UP-TO-DATE
-> Task :app:processFeedwatchDebugUnitTestManifest UP-TO-DATE
-> Task :app:generateFeedwatchDebugUnitTestConfig UP-TO-DATE
+> Task :app:packageFeedwatchDebugUnitTestForUnitTest
+> Task :app:bundleFeedwatchDebugClassesToRuntimeJar
+> Task :app:bundleFeedwatchDebugClassesToCompileJar
+> Task :app:processFeedwatchDebugUnitTestManifest
+> Task :app:generateFeedwatchDebugUnitTestConfig
 > Task :app:processFeedwatchDebugJavaRes UP-TO-DATE
 > Task :app:preFeedwatchReleaseBuild UP-TO-DATE
-> Task :app:dataBindingMergeDependencyArtifactsFeedwatchRelease UP-TO-DATE
-> Task :app:generateFeedwatchReleaseResValues UP-TO-DATE
-> Task :app:generateFeedwatchReleaseResources UP-TO-DATE
-> Task :app:mergeFeedwatchReleaseResources UP-TO-DATE
-> Task :app:packageFeedwatchReleaseResources UP-TO-DATE
-> Task :app:processFeedwatchReleaseNavigationResources UP-TO-DATE
-> Task :app:parseFeedwatchReleaseLocalResources UP-TO-DATE
-> Task :app:dataBindingGenBaseClassesFeedwatchRelease UP-TO-DATE
-> Task :app:generateFeedwatchReleaseBuildConfig UP-TO-DATE
-> Task :app:checkFeedwatchReleaseAarMetadata UP-TO-DATE
-> Task :app:compileFeedwatchReleaseNavigationResources UP-TO-DATE
-> Task :app:mapFeedwatchReleaseSourceSetPaths UP-TO-DATE
-> Task :app:createFeedwatchReleaseCompatibleScreenManifests UP-TO-DATE
-> Task :app:extractDeepLinksFeedwatchRelease UP-TO-DATE
-> Task :app:processFeedwatchReleaseMainManifest UP-TO-DATE
-> Task :app:processFeedwatchReleaseManifest UP-TO-DATE
-> Task :app:processFeedwatchReleaseManifestForPackage UP-TO-DATE
-> Task :app:processFeedwatchReleaseResources UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsFeedwatchRelease
+> Task :app:generateFeedwatchReleaseResValues FROM-CACHE
+> Task :app:generateFeedwatchReleaseResources FROM-CACHE
+> Task :app:processAsachiruReleaseResources
+> Task :app:packageAsachiruReleaseUnitTestForUnitTest
+> Task :app:generateAsachiruReleaseUnitTestConfig
+> Task :app:packageFeedwatchReleaseResources
+> Task :app:processFeedwatchReleaseNavigationResources FROM-CACHE
+> Task :app:parseFeedwatchReleaseLocalResources FROM-CACHE
+> Task :app:generateFeedwatchReleaseBuildConfig FROM-CACHE
+> Task :app:compileFeedwatchReleaseNavigationResources FROM-CACHE
+> Task :app:checkFeedwatchReleaseAarMetadata
+> Task :app:mapFeedwatchReleaseSourceSetPaths
+> Task :app:createFeedwatchReleaseCompatibleScreenManifests
+> Task :app:extractDeepLinksFeedwatchRelease FROM-CACHE
+> Task :app:processFeedwatchReleaseMainManifest FROM-CACHE
+> Task :app:processFeedwatchReleaseManifest FROM-CACHE
+> Task :app:processFeedwatchReleaseManifestForPackage FROM-CACHE
+> Task :app:javaPreCompileFeedwatchRelease FROM-CACHE
+> Task :app:preFeedwatchReleaseUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileFeedwatchReleaseUnitTest FROM-CACHE
+> Task :app:mergeFeedwatchReleaseShaders
+> Task :app:compileFeedwatchReleaseShaders NO-SOURCE
+> Task :app:generateFeedwatchReleaseAssets UP-TO-DATE
+> Task :app:mergeFeedwatchReleaseAssets
+> Task :app:processFeedwatchReleaseUnitTestManifest
+> Task :app:mergeFeedwatchReleaseResources
+
 > Task :app:compileAsachiruDebugUnitTestKotlin
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:19:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:32:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:46:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:59:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:72:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:73:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:74:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:75:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:94:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:95:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:30:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:41:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:42:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:54:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:56:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:58:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/presentation/main/views/WeatherViewTest.kt:205:9 Name contains characters which can cause problems on Windows: %
+
+> Task :app:dataBindingGenBaseClassesFeedwatchRelease FROM-CACHE
 > Task :app:compileAsachiruDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :app:processAsachiruDebugUnitTestJavaRes UP-TO-DATE
-> Task :app:compileAsachiruReleaseUnitTestKotlin
+> Task :app:processAsachiruDebugUnitTestJavaRes
+
 > Task :app:compileFeedwatchDebugUnitTestKotlin
-> Task :app:compileFeedwatchReleaseKotlin
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:19:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:32:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:46:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:59:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:72:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:73:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:74:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:75:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:94:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:95:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:30:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:41:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:42:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:54:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:56:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:58:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/presentation/main/views/WeatherViewTest.kt:205:9 Name contains characters which can cause problems on Windows: %
+
+> Task :app:processFeedwatchReleaseResources
+> Task :app:compileAsachiruReleaseKotlin
 > Task :app:testAsachiruDebugUnitTest
+> Task :app:compileAsachiruReleaseJavaWithJavac
+> Task :app:processAsachiruReleaseJavaRes
+> Task :app:compileFeedwatchDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:bundleAsachiruReleaseClassesToRuntimeJar
+> Task :app:bundleAsachiruReleaseClassesToCompileJar
+> Task :app:processFeedwatchDebugUnitTestJavaRes
+
+> Task :app:compileAsachiruReleaseUnitTestKotlin
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:19:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:32:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:46:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:59:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:72:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:73:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:74:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:75:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:94:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:95:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:30:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:41:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:42:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:54:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:56:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:58:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/presentation/main/views/WeatherViewTest.kt:205:9 Name contains characters which can cause problems on Windows: %
+
+> Task :app:testFeedwatchDebugUnitTest
 > Task :app:compileAsachiruReleaseUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processAsachiruReleaseUnitTestJavaRes
 > Task :app:testAsachiruReleaseUnitTest
-> Task :app:compileFeedwatchDebugUnitTestJavaWithJavac NO-SOURCE
-> Task :app:processFeedwatchDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:packageFeedwatchReleaseUnitTestForUnitTest
+> Task :app:generateFeedwatchReleaseUnitTestConfig
+> Task :app:compileFeedwatchReleaseKotlin
+> Task :app:compileFeedwatchReleaseJavaWithJavac
+> Task :app:processFeedwatchReleaseJavaRes
+> Task :app:bundleFeedwatchReleaseClassesToRuntimeJar
+> Task :app:bundleFeedwatchReleaseClassesToCompileJar
 
-> Task :app:testFeedwatchDebugUnitTest
+> Task :app:compileFeedwatchReleaseUnitTestKotlin
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:19:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:32:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:46:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:59:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:72:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:73:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:74:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:75:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:94:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/AppExceptionTest.kt:95:24 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:17:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:30:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:41:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:42:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:54:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:56:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/domain/common/ResultTest.kt:58:20 Check for instance is always 'true'
+w: file:///C:/Users/tinyg/Asachiru/app/src/test/java/com/tinygc/asachiru/presentation/main/views/WeatherViewTest.kt:205:9 Name contains characters which can cause problems on Windows: %
 
-SettingsRepositoryImplTest > saveSettings should handle exception with null message FAILED
-    java.lang.AssertionError at SettingsRepositoryImplTest.kt:147
+> Task :app:compileFeedwatchReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :app:processFeedwatchReleaseUnitTestJavaRes
+> Task :app:testFeedwatchReleaseUnitTest
+> Task :app:test
 
-SettingsRepositoryImplTest > saveSettings should handle multiple consecutive saves FAILED
-    org.mockito.exceptions.verification.junit.ArgumentsAreDifferent at SettingsRepositoryImplTest.kt:245
-
-SettingsRepositoryImplTest > saveSettings should return Success when data source succeeds FAILED
-    org.mockito.exceptions.verification.junit.ArgumentsAreDifferent at SettingsRepositoryImplTest.kt:63
-
-SettingsRepositoryImplTest > saveSettings should handle generic exception with message FAILED
-    java.lang.AssertionError at SettingsRepositoryImplTest.kt:124
-
-SettingsRepositoryImplTest > saveSettings should call data source with correct settings FAILED
-    org.mockito.exceptions.verification.junit.ArgumentsAreDifferent at SettingsRepositoryImplTest.kt:83
-
-SettingsRepositoryImplTest > saveSettings should return SettingsException on failure FAILED
-    java.lang.AssertionError at SettingsRepositoryImplTest.kt:101
-
-SettingsRepositoryImplTest > getSettings should return Settings from data source FAILED
-    java.lang.AssertionError at SettingsRepositoryImplTest.kt:27
-
-456 tests completed, 7 failed
-
-> Task :app:testFeedwatchDebugUnitTest FAILED
-
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Execution failed for task ':app:testFeedwatchDebugUnitTest'.
 [Incubating] Problems report is available at: file:///C:/Users/tinyg/Asachiru/build/reports/problems/problems-report.html
-> There were failing tests. See the report at: file:///C:/Users/tinyg/Asachiru/app/build/reports/tests/testFeedwatchDebugUnitTest/index.html
-
-* Try:
-> Run with --scan to get full insights.
 
 Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
 
 You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
 
 For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
-120 actionable tasks: 9 executed, 111 up-to-date
 
-BUILD FAILED in 1m 30s
+BUILD SUCCESSFUL in 2m 19s
+134 actionable tasks: 49 executed, 17 from cache, 68 up-to-date
