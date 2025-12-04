@@ -163,6 +163,10 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.setIsSpeaking(state.isSpeaking)
                         binding.newsView.setProgress(state.newsProgressPercent)
                         
+                        // 「次へ」ラベルの表示制御（TTS OFF かつ進行中のみ表示）
+                        val showNextLabel = !state.enableTts && state.newsProgressPercent > 0f
+                        binding.progressNextLabel.visibility = if (showNextLabel) android.view.View.VISIBLE else android.view.View.GONE
+                        
                         // 詳細表示時はNewsViewを全画面表示にする
                         updateNewsViewLayout(state.showNewsDetail)
                     }

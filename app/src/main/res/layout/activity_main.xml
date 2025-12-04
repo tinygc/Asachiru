@@ -136,6 +136,21 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- 「次へ →」ラベル（プログレスバーの右端、NewsViewの上部右側） -->
+    <TextView
+        android:id="@+id/progress_next_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="次へ →"
+        android:textSize="10sp"
+        android:textColor="@android:color/white"
+        android:alpha="0.6"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/news_view"
+        app:layout_constraintEnd_toEndOf="@id/news_view" />
+
     <!-- 下三角（次の記事） -->
     <ImageView
         android:id="@+id/arrow_down"
