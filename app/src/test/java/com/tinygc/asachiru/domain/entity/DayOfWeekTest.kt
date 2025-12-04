@@ -48,14 +48,14 @@ class DayOfWeekTest {
 
     @Test
     fun `All days should have correct short names`() {
-        // Assert
-        assertEquals("Sun", DayOfWeek.SUNDAY.shortName)
-        assertEquals("Mon", DayOfWeek.MONDAY.shortName)
-        assertEquals("Tue", DayOfWeek.TUESDAY.shortName)
-        assertEquals("Wed", DayOfWeek.WEDNESDAY.shortName)
-        assertEquals("Thu", DayOfWeek.THURSDAY.shortName)
-        assertEquals("Fri", DayOfWeek.FRIDAY.shortName)
-        assertEquals("Sat", DayOfWeek.SATURDAY.shortName)
+        // Assert - 日本語の漢字一文字表記
+        assertEquals("日", DayOfWeek.SUNDAY.shortName)
+        assertEquals("月", DayOfWeek.MONDAY.shortName)
+        assertEquals("火", DayOfWeek.TUESDAY.shortName)
+        assertEquals("水", DayOfWeek.WEDNESDAY.shortName)
+        assertEquals("木", DayOfWeek.THURSDAY.shortName)
+        assertEquals("金", DayOfWeek.FRIDAY.shortName)
+        assertEquals("土", DayOfWeek.SATURDAY.shortName)
     }
 
     @Test

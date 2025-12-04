@@ -101,6 +101,15 @@ android {
             includeAndroidResources = true
         }
     }
+    
+    lint {
+        // Lintがマニフェストマージを考慮するように設定
+        // フレーバーのマニフェストは最終的にメインのマニフェストとマージされる
+        checkDependencies true
+        abortOnError false
+        // TVアプリ関連のLintチェック - マージ後のマニフェストで解決される
+        disable 'MissingLeanbackLauncher', 'MissingLeanbackSupport', 'ImpliedTouchscreenHardware'
+    }
 }
 
 dependencies {

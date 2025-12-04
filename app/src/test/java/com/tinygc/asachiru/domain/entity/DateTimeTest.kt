@@ -38,7 +38,7 @@ class DateTimeTest {
         val dateString = dateTime.dateString
 
         // Assert
-        assertEquals("11/06 (Wed)", dateString)
+        assertEquals("11/06 (水)", dateString)
     }
 
     @Test
@@ -50,7 +50,7 @@ class DateTimeTest {
         val dateString = dateTime.dateString
 
         // Assert
-        assertEquals("01/05 (Fri)", dateString)
+        assertEquals("01/05 (金)", dateString)
     }
 
     @Test
@@ -64,8 +64,8 @@ class DateTimeTest {
         val saturdayString = saturday.dateString
 
         // Assert
-        assertTrue(sundayString.contains("Sun"))
-        assertTrue(saturdayString.contains("Sat"))
+        assertTrue(sundayString.contains("日"))
+        assertTrue(saturdayString.contains("土"))
     }
 
     @Test

@@ -4,13 +4,13 @@ package com.tinygc.asachiru.domain.entity
  * 曜日を表すEnum
  */
 enum class DayOfWeek(val shortName: String) {
-    SUNDAY("Sun"),
-    MONDAY("Mon"),
-    TUESDAY("Tue"),
-    WEDNESDAY("Wed"),
-    THURSDAY("Thu"),
-    FRIDAY("Fri"),
-    SATURDAY("Sat");
+    SUNDAY("日"),
+    MONDAY("月"),
+    TUESDAY("火"),
+    WEDNESDAY("水"),
+    THURSDAY("木"),
+    FRIDAY("金"),
+    SATURDAY("土");
 
     /**
      * 曜日の色を取得

@@ -1,15 +1,22 @@
 package com.tinygc.asachiru.presentation.main
 
+import android.media.MediaPlayer
+import android.net.Uri
+import com.tinygc.asachiru.R
 import com.tinygc.asachiru.presentation.main.views.ClockView
 import com.tinygc.asachiru.presentation.main.views.NewsView
 import com.tinygc.asachiru.presentation.main.views.VisualizerView
 import com.tinygc.asachiru.presentation.main.views.WeatherView
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Robolectric
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowMediaPlayer
+import org.robolectric.shadows.util.DataSource
 import kotlin.test.assertNotNull
 
 /**
@@ -23,11 +30,52 @@ class MainActivityTest {
 
     @Before
     fun setUp() {
+        // ShadowMediaPlayerにモックデータソースを登録
+        // アプリで使用されるすべての音楽リソースをモック化
+        setupMockMediaPlayer()
+        
         activity = Robolectric.buildActivity(MainActivity::class.java)
             .create()
             .start()
             .resume()
             .get()
+    }
+    
+    @After
+    fun tearDown() {
+        // テスト後にShadowMediaPlayerをリセット
+        ShadowMediaPlayer.resetStaticState()
+    }
+    
+    /**
+     * ShadowMediaPlayerにモックデータソースを登録
+     * MusicPlayerがMediaPlayer.setDataSourceを呼び出した時にエラーにならないようにする
+     */
+    private fun setupMockMediaPlayer() {
+        val context = RuntimeEnvironment.getApplication()
+        val packageName = context.packageName
+        
+        // raw フォルダ内の音楽リソースIDをモック化
+        val mockMediaInfo = ShadowMediaPlayer.MediaInfo(
+            /* duration = */ 180000, // 3分
+            /* preparationDelay = */ 0
+        )
+        
+        // 実際に使用される音楽リソースを登録（R.raw.xxxで定義されているもの）
+        // リソースIDを直接使用
+        listOf(
+            R.raw.nakazaki_cho,
+            R.raw.se_no_bi,
+            R.raw.yoru_no_byoshitsu_electro
+        ).forEach { resourceId ->
+            try {
+                val uri = Uri.parse("android.resource://$packageName/$resourceId")
+                val dataSource = DataSource.toDataSource(context, uri)
+                ShadowMediaPlayer.addMediaInfo(dataSource, mockMediaInfo)
+            } catch (e: Exception) {
+                // エラーは無視（リソースが見つからない場合）
+            }
+        }
     }
 
     @Test
