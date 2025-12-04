@@ -109,10 +109,18 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // 設定ボタンのクリックリスナー（タッチ操作対応）
-        // 設定ボタンのタップはこちらで処理され、GestureDetectorには伝播しない
-        binding.settingsButton.setOnClickListener {
-            navigateToSetup()
+        // 設定ボタンの表示制御とクリックリスナー（スマホのみ表示）
+        if (DeviceUtils.isPhone(applicationContext)) {
+            // スマホ: 設定ボタンを表示（キー操作ヒントは非表示）
+            binding.settingsButton.visibility = android.view.View.VISIBLE
+            binding.keyHintView.visibility = android.view.View.GONE
+            binding.settingsButton.setOnClickListener {
+                navigateToSetup()
+            }
+        } else {
+            // TV: キー操作ヒントを表示し、設定ボタンは非表示
+            binding.settingsButton.visibility = android.view.View.GONE
+            binding.keyHintView.visibility = android.view.View.VISIBLE
         }
 
         observeViewModel()

@@ -122,6 +122,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <!-- キー操作ヒント（記事タイトルの下に薄く表示・TVのみ） -->
+    <TextView
+        android:id="@+id/key_hint_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:text="🎮 決定キー長押しで設定"
+        android:textColor="#CCFFFFFF"
+        android:textSize="12sp"
+        android:letterSpacing="0.02"
+        android:textAlignment="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/news_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- 広告ビュー（画面下中央、初期は非表示） -->
     <com.google.android.gms.ads.AdView
         android:id="@+id/ad_view"
