@@ -114,6 +114,22 @@ class NewsView @JvmOverloads constructor(
         setShadowLayer(5f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
+    // TTS状態表示用（小さめ）
+    private val ttsStatusPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 14f, context.resources.displayMetrics)
+        color = Color.WHITE
+        alpha = (255 * 0.9f).toInt()
+        letterSpacing = 0.02f
+        setShadowLayer(4f, 2f, 2f, Color.argb(180, 0, 0, 0))
+    }
+
+    // 三角アイコン用（TTS状態表示の左右）
+    private val ttsArrowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
+        color = Color.WHITE
+        alpha = (255 * 0.6f).toInt() // 少し薄めに表示
+    }
+
     init {
         // スマホとTVでテキストサイズを調整
         if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
@@ -324,6 +340,9 @@ class NewsView @JvmOverloads constructor(
         currentNews?.let {
             drawNewsTitle(canvas, it)
         }
+
+        // TTS状態表示（右上）
+        drawTtsStatus(canvas)
     }
 
     /**
@@ -835,5 +854,45 @@ class NewsView @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         blinkAnimator.cancel()
+    }
+
+    /**
+     * TTS状態表示を右上に描画（◀ TTS: ON ▶ 形式）
+     */
+    private fun drawTtsStatus(canvas: Canvas) {
+        val statusText = if (enableTts) "TTS: ON" else "TTS: OFF"
+        val leftArrow = "◀"
+        val rightArrow = "▶"
+
+        // パディング
+        val paddingHorizontal = if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
+            16f.dp()
+        } else {
+            48f.dp()
+        }
+        val paddingVertical = 24f.dp()
+
+        // テキスト幅計算
+        val statusWidth = ttsStatusPaint.measureText(statusText)
+        val arrowWidth = ttsArrowPaint.measureText(leftArrow)
+        val spacing = 8f.dp() // 矢印とテキストの間隔
+
+        // 全体の幅
+        val totalWidth = arrowWidth + spacing + statusWidth + spacing + arrowWidth
+
+        // 右上に配置
+        val startX = width - paddingHorizontal - totalWidth
+        val y = paddingVertical
+
+        // 左矢印
+        canvas.drawText(leftArrow, startX, y, ttsArrowPaint)
+
+        // TTS状態テキスト
+        val textX = startX + arrowWidth + spacing
+        canvas.drawText(statusText, textX, y, ttsStatusPaint)
+
+        // 右矢印
+        val rightArrowX = textX + statusWidth + spacing
+        canvas.drawText(rightArrow, rightArrowX, y, ttsArrowPaint)
     }
 }
