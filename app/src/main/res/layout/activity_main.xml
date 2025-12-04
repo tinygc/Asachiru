@@ -128,7 +128,10 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:src="@drawable/ic_triangle_up"
-        android:layout_marginBottom="6dp"
+        android:scaleType="center"
+        android:scaleY="1.5"
+        android:alpha="0.5"
+        android:layout_marginBottom="-16dp"
         app:layout_constraintBottom_toTopOf="@id/news_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -139,17 +142,21 @@
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:src="@drawable/ic_triangle_down"
-        android:layout_marginTop="6dp"
+        android:scaleType="center"
+        android:scaleY="1.5"
+        android:alpha="0.5"
+        android:layout_marginTop="-16dp"
         app:layout_constraintTop_toBottomOf="@id/news_view"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- キー操作ヒント（記事タイトルの下に薄く表示・TVのみ） -->
+    <!-- キー操作ヒント（記事タイトル下に薄く表示・TVのみ） -->
     <TextView
         android:id="@+id/key_hint_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
         android:layout_marginBottom="16dp"
         android:text="🎮 決定キー長押しで設定"
         android:textColor="#CCFFFFFF"
@@ -158,7 +165,6 @@
         android:textAlignment="center"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/news_view"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 広告ビュー（画面下中央、初期は非表示） -->
