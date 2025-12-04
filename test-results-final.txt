@@ -1,0 +1,109 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.13/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+> Task :app:checkKotlinGradlePluginConfigurationErrors
+> Task :app:preBuild UP-TO-DATE
+> Task :app:preAsachiruDebugBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsAsachiruDebug UP-TO-DATE
+> Task :app:generateAsachiruDebugResValues UP-TO-DATE
+> Task :app:generateAsachiruDebugResources UP-TO-DATE
+> Task :app:mergeAsachiruDebugResources UP-TO-DATE
+> Task :app:packageAsachiruDebugResources UP-TO-DATE
+> Task :app:processAsachiruDebugNavigationResources UP-TO-DATE
+> Task :app:parseAsachiruDebugLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesAsachiruDebug UP-TO-DATE
+> Task :app:generateAsachiruDebugBuildConfig UP-TO-DATE
+> Task :app:checkAsachiruDebugAarMetadata UP-TO-DATE
+> Task :app:compileAsachiruDebugNavigationResources UP-TO-DATE
+> Task :app:mapAsachiruDebugSourceSetPaths UP-TO-DATE
+> Task :app:createAsachiruDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksAsachiruDebug UP-TO-DATE
+> Task :app:processAsachiruDebugMainManifest UP-TO-DATE
+> Task :app:processAsachiruDebugManifest UP-TO-DATE
+> Task :app:processAsachiruDebugManifestForPackage UP-TO-DATE
+> Task :app:processAsachiruDebugResources UP-TO-DATE
+> Task :app:compileAsachiruDebugKotlin UP-TO-DATE
+> Task :app:javaPreCompileAsachiruDebug UP-TO-DATE
+> Task :app:compileAsachiruDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleAsachiruDebugClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleAsachiruDebugClassesToCompileJar UP-TO-DATE
+> Task :app:compileAsachiruDebugUnitTestKotlin UP-TO-DATE
+> Task :app:preAsachiruDebugUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileAsachiruDebugUnitTest UP-TO-DATE
+> Task :app:compileAsachiruDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :app:mergeAsachiruDebugShaders UP-TO-DATE
+> Task :app:compileAsachiruDebugShaders NO-SOURCE
+> Task :app:generateAsachiruDebugAssets UP-TO-DATE
+> Task :app:mergeAsachiruDebugAssets UP-TO-DATE
+> Task :app:packageAsachiruDebugUnitTestForUnitTest UP-TO-DATE
+> Task :app:processAsachiruDebugUnitTestManifest UP-TO-DATE
+> Task :app:generateAsachiruDebugUnitTestConfig UP-TO-DATE
+> Task :app:processAsachiruDebugJavaRes UP-TO-DATE
+> Task :app:processAsachiruDebugUnitTestJavaRes UP-TO-DATE
+> Task :app:testAsachiruDebugUnitTest
+> Task :app:buildKotlinToolingMetadata UP-TO-DATE
+> Task :app:preAsachiruReleaseBuild UP-TO-DATE
+> Task :app:dataBindingMergeDependencyArtifactsAsachiruRelease UP-TO-DATE
+> Task :app:generateAsachiruReleaseResValues UP-TO-DATE
+> Task :app:generateAsachiruReleaseResources UP-TO-DATE
+> Task :app:mergeAsachiruReleaseResources UP-TO-DATE
+> Task :app:packageAsachiruReleaseResources UP-TO-DATE
+> Task :app:processAsachiruReleaseNavigationResources UP-TO-DATE
+> Task :app:parseAsachiruReleaseLocalResources UP-TO-DATE
+> Task :app:dataBindingGenBaseClassesAsachiruRelease UP-TO-DATE
+> Task :app:generateAsachiruReleaseBuildConfig UP-TO-DATE
+> Task :app:checkAsachiruReleaseAarMetadata UP-TO-DATE
+> Task :app:compileAsachiruReleaseNavigationResources UP-TO-DATE
+> Task :app:mapAsachiruReleaseSourceSetPaths UP-TO-DATE
+> Task :app:createAsachiruReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:extractDeepLinksAsachiruRelease UP-TO-DATE
+> Task :app:processAsachiruReleaseMainManifest UP-TO-DATE
+> Task :app:processAsachiruReleaseManifest UP-TO-DATE
+> Task :app:processAsachiruReleaseManifestForPackage UP-TO-DATE
+> Task :app:processAsachiruReleaseResources UP-TO-DATE
+> Task :app:compileAsachiruReleaseKotlin UP-TO-DATE
+> Task :app:javaPreCompileAsachiruRelease UP-TO-DATE
+> Task :app:compileAsachiruReleaseJavaWithJavac UP-TO-DATE
+> Task :app:bundleAsachiruReleaseClassesToRuntimeJar UP-TO-DATE
+> Task :app:bundleAsachiruReleaseClassesToCompileJar UP-TO-DATE
+> Task :app:compileAsachiruReleaseUnitTestKotlin UP-TO-DATE
+> Task :app:preAsachiruReleaseUnitTestBuild UP-TO-DATE
+> Task :app:javaPreCompileAsachiruReleaseUnitTest UP-TO-DATE
+> Task :app:compileAsachiruReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :app:mergeAsachiruReleaseShaders UP-TO-DATE
+> Task :app:compileAsachiruReleaseShaders NO-SOURCE
+> Task :app:generateAsachiruReleaseAssets UP-TO-DATE
+> Task :app:mergeAsachiruReleaseAssets UP-TO-DATE
+> Task :app:packageAsachiruReleaseUnitTestForUnitTest UP-TO-DATE
+> Task :app:processAsachiruReleaseUnitTestManifest UP-TO-DATE
+> Task :app:generateAsachiruReleaseUnitTestConfig UP-TO-DATE
+> Task :app:processAsachiruReleaseJavaRes UP-TO-DATE
+> Task :app:processAsachiruReleaseUnitTestJavaRes UP-TO-DATE
+
+> Task :app:testAsachiruReleaseUnitTest
+
+MainViewModelTest > onStop should stop music player FAILED
+    kotlinx.coroutines.test.UncaughtExceptionsBeforeTest at MainViewModelTest.kt:199
+
+456 tests completed, 1 failed
+
+> Task :app:testAsachiruReleaseUnitTest FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/tinyg/Asachiru/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:testAsachiruReleaseUnitTest'.
+> There were failing tests. See the report at: file:///C:/Users/tinyg/Asachiru/app/build/reports/tests/testAsachiruReleaseUnitTest/index.html
+
+* Try:
+> Run with --scan to get full insights.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.13/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD FAILED in 1m 2s
+68 actionable tasks: 3 executed, 65 up-to-date

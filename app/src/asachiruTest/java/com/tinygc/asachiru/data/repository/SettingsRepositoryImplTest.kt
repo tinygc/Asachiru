@@ -28,7 +28,8 @@ class SettingsRepositoryImplTest {
         // Given
         val mockSettings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            enableBgm = true
         )
         whenever(settingsLocalDataSource.loadSettings()).thenReturn(mockSettings)
 
@@ -46,7 +47,8 @@ class SettingsRepositoryImplTest {
         // Given
         val mockSettings = Settings(
             postalCode = "1000001",
-            newsIntervalMinutes = 30
+            newsIntervalMinutes = 30,
+            enableBgm = true
         )
         whenever(settingsLocalDataSource.loadSettings()).thenReturn(mockSettings)
 
@@ -65,6 +67,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings)).then { }
@@ -85,6 +88,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 60,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
 
@@ -103,6 +107,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
@@ -126,6 +131,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
@@ -149,6 +155,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         whenever(settingsLocalDataSource.saveSettings(settings))
@@ -208,6 +215,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
 
@@ -227,6 +235,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 45,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         whenever(settingsLocalDataSource.loadSettings()).thenReturn(mockSettings)
@@ -247,6 +256,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 30,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
         val settings2 = Settings(
@@ -254,6 +264,7 @@ class SettingsRepositoryImplTest {
             newsIntervalMinutes = 60,
             rssUrl = "https://test.com/rss",
             enableTts = false,
+            enableBgm = true,
             rssPreset = null
         )
 
