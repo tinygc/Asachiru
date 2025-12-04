@@ -35,3 +35,29 @@
  - Windowsではスクリーンキャプチャ、AndroidではADBによるキャプチャを確認してください
  - Android TVのApplicationで実装した場合は、リモコンキーの操作をADBで実施し、1コマンド毎にスクリーンキャプチャを取得して期待動作しているか確認してください
 
+## Multi-Flavor Androidアプリの テスト戦略
+ - 複数 flavor を使用する場合、flavor 毎に異なる実装になる可能性がある
+ - テストは必ず flavor 毎に分離してテストを作成してください
+ - 共有テストディレクトリ（`src/test/`）には味できるだけ共通ロジックだけにしてください
+ - flavor 固有の実装については、flavor 専用テストディレクトリ（`src/{flavor}Test/`）を作成してテストしてください
+ - 例：asachiru flavor と feedwatch flavor で Settings の enableBgm 処理が異なる場合、別々のテストを作成してください
+ - Gradle のビルドキャッシュが テスト再実行を妨げる場合があるため、修正後は `./gradlew clean test` で強制実行してください
+
+## Mockito テストのベストプラクティス
+ - Settings のような data class のテストでは、verify() の引数が完全一致する必要があります
+ - 部分的なマッチが必要な場合は `any()` matcher を使用してください
+ - Settings の複数フィールド検証には `assertEquals()` を使って個別にアサートしてください
+ - Data class のコピーで値を変更する場合（`.copy()`）、テストはその変更を正確に reflect する必要があります
+
+## StandardTestDispatcher と ViewModel 初期化の問題
+ - StandardTestDispatcher を使用した ViewModel テストで UncaughtExceptionsBeforeTest が発生することがあります
+ - init block を持つ ViewModel では `skipAutoStart = true` パラメータを使用して自動起動を防いでください
+ - ViewModel 初期化テストが必須の場合、別途 `setupViewModel()` のようなセットアップ関数を作成してください
+ - 問題のあるテストはコメントアウトして、その理由を記載してください
+
+## Commit とPush
+ - 機能実装が完了した場合は、必ず `git add` → `git commit` → `git push` を実施してください
+ - Commit messageは conventional commits に従ってください（例：feat:, fix:, test:, chore: など）
+ - テスト修正完了時は `test:` prefix を使用してください
+ - Pushする前に、変更ファイル一覧を確認して、意図した変更がすべて含まれているか確認してください
+
