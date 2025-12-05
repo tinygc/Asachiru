@@ -128,7 +128,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         observeViewModel()
-        checkAudioPermission()
+        // Asachiru: 音声ビジュアライザー用に音声録音権限が必要
+        // FeedWatch: ビジュアライザーがないため不要
+        if (BuildConfig.FLAVOR == "asachiru") {
+            checkAudioPermission()
+        }
     }
 
     /**
@@ -180,42 +184,50 @@ class MainActivity : AppCompatActivity() {
                     // 広告の表示/非表示制御
                     updateAdView(state.showAd)
 
-                    // BGM OFF時はビジュアライザーと曲情報を非表示
-                    if (!state.enableBgm) {
-                        binding.visualizerView.visibility = android.view.View.GONE
-                        binding.musicTrackView.visibility = android.view.View.GONE
-                        if (lastVisualizerSessionId != -1) {
-                            binding.visualizerView.stopVisualizer()
-                            lastVisualizerSessionId = -1
+                    // Asachiru: ビジュアライザー表示制御（BGM OFF時は非表示）
+                    // FeedWatch: ビジュアライザーなしため常に非表示
+                    if (BuildConfig.FLAVOR == "asachiru") {
+                        // BGM OFF時はビジュアライザーと曲情報を非表示
+                        if (!state.enableBgm) {
+                            binding.visualizerView.visibility = android.view.View.GONE
+                            binding.musicTrackView.visibility = android.view.View.GONE
+                            if (lastVisualizerSessionId != -1) {
+                                binding.visualizerView.stopVisualizer()
+                                lastVisualizerSessionId = -1
+                            }
+                        } else {
+                            binding.visualizerView.visibility = android.view.View.VISIBLE
+                            binding.musicTrackView.visibility = android.view.View.VISIBLE
+
+                            // ビジュアライザー起動ロジック
+                            val sessionId = musicPlayer.getAudioSessionId()
+                            val isPlaying = musicPlayer.isPlaying()
+                            if (state.currentTrack != null && hasAudioPermission()) {
+                                if (sessionId != 0 && isPlaying && sessionId != lastVisualizerSessionId) {
+                                    android.util.Log.d("Visualizer", "startVisualizer audioSessionId=$sessionId track=${state.currentTrack.title} isPlaying=$isPlaying")
+                                    binding.visualizerView.startVisualizer(sessionId)
+                                    lastVisualizerSessionId = sessionId
+                                    // 1秒後に状態確認
+                                    binding.visualizerView.postDelayed({
+                                        android.util.Log.d("Visualizer", "Status check: isFallback=${binding.visualizerView.isUsingFallback()} sessionId=$sessionId")
+                                    }, 1000)
+                                } else if (sessionId == 0) {
+                                    android.util.Log.d("Visualizer", "audioSessionId=0 (MediaPlayer未初期化) currentTrack=${state.currentTrack.title} isPlaying=$isPlaying")
+                                } else if (!isPlaying) {
+                                    android.util.Log.d("Visualizer", "音楽が再生されていないためVisualizerスキップ sessionId=$sessionId track=${state.currentTrack.title}")
+                                }
+                            } else if (lastVisualizerSessionId != -1 && state.currentTrack == null) {
+                                android.util.Log.d("Visualizer", "stopVisualizer lastSession=$lastVisualizerSessionId")
+                                binding.visualizerView.stopVisualizer()
+                                lastVisualizerSessionId = -1
+                            } else if (state.currentTrack != null && !hasAudioPermission()) {
+                                android.util.Log.d("Visualizer", "RECORD_AUDIO未許可のためVisualizer起動スキップ")
+                            }
                         }
                     } else {
-                        binding.visualizerView.visibility = android.view.View.VISIBLE
-                        binding.musicTrackView.visibility = android.view.View.VISIBLE
-
-                        // ビジュアライザー起動ロジック
-                        val sessionId = musicPlayer.getAudioSessionId()
-                        val isPlaying = musicPlayer.isPlaying()
-                        if (state.currentTrack != null && hasAudioPermission()) {
-                            if (sessionId != 0 && isPlaying && sessionId != lastVisualizerSessionId) {
-                                android.util.Log.d("Visualizer", "startVisualizer audioSessionId=$sessionId track=${state.currentTrack.title} isPlaying=$isPlaying")
-                                binding.visualizerView.startVisualizer(sessionId)
-                                lastVisualizerSessionId = sessionId
-                                // 1秒後に状態確認
-                                binding.visualizerView.postDelayed({
-                                    android.util.Log.d("Visualizer", "Status check: isFallback=${binding.visualizerView.isUsingFallback()} sessionId=$sessionId")
-                                }, 1000)
-                            } else if (sessionId == 0) {
-                                android.util.Log.d("Visualizer", "audioSessionId=0 (MediaPlayer未初期化) currentTrack=${state.currentTrack.title} isPlaying=$isPlaying")
-                            } else if (!isPlaying) {
-                                android.util.Log.d("Visualizer", "音楽が再生されていないためVisualizerスキップ sessionId=$sessionId track=${state.currentTrack.title}")
-                            }
-                        } else if (lastVisualizerSessionId != -1 && state.currentTrack == null) {
-                            android.util.Log.d("Visualizer", "stopVisualizer lastSession=$lastVisualizerSessionId")
-                            binding.visualizerView.stopVisualizer()
-                            lastVisualizerSessionId = -1
-                        } else if (state.currentTrack != null && !hasAudioPermission()) {
-                            android.util.Log.d("Visualizer", "RECORD_AUDIO未許可のためVisualizer起動スキップ")
-                        }
+                        // FeedWatch: ビジュアライザーなし
+                        binding.visualizerView.visibility = android.view.View.GONE
+                        binding.musicTrackView.visibility = android.view.View.GONE
                     }
                 }
             }
