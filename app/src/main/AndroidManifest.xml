@@ -3,7 +3,11 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <!-- Android TV/スマートフォン両対応 -->
-    <!-- タッチスクリーンは基本必須（スマホ対応のため） -->
+    <!-- タッチスクリーンはオプション（リモコン操作でも動作） -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+
     <!-- TVでも動作させるため、leanbackはoptional -->
     <uses-feature
         android:name="android.software.leanback"
@@ -45,7 +49,7 @@
         <activity
             android:name=".presentation.splash.SplashActivity"
             android:exported="true"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -58,14 +62,14 @@
         <activity
             android:name=".presentation.setup.SetupActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback" />
 
         <!-- Main Activity -->
         <activity
             android:name=".presentation.main.MainActivity"
             android:exported="false"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback" />
 
     </application>
