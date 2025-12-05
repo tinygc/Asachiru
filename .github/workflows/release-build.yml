@@ -1,0 +1,128 @@
+name: Release Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'バージョン番号 (例: 1.3.0)'
+        required: true
+        type: string
+      flavor:
+        description: 'ビルドするフレーバー'
+        required: true
+        type: choice
+        options:
+          - feedwatch
+          - asachiru
+      create_tag:
+        description: 'Gitタグを作成する'
+        required: true
+        type: boolean
+        default: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Update version in build.gradle
+        run: |
+          FLAVOR="${{ github.event.inputs.flavor }}"
+          VERSION="${{ github.event.inputs.version }}"
+          
+          # versionCodeを現在の値+1に更新（または手動で管理）
+          # versionNameを入力値に更新
+          sed -i "s/\(${FLAVOR} {\)/\1\n            \/\/ Updated by CI/" app/build.gradle
+          
+          # より正確なバージョン更新
+          python3 << 'EOF'
+          import re
+          
+          flavor = "${{ github.event.inputs.flavor }}"
+          version = "${{ github.event.inputs.version }}"
+          
+          with open("app/build.gradle", "r") as f:
+              content = f.read()
+          
+          # フレーバーブロックを見つけてversionNameを更新
+          pattern = rf'({flavor}\s*\{{[^}}]*versionName\s*")[^"]*(")'
+          content = re.sub(pattern, rf'\g<1>{version}\g<2>', content)
+          
+          with open("app/build.gradle", "w") as f:
+              f.write(content)
+          
+          print(f"Updated {flavor} versionName to {version}")
+          EOF
+
+      - name: Decode Keystore
+        run: |
+          FLAVOR="${{ github.event.inputs.flavor }}"
+          if [ "$FLAVOR" = "feedwatch" ]; then
+            echo "${{ secrets.FEEDWATCH_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+          else
+            echo "${{ secrets.ASACHIRU_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+          fi
+
+      - name: Build Release AAB
+        env:
+          FLAVOR: ${{ github.event.inputs.flavor }}
+        run: |
+          FLAVOR_CAPITALIZED="$(echo ${FLAVOR:0:1} | tr '[:lower:]' '[:upper:]')${FLAVOR:1}"
+          
+          if [ "$FLAVOR" = "feedwatch" ]; then
+            export FEEDWATCH_STORE_FILE=../keystore.jks
+            export FEEDWATCH_STORE_PASSWORD=${{ secrets.FEEDWATCH_STORE_PASSWORD }}
+            export FEEDWATCH_KEY_ALIAS=${{ secrets.FEEDWATCH_KEY_ALIAS }}
+            export FEEDWATCH_KEY_PASSWORD=${{ secrets.FEEDWATCH_KEY_PASSWORD }}
+          else
+            export ASACHIRU_STORE_FILE=../keystore.jks
+            export ASACHIRU_STORE_PASSWORD=${{ secrets.ASACHIRU_STORE_PASSWORD }}
+            export ASACHIRU_KEY_ALIAS=${{ secrets.ASACHIRU_KEY_ALIAS }}
+            export ASACHIRU_KEY_PASSWORD=${{ secrets.ASACHIRU_KEY_PASSWORD }}
+          fi
+          
+          ./gradlew bundle${FLAVOR_CAPITALIZED}Release
+
+      - name: Create Git Tag
+        if: ${{ github.event.inputs.create_tag == 'true' }}
+        run: |
+          FLAVOR="${{ github.event.inputs.flavor }}"
+          VERSION="${{ github.event.inputs.version }}"
+          TAG_NAME="${FLAVOR}-v${VERSION}"
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release ${FLAVOR} v${VERSION}"
+          git push origin "$TAG_NAME"
+
+      - name: Upload AAB to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.event.inputs.flavor }}-v${{ github.event.inputs.version }}
+          name: ${{ github.event.inputs.flavor }} v${{ github.event.inputs.version }}
+          files: app/build/outputs/bundle/${{ github.event.inputs.flavor }}Release/app-${{ github.event.inputs.flavor }}-release.aab
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Summary
+        run: |
+          echo "## 🎉 Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Flavor:** ${{ github.event.inputs.flavor }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version:** ${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Tag:** ${{ github.event.inputs.flavor }}-v${{ github.event.inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "AAB file has been uploaded to GitHub Releases! 📦" >> $GITHUB_STEP_SUMMARY
