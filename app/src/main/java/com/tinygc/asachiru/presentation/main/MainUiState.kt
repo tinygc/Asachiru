@@ -43,8 +43,8 @@ data class MainUiState(
     val debugLastFetchTime: Long = 0L,
     val debugNextNewsRemainingSeconds: Long = 0L, // 次のニュースまでの残り秒数
     
-    // 次のイベント（記事取得・読み上げ）までの残り時間（分単位、記事がない場合に表示）
-    val nextEventRemainingMinutes: Long = 0L,
+    // 新着待ちアナウンスを表示するか（記事がない場合に「新着記事があればまたお届けします」と表示）
+    val showWaitingAnnouncement: Boolean = false,
     
     // 記事ナビゲーション用
     val currentArticleIndex: Int = 0, // 現在の記事インデックス

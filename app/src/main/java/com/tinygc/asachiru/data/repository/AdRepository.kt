@@ -5,6 +5,7 @@ import android.util.Log
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.RequestConfiguration
 import com.google.android.gms.ads.initialization.InitializationStatus
 import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -19,6 +20,7 @@ class AdRepository(private val context: Context) {
 
     companion object {
         private const val TAG = "AdRepository"
+        private var isInitialized = false
     }
 
     /**
@@ -27,10 +29,23 @@ class AdRepository(private val context: Context) {
      * @return 初期化が成功したかどうか
      */
     suspend fun initializeMobileAds(): Boolean = suspendCancellableCoroutine { continuation ->
+        // 既に初期化済みの場合はスキップ
+        if (isInitialized) {
+            Log.d(TAG, "AdMob already initialized, skipping")
+            continuation.resume(true)
+            return@suspendCancellableCoroutine
+        }
+        
         try {
+            // クリップボード追跡を無効化する設定
+            val requestConfiguration = RequestConfiguration.Builder()
+                .build()
+            MobileAds.setRequestConfiguration(requestConfiguration)
+            
             MobileAds.initialize(context, object : OnInitializationCompleteListener {
                 override fun onInitializationComplete(initializationStatus: InitializationStatus) {
                     Log.d(TAG, "AdMob initialized: ${initializationStatus.adapterStatusMap}")
+                    isInitialized = true
                     continuation.resume(true)
                 }
             })

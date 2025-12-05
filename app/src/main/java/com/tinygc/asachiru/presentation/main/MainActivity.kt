@@ -47,6 +47,10 @@ class MainActivity : AppCompatActivity() {
 
     // スマホでのフリック検出用GestureDetector
     private lateinit var gestureDetector: GestureDetector
+    
+    // AdMob用Repository（シングルトンとして保持）
+    private lateinit var adRepository: com.tinygc.asachiru.data.repository.AdRepository
+    private var isAdMobInitialized = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +65,9 @@ class MainActivity : AppCompatActivity() {
         viewModelFactory = ViewModelFactory(applicationContext)
         // ViewModelFactoryを使用してViewModelを生成
         viewModel = ViewModelProvider(this, viewModelFactory)[MainViewModel::class.java]
+        
+        // AdMob Repository初期化（実際の初期化はonResumeで行う）
+        adRepository = com.tinygc.asachiru.data.repository.AdRepository(applicationContext)
 
         // スマホ用フリック検出のGestureDetector初期化
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
@@ -169,7 +176,10 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.setEnableTts(state.enableTts)
                         binding.newsView.setIsSpeaking(state.isSpeaking)
                         binding.newsView.setProgress(state.newsProgressPercent)
-                        binding.newsView.setNextEventRemainingMinutes(state.nextEventRemainingMinutes)
+                        
+                        // 新着待ちアナウンスの表示制御（左下のテキスト）
+                        binding.waitingAnnouncementView.visibility = 
+                            if (state.showWaitingAnnouncement) android.view.View.VISIBLE else android.view.View.GONE
                         
                         // 「次へ」ラベルの表示制御（TTS OFF かつ進行中のみ表示）
                         val showNextLabel = !state.enableTts && state.newsProgressPercent > 0f
@@ -358,6 +368,23 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         viewModel.onResume()
     }
+    
+    /**
+     * ウィンドウフォーカス変更時のコールバック
+     * 画面が完全に表示された後にAdMobを初期化（UIフリーズ回避）
+     */
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus && !isAdMobInitialized) {
+            // 画面がフォーカスを持った後にAdMob初期化（1秒遅延でUI描画完了を待つ）
+            lifecycleScope.launch {
+                kotlinx.coroutines.delay(1000)
+                val initialized = adRepository.initializeMobileAds()
+                isAdMobInitialized = initialized
+                android.util.Log.d("Ad", "AdMob初期化完了: $initialized")
+            }
+        }
+    }
 
     override fun onPause() {
         super.onPause()
@@ -470,16 +497,14 @@ class MainActivity : AppCompatActivity() {
      */
     private fun updateAdView(showAd: Boolean) {
         if (showAd && binding.adView.visibility != android.view.View.VISIBLE) {
-            // AdMob初期化と広告読み込み
-            lifecycleScope.launch {
-                val adRepository = com.tinygc.asachiru.data.repository.AdRepository(applicationContext)
-                val initialized = adRepository.initializeMobileAds()
-                if (initialized) {
-                    binding.adView.visibility = android.view.View.VISIBLE
-                    binding.adView.bringToFront() // 最前面に表示
-                    adRepository.loadAd(binding.adView)
-                    android.util.Log.d("Ad", "広告表示を開始")
-                }
+            // AdMob初期化済みなら広告を表示
+            if (isAdMobInitialized) {
+                binding.adView.visibility = android.view.View.VISIBLE
+                binding.adView.bringToFront() // 最前面に表示
+                adRepository.loadAd(binding.adView)
+                android.util.Log.d("Ad", "広告表示を開始")
+            } else {
+                android.util.Log.d("Ad", "AdMob未初期化のため広告スキップ")
             }
         } else if (!showAd && binding.adView.visibility == android.view.View.VISIBLE) {
             // 広告非表示

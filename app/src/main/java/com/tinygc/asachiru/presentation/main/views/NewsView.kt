@@ -39,7 +39,6 @@ class NewsView @JvmOverloads constructor(
     private var enableTts: Boolean = false
     private var progressPercent: Float = 0f // 次の記事までのプログレス（0.0～1.0）
     private var animatedProgress: Float = 0f // アニメーション用の現在のプログレス値
-    private var nextEventRemainingMinutes: Long = 0L // 次のイベントまでの残り時間（分単位）
 
     // TTS読み上げ中の点滅表示用
     private var blinkAlpha: Float = 0f // 点滅のアルファ値（0.0～1.0）
@@ -311,16 +310,6 @@ class NewsView @JvmOverloads constructor(
         }
     }
 
-    /**
-     * 次のイベント（記事取得・読み上げ）までの残り時間を更新
-     * 記事がない状態でユーザーに表示するための値
-     * @param minutes 残り時間（分単位）
-     */
-    fun setNextEventRemainingMinutes(minutes: Long) {
-        this.nextEventRemainingMinutes = minutes
-        invalidate()
-    }
-
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
@@ -351,12 +340,8 @@ class NewsView @JvmOverloads constructor(
         if (currentNews != null) {
             // 記事がある場合は通常表示
             drawNewsTitle(canvas, currentNews!!)
-        } else {
-            // 記事がない場合は次のイベントまでの残り時間を表示
-            if (nextEventRemainingMinutes > 0L) {
-                drawNextEventWaitingMessage(canvas)
-            }
         }
+        // 記事がない場合はNewsView自体は空白（待機アナウンスはレイアウト側のTextViewで表示）
 
         // TTS状態表示（右上）
         drawTtsStatus(canvas)
@@ -639,46 +624,6 @@ class NewsView @JvmOverloads constructor(
             indicatorY + indicatorHeight
         )
         canvas.drawRect(indicatorRect, ttsBlinkPaint)
-    }
-
-    /**
-     * 次のイベント待機中のメッセージを描画
-     * 記事がない状態で「あと○分で次の記事を取得します」と表示
-     */
-    private fun drawNextEventWaitingMessage(canvas: Canvas) {
-        val message = "あと${nextEventRemainingMinutes}分で\n次の記事を取得します"
-        
-        // テキストサイズを計算
-        val lineHeight = textPaint.fontMetrics.let { it.descent - it.ascent }
-        val lines = message.split("\n")
-        val maxLineWidth = lines.maxOf { textPaint.measureText(it) }
-        
-        // 画面中央に配置
-        val paddingHorizontal = 32f.dp()
-        val paddingVertical = 24f.dp()
-        
-        // メッセージ背景
-        val messageX = paddingHorizontal
-        val messageY = height / 2f - lineHeight * lines.size / 2f
-        val messageWidth = maxLineWidth + paddingHorizontal * 2
-        val messageHeight = lineHeight * lines.size + paddingVertical * 2
-        
-        // 背景を描画（Glassmorphism風）
-        val bgRect = RectF(
-            messageX - paddingHorizontal,
-            messageY - paddingVertical,
-            messageX + messageWidth,
-            messageY + messageHeight
-        )
-        canvas.drawRoundRect(bgRect, 16f.dp(), 16f.dp(), backgroundPaint)
-        canvas.drawRoundRect(bgRect, 16f.dp(), 16f.dp(), borderPaint)
-        
-        // テキストを描画
-        var currentY = messageY
-        for (line in lines) {
-            canvas.drawText(line, messageX + paddingHorizontal, currentY + lineHeight * 0.75f, textPaint)
-            currentY += lineHeight
-        }
     }
 
     /**

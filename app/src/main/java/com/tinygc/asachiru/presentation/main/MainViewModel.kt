@@ -17,6 +17,7 @@ import com.tinygc.asachiru.domain.usecase.news.ReadNewsUseCase
 import com.tinygc.asachiru.domain.usecase.weather.GetWeatherUseCase
 import com.tinygc.asachiru.domain.usecase.weather.RefreshWeatherUseCase
 import com.tinygc.asachiru.presentation.util.FlowTimer
+import com.tinygc.asachiru.util.TestModeUtils
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -60,7 +61,8 @@ class MainViewModel(
         scope = viewModelScope,
         onFetchNews = { fetchNewsArticles() },
         onReadArticle = { article, ttsEnabled -> readArticle(article, ttsEnabled) },
-        onMarkAsRead = { articleId -> markArticleAsRead(articleId) }
+        onMarkAsRead = { articleId -> markArticleAsRead(articleId) },
+        onResetAllReadStatus = { resetAllReadStatusForFullRefresh() }
     )
 
     init {
@@ -114,7 +116,8 @@ class MainViewModel(
                                 showAd = false, // 記事表示中は広告非表示
                                 adRemainingSeconds = 0L,
                                 currentArticleIndex = state.articleIndex,
-                                totalArticles = state.totalArticles
+                                totalArticles = state.totalArticles,
+                                showWaitingAnnouncement = false
                             ) 
                         }
                     }
@@ -129,7 +132,7 @@ class MainViewModel(
                                 adRemainingSeconds = 0L,
                                 currentArticleIndex = state.nextArticleIndex - 1,
                                 totalArticles = state.totalArticles,
-                                nextEventRemainingMinutes = calculateNextEventRemainingMinutes(state)
+                                showWaitingAnnouncement = false
                             ) 
                         }
                     }
@@ -143,6 +146,8 @@ class MainViewModel(
                         } else {
                             0L
                         }
+                        // 広告表示中以外は待機アナウンスを表示
+                        val showWaitingAnnouncement = !showAd
                         _uiState.update { 
                             it.copy(
                                 dateTime = dateTime,
@@ -152,7 +157,7 @@ class MainViewModel(
                                 adRemainingSeconds = adRemainingSeconds,
                                 currentArticleIndex = 0,
                                 totalArticles = 0,
-                                nextEventRemainingMinutes = calculateNextEventRemainingMinutes(state)
+                                showWaitingAnnouncement = showWaitingAnnouncement
                             ) 
                         }
                     }
@@ -166,7 +171,8 @@ class MainViewModel(
                                 showAd = false, // SessionInterval以外の状態では広告非表示
                                 adRemainingSeconds = 0L,
                                 currentArticleIndex = 0,
-                                totalArticles = 0
+                                totalArticles = 0,
+                                showWaitingAnnouncement = false
                             ) 
                         }
                     }
@@ -210,34 +216,6 @@ class MainViewModel(
     }
 
     /**
-     * 次のイベント（記事取得・読み上げ）までの残り時間（分単位）を計算
-     * 記事がない状態でユーザーに表示するための値
-     */
-    private fun calculateNextEventRemainingMinutes(state: NewsReadingState): Long {
-        return when (state) {
-            is NewsReadingState.ArticleInterval -> {
-                // 次の記事まで5秒
-                1L // 1分未満は1分と表示
-            }
-            is NewsReadingState.SessionInterval -> {
-                // セッション間待機（広告10秒または5分）
-                val remainingMs = (state.endTimeMs - System.currentTimeMillis()).coerceAtLeast(0L)
-                val remainingMinutes = (remainingMs + 59_999) / 60_000L // 切り上げ
-                remainingMinutes.coerceAtLeast(1L)
-            }
-            is NewsReadingState.FetchingNews -> {
-                // ニュース取得中
-                1L // 1分未満は1分と表示
-            }
-            is NewsReadingState.WaitingForStart -> {
-                // 初回開始待機
-                1L // 1分未満は1分と表示
-            }
-            else -> 0L // 記事表示中またはIdle時は表示しない
-        }
-    }
-
-    /**
      * TTS設定の変更を監視
      */
     private fun startTtsSettingsMonitor() {
@@ -275,9 +253,45 @@ class MainViewModel(
     }
 
     /**
+     * 1時間新着なしで全記事を再表示するために既読ステータスをリセット
+     * StateMachineから呼ばれるsuspend関数
+     */
+    private suspend fun resetAllReadStatusForFullRefresh() {
+        try {
+            readArticleRepository.clearAll()
+            Log.d("MainViewModel", "1時間新着なし - 既読ステータスをリセットしました")
+        } catch (e: Exception) {
+            Log.e("MainViewModel", "既読リセットに失敗", e)
+        }
+    }
+
+    /**
      * ニュース記事を取得
      */
     private suspend fun fetchNewsArticles(): com.tinygc.asachiru.domain.model.NewsResult {
+        // テストモードチェック
+        val settings = settingsRepository.getSettings()
+        if (TestModeUtils.isTestMode(settings.rssUrl)) {
+            Log.d("MainViewModel", "テストモード: ダミー記事データを使用")
+            val testResult = TestModeUtils.createTestNewsResult()
+            _uiState.update {
+                it.copy(
+                    isNewsLoading = false,
+                    newsError = null,
+                    debugNewsList = testResult.allArticles.map { news ->
+                        News(
+                            id = news.id,
+                            title = news.title,
+                            description = news.description,
+                            publishedAt = news.publishedAt
+                        )
+                    },
+                    debugLastFetchTime = System.currentTimeMillis()
+                )
+            }
+            return testResult
+        }
+        
         _uiState.update { it.copy(isNewsLoading = true) }
 
         return when (val result = getLatestNewsUseCase(10)) {
@@ -400,6 +414,20 @@ class MainViewModel(
      */
     private fun loadWeather() {
         viewModelScope.launch {
+            // テストモードチェック
+            val settings = settingsRepository.getSettings()
+            if (TestModeUtils.isTestMode(settings.rssUrl)) {
+                Log.d("MainViewModel", "テストモード: ダミー天気データを使用")
+                _uiState.update {
+                    it.copy(
+                        weather = TestModeUtils.createTestWeather(),
+                        isWeatherLoading = false,
+                        weatherError = null
+                    )
+                }
+                return@launch
+            }
+            
             _uiState.update { it.copy(isWeatherLoading = true) }
 
             when (val result = getWeatherUseCase()) {

@@ -182,6 +182,23 @@
         app:layout_constraintTop_toBottomOf="@id/news_view"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- 新着待ちアナウンス（左下に薄く表示） -->
+    <TextView
+        android:id="@+id/waiting_announcement_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="16dp"
+        android:text="📰 新着記事があれば、またお届けします…"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp"
+        android:letterSpacing="0.02"
+        android:textAlignment="center"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/news_view"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <!-- 広告ビュー（画面下中央、初期は非表示） -->
     <com.google.android.gms.ads.AdView
         android:id="@+id/ad_view"

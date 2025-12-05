@@ -19,7 +19,8 @@ class NewsReadingStateMachine(
     private val scope: CoroutineScope,
     private val onFetchNews: suspend () -> NewsResult,
     private val onReadArticle: suspend (News, Boolean) -> Unit,
-    private val onMarkAsRead: suspend (String) -> Unit
+    private val onMarkAsRead: suspend (String) -> Unit,
+    private val onResetAllReadStatus: suspend () -> Unit = {} // 既読ステータスをリセット
 ) {
     private val _state = MutableStateFlow<NewsReadingState>(NewsReadingState.Idle)
     val state: StateFlow<NewsReadingState> = _state.asStateFlow()
@@ -29,6 +30,7 @@ class NewsReadingStateMachine(
     private var newArticles: List<News> = emptyList() // 未読の新しい記事
     private var pausedAtMs: Long = 0L // 一時停止時の時刻
     private var cachedSettings: Settings? = null // 設定をキャッシュ
+    private var noNewArticlesSinceMs: Long = 0L // 新着なし状態が始まった時刻（1時間トラッキング用）
 
     /**
      * イベントをハンドリングして状態を遷移
@@ -530,39 +532,86 @@ class NewsReadingStateMachine(
     }
 
     /**
-     * セッション間待機状態に遷移（広告10秒のみ）
-     * 広告終了後は即座に次のニュースフェッチへ
+     * セッション間待機状態に遷移（広告10秒 → 5分待機）
+     * 新着ありで記事を読んだ後に呼ばれるので、noNewArticlesSinceMsをリセット
      */
     private fun transitionToSessionInterval(@Suppress("UNUSED_PARAMETER") settings: Settings) {
         cancelTimer()
+        // 新着があったのでトラッキングをリセット
+        noNewArticlesSinceMs = 0L
+        
         val adDurationMs = 10_000L // 広告表示時間: 10秒
-        val endTimeMs = System.currentTimeMillis() + adDurationMs
+        val waitDurationMs = 5 * 60 * 1000L // 5分待機
+        val totalDurationMs = adDurationMs + waitDurationMs
+        val now = System.currentTimeMillis()
+        val endTimeMs = now + totalDurationMs
+        val adEndTimeMs = now + adDurationMs
+        
         _state.value = NewsReadingState.SessionInterval(
             endTimeMs = endTimeMs,
-            showAd = true, // 広告表示フラグ
-            adEndTimeMs = endTimeMs // 広告終了 = セッション終了
+            showAd = true, // 最初は広告表示
+            adEndTimeMs = adEndTimeMs,
+            noNewArticlesSinceMs = 0L // 新着があったのでリセット
         )
-        // 10秒後に次のニュースフェッチへ
+        Log.d("StateMachine", "SessionInterval: ad for ${adDurationMs}ms, then wait ${waitDurationMs}ms")
+        
+        // 10秒後に広告終了 → 待機状態に切り替え
         startTimer(adDurationMs) {
-            cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
+            Log.d("StateMachine", "SessionInterval: ad ended, now waiting")
+            val currentState = _state.value
+            if (currentState is NewsReadingState.SessionInterval && currentState.showAd) {
+                _state.value = currentState.copy(showAd = false)
+                // 残り5分待機
+                startTimer(waitDurationMs) {
+                    Log.d("StateMachine", "SessionInterval: wait expired, triggering SessionIntervalExpired")
+                    cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
+                }
+            }
         }
     }
 
     /**
      * 新しい記事がない場合の待機状態（5分）
-     * 広告は表示せず、5分後に再フェッチ
+     * 1時間新着なしが続いたら全記事を既読解除して再表示
      */
     private fun transitionToNoNewArticlesWait(@Suppress("UNUSED_PARAMETER") settings: Settings) {
         cancelTimer()
+        val now = System.currentTimeMillis()
+        val oneHourMs = 60 * 60 * 1000L
+        
+        // 初回なら開始時刻を記録
+        if (noNewArticlesSinceMs == 0L) {
+            noNewArticlesSinceMs = now
+            Log.d("StateMachine", "NoNewArticlesWait: started tracking no-new-articles time")
+        }
+        
+        // 1時間経過チェック
+        val elapsedMs = now - noNewArticlesSinceMs
+        if (elapsedMs >= oneHourMs) {
+            Log.d("StateMachine", "NoNewArticlesWait: 1 hour passed, resetting read status and showing all articles")
+            // 1時間経過！既読リセットして全記事表示
+            noNewArticlesSinceMs = 0L
+            scope.launch {
+                onResetAllReadStatus()
+                // リセット後にフェッチすると全記事が新規扱いで返ってくる
+                cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
+            }
+            return
+        }
+        
         val waitDurationMs = 5 * 60 * 1000L // 5分
-        val endTimeMs = System.currentTimeMillis() + waitDurationMs
+        val endTimeMs = now + waitDurationMs
         _state.value = NewsReadingState.SessionInterval(
             endTimeMs = endTimeMs,
             showAd = false, // 広告は表示しない
-            adEndTimeMs = 0L
+            adEndTimeMs = 0L,
+            noNewArticlesSinceMs = noNewArticlesSinceMs
         )
+        val remainingMinutes = (oneHourMs - elapsedMs) / 60_000L
+        Log.d("StateMachine", "NoNewArticlesWait: waiting 5min, ${remainingMinutes}min until full reset")
         // 5分後に再フェッチ
         startTimer(waitDurationMs) {
+            Log.d("StateMachine", "NoNewArticlesWait: timeout, triggering SessionIntervalExpired event")
             cachedSettings?.let { handleEvent(NewsReadingEvent.SessionIntervalExpired, it) }
         }
     }
@@ -571,9 +620,18 @@ class NewsReadingStateMachine(
      * タイマー開始
      */
     private fun startTimer(durationMs: Long, onExpired: () -> Unit) {
+        Log.d("StateMachine", "Timer started: $durationMs ms")
         timerJob = scope.launch {
-            delay(durationMs)
-            onExpired()
+            try {
+                delay(durationMs)
+                Log.d("StateMachine", "Timer expired after $durationMs ms")
+                onExpired()
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // キャンセルは正常動作（次の記事へ移動時など）
+                Log.d("StateMachine", "Timer cancelled (normal)")
+            } catch (e: Exception) {
+                Log.e("StateMachine", "Timer error: ${e.message}", e)
+            }
         }
     }
 

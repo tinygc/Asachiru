@@ -20,8 +20,8 @@ import kotlin.math.min
  * 時間帯に応じたグラデーション背景を表示するカスタムビュー
  *
  * 時間帯に応じて背景色が自動的に変化します：
- * - 早朝（5:00～6:59）: 深い青紫から明るい青へのグラデーション
- * - 朝～昼（7:00～16:59）: 柔らかい青系から明るいパステルカラー
+ * - 早朝（5:00～9:59）: ラベンダーからピンクへの朝焼け
+ * - 昼（10:00～16:59）: 鮮やかな青空
  * - 夕方（17:00～18:59）: オレンジからピンクへの夕焼け色
  * - 夜（19:00～4:59）: 深い紺色から紫へのダークグラデーション
  *
@@ -61,98 +61,103 @@ class BackgroundGradientView @JvmOverloads constructor(
     private var glowAnimationTime = 0f
 
     // ===========================================
-    // Asachiru専用 ローファイ/チルアウト風パステルグラデーション
+    // Asachiru専用 色彩理論に基づく自然光グラデーション
+    // 白→金→オレンジ/朱→黒/紺の循環
     // ===========================================
 
-    // 早朝（5:00～6:59）のグラデーション - ラベンダーからピンクへの朝焼け
+    // 早朝（5:00～9:59）のグラデーション - 白・銀、青みがかった静かな朝
+    // 色彩理論：朝は白、少し青みがかった「寂しい・静か」な感じ
     private val earlyMorningGradientsAsachiru = listOf(
         intArrayOf(
-            Color.parseColor("#E0D4FF"), // ラベンダー
-            Color.parseColor("#FFD4E9"), // ピンクラベンダー
-            Color.parseColor("#FFE4D4"), // ピーチ
-            Color.parseColor("#FFF4E4")  // クリーム
+            Color.parseColor("#E8EEF5"), // シルバーホワイト（青みがかった白）
+            Color.parseColor("#F0F4F8"), // アイスホワイト
+            Color.parseColor("#F5F8FC"), // ピュアホワイトブルー
+            Color.parseColor("#FAFCFF")  // ほぼ白
         ),
         intArrayOf(
-            Color.parseColor("#C4B5FD"), // パステルラベンダー
-            Color.parseColor("#FFB5D4"), // パステルピンク
-            Color.parseColor("#FFD4C4"), // サーモンピンク
-            Color.parseColor("#FFECD4")  // パステルピーチ
+            Color.parseColor("#D6E4F0"), // ライトシルバーブルー
+            Color.parseColor("#E3EDF5"), // シルバーミスト
+            Color.parseColor("#EEF4FA"), // パールホワイト
+            Color.parseColor("#F8FBFF")  // クリアホワイト
         ),
         intArrayOf(
-            Color.parseColor("#D4C4FF"), // ライラック
-            Color.parseColor("#FFC4E9"), // ロゼ
-            Color.parseColor("#FFD4B5"), // アプリコット
-            Color.parseColor("#FFE4C4")  // ペールオレンジ
+            Color.parseColor("#CFE0ED"), // モーニングシルバー
+            Color.parseColor("#DCE9F3"), // フロストブルー
+            Color.parseColor("#E8F0F8"), // シルバーグレイ
+            Color.parseColor("#F5FAFF")  // スノーホワイト
         )
     )
 
-    // 朝～昼（7:00～16:59）のグラデーション - スカイブルーからミントへ
+    // 昼（10:00～16:59）のグラデーション - 白+黄色→金、明るく楽しい
+    // 色彩理論：昼は黄色を足していく、金色は「楽しい・明るい」
     private val dayGradientsAsachiru = listOf(
         intArrayOf(
-            Color.parseColor("#B5E5FF"), // パステルスカイブルー
-            Color.parseColor("#D4F0FF"), // ライトスカイブルー
-            Color.parseColor("#E4FAFF"), // ペールスカイブルー
-            Color.parseColor("#F4FFFF")  // ほぼ白
+            Color.parseColor("#FFF8E1"), // ライトゴールド
+            Color.parseColor("#FFECB3"), // ソフトゴールド
+            Color.parseColor("#FFE082"), // ゴールデンイエロー
+            Color.parseColor("#FFD54F")  // リッチゴールド
         ),
         intArrayOf(
-            Color.parseColor("#B5FFDA"), // パステルミント
-            Color.parseColor("#D4FFE9"), // ライトミント
-            Color.parseColor("#E4FFF4"), // ペールミント
-            Color.parseColor("#F4FFFA")  // ほぼ白
+            Color.parseColor("#FFFDE7"), // クリームホワイト
+            Color.parseColor("#FFF9C4"), // ライトイエロー
+            Color.parseColor("#FFF176"), // サンシャインイエロー
+            Color.parseColor("#FFEE58")  // ブライトイエロー
         ),
         intArrayOf(
-            Color.parseColor("#B5F0FF"), // アクアブルー
-            Color.parseColor("#D4FAFF"), // ライトアクア
-            Color.parseColor("#E4FCFF"), // ペールアクア
-            Color.parseColor("#F4FEFF")  // ほぼ白
+            Color.parseColor("#FFF3E0"), // ウォームホワイト
+            Color.parseColor("#FFE0B2"), // ピーチゴールド
+            Color.parseColor("#FFCC80"), // アンバーゴールド
+            Color.parseColor("#FFB74D")  // ディープゴールド
         )
     )
 
-    // 夕方（17:00～18:59）のグラデーション - コーラルからピーチへの夕焼け
+    // 夕方（17:00～18:59）のグラデーション - 黄+赤→オレンジ・朱色・深紅
+    // 色彩理論：黄色に赤を足していく、「楽しい→落ち着き」への移行
     private val eveningGradientsAsachiru = listOf(
         intArrayOf(
-            Color.parseColor("#FFB5A4"), // パステルコーラル
-            Color.parseColor("#FFD4C4"), // サーモンピンク
-            Color.parseColor("#FFE4D4"), // ピーチ
-            Color.parseColor("#FFF4E4")  // クリーム
+            Color.parseColor("#FF8A65"), // コーラルオレンジ
+            Color.parseColor("#FF7043"), // ディープオレンジ
+            Color.parseColor("#FF5722"), // 朱色
+            Color.parseColor("#E64A19")  // バーントオレンジ
         ),
         intArrayOf(
-            Color.parseColor("#FFC494"), // パステルオレンジ
-            Color.parseColor("#FFD4A4"), // パステルピーチ
-            Color.parseColor("#FFE4B5"), // ライトピーチ
-            Color.parseColor("#FFF4C4")  // ライトクリーム
+            Color.parseColor("#FFAB91"), // ライトコーラル
+            Color.parseColor("#FF8A65"), // コーラルオレンジ
+            Color.parseColor("#FF7043"), // ディープオレンジ
+            Color.parseColor("#FF5722")  // 朱色
         ),
         intArrayOf(
-            Color.parseColor("#FFB5C4"), // ピンクコーラル
-            Color.parseColor("#FFD4D4"), // ライトピンク
-            Color.parseColor("#FFE4E4"), // ペールピンク
-            Color.parseColor("#FFF4F4")  // ほぼ白
+            Color.parseColor("#FF7043"), // ディープオレンジ
+            Color.parseColor("#F4511E"), // バーミリオン（朱）
+            Color.parseColor("#E64A19"), // ダークオレンジ
+            Color.parseColor("#D84315")  // ディープバーミリオン
         )
     )
 
-    // 夜（19:00～4:59）のグラデーション - ラベンダーからディープパープルへ
+    // 夜（19:00～4:59）のグラデーション - 赤+黒→深紅・紺・青黒
+    // 色彩理論：赤に黒を足していく、「寂しい・落ち着き」深い夜
     private val nightGradientsAsachiru = listOf(
         intArrayOf(
-            Color.parseColor("#C4B5FD"), // パステルラベンダー
-            Color.parseColor("#B5A4ED"), // パステルパープル
-            Color.parseColor("#D4C4FD"), // ライトラベンダー
-            Color.parseColor("#E0D4FF")  // ペールラベンダー
+            Color.parseColor("#5D4037"), // ダークブラウン（深紅から）
+            Color.parseColor("#3E2723"), // ディープブラウン
+            Color.parseColor("#263238"), // チャコール
+            Color.parseColor("#1A237E")  // ディープネイビー
         ),
         intArrayOf(
-            Color.parseColor("#B5A4ED"), // パステルパープル
-            Color.parseColor("#C4B5FD"), // パステルラベンダー
-            Color.parseColor("#D4C4FF"), // ライラック
-            Color.parseColor("#E4D4FF")  // ペールライラック
+            Color.parseColor("#4A148C"), // ディープパープル
+            Color.parseColor("#311B92"), // インディゴ
+            Color.parseColor("#1A237E"), // ネイビー
+            Color.parseColor("#0D1B2A")  // ミッドナイトブルー
         ),
         intArrayOf(
-            Color.parseColor("#A4B5ED"), // パステルペリウィンクル
-            Color.parseColor("#B5C4FD"), // ライトブルーパープル
-            Color.parseColor("#C4D4FF"), // ペールペリウィンクル
-            Color.parseColor("#D4E4FF")  // ペールブルー
+            Color.parseColor("#B71C1C"), // ディープレッド（深紅）
+            Color.parseColor("#880E4F"), // ワインレッド
+            Color.parseColor("#4A148C"), // ディープパープル
+            Color.parseColor("#1A237E")  // ネイビー
         )
     )
 
-    // 早朝（5:00～6:59）のグラデーション - 深い青紫から明るい青へ
+    // 早朝（5:00～9:59）のグラデーション - 深い青紫から明るい青へ
     private val earlyMorningGradients = listOf(
         intArrayOf(
             Color.parseColor("#1A237E"), // ディープインディゴ
@@ -180,7 +185,7 @@ class BackgroundGradientView @JvmOverloads constructor(
         )
     )
 
-    // 朝～昼（7:00～16:59）のグラデーション - 柔らかい青系から明るいパステル
+    // 昼（10:00～16:59）のグラデーション - 柔らかい青系から明るいパステル
     private val dayGradients = listOf(
         intArrayOf(
             Color.parseColor("#37474F"), // ブルーグレー
@@ -315,8 +320,8 @@ class BackgroundGradientView @JvmOverloads constructor(
      * 時間帯を表すEnum
      */
     private enum class TimeOfDay {
-        EARLY_MORNING,  // 早朝（5:00～6:59）
-        DAY,            // 朝～昼（7:00～16:59）
+        EARLY_MORNING,  // 早朝（5:00～9:59）
+        DAY,            // 昼（10:00～16:59）
         EVENING,        // 夕方（17:00～18:59）
         NIGHT           // 夜（19:00～4:59）
     }
@@ -329,8 +334,8 @@ class BackgroundGradientView @JvmOverloads constructor(
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
 
         return when (hour) {
-            in 5..6 -> TimeOfDay.EARLY_MORNING
-            in 7..16 -> TimeOfDay.DAY
+            in 5..9 -> TimeOfDay.EARLY_MORNING
+            in 10..16 -> TimeOfDay.DAY
             in 17..18 -> TimeOfDay.EVENING
             else -> TimeOfDay.NIGHT
         }

@@ -55,15 +55,17 @@ sealed class NewsReadingState {
     ) : NewsReadingState()
 
     /**
-     * セッション間待機中（設定された間隔：デフォルト30分）
+     * セッション間待機中
      * @param endTimeMs 待機終了予定時刻（エポックミリ秒）
      * @param showAd 広告を表示するか（最初の10秒のみtrue）
      * @param adEndTimeMs 広告表示終了時刻（エポックミリ秒）
+     * @param noNewArticlesSinceMs 新着なし状態が始まった時刻（エポックミリ秒）。0なら未設定
      */
     data class SessionInterval(
         val endTimeMs: Long,
         val showAd: Boolean = false,
-        val adEndTimeMs: Long = 0L
+        val adEndTimeMs: Long = 0L,
+        val noNewArticlesSinceMs: Long = 0L
     ) : NewsReadingState()
 
     /**
