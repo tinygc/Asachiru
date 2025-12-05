@@ -44,11 +44,7 @@ jobs:
           FLAVOR="${{ github.event.inputs.flavor }}"
           VERSION="${{ github.event.inputs.version }}"
           
-          # versionCodeを現在の値+1に更新（または手動で管理）
-          # versionNameを入力値に更新
-          sed -i "s/\(${FLAVOR} {\)/\1\n            \/\/ Updated by CI/" app/build.gradle
-          
-          # より正確なバージョン更新
+          # versionNameとversionCodeを更新
           python3 << 'EOF'
           import re
           
@@ -61,6 +57,15 @@ jobs:
           # フレーバーブロックを見つけてversionNameを更新
           pattern = rf'({flavor}\s*\{{[^}}]*versionName\s*")[^"]*(")'
           content = re.sub(pattern, rf'\g<1>{version}\g<2>', content)
+          
+          # versionCodeを現在の値+1に更新（最小値9）
+          version_code_pattern = rf'({flavor}\s*\{{[^}}]*versionCode\s+)(\d+)'
+          match = re.search(version_code_pattern, content)
+          if match:
+              current_code = int(match.group(2))
+              new_code = max(current_code + 1, 9)
+              content = re.sub(version_code_pattern, rf'\g<1>{new_code}', content)
+              print(f"Updated {flavor} versionCode from {current_code} to {new_code}")
           
           with open("app/build.gradle", "w") as f:
               f.write(content)
