@@ -3,7 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// local.propertiesから署名情報を読み込む
+// local.propertiesから署名情報を読み込む（環境変数にもフォールバック）
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {
@@ -23,16 +23,16 @@ android {
 
     signingConfigs {
         asachiruRelease {
-            storeFile file(localProperties['ASACHIRU_STORE_FILE'] ?: '../asachiru-release.jks')
-            storePassword localProperties['ASACHIRU_STORE_PASSWORD'] ?: ''
-            keyAlias localProperties['ASACHIRU_KEY_ALIAS'] ?: 'asachiru'
-            keyPassword localProperties['ASACHIRU_KEY_PASSWORD'] ?: ''
+            storeFile file(localProperties['ASACHIRU_STORE_FILE'] ?: System.getenv('ASACHIRU_STORE_FILE') ?: '../asachiru-release.jks')
+            storePassword localProperties['ASACHIRU_STORE_PASSWORD'] ?: System.getenv('ASACHIRU_STORE_PASSWORD') ?: ''
+            keyAlias localProperties['ASACHIRU_KEY_ALIAS'] ?: System.getenv('ASACHIRU_KEY_ALIAS') ?: 'asachiru'
+            keyPassword localProperties['ASACHIRU_KEY_PASSWORD'] ?: System.getenv('ASACHIRU_KEY_PASSWORD') ?: ''
         }
         feedwatchRelease {
-            storeFile file(localProperties['FEEDWATCH_STORE_FILE'] ?: '../feedwatch-release.jks')
-            storePassword localProperties['FEEDWATCH_STORE_PASSWORD'] ?: ''
-            keyAlias localProperties['FEEDWATCH_KEY_ALIAS'] ?: 'feedwatch'
-            keyPassword localProperties['FEEDWATCH_KEY_PASSWORD'] ?: ''
+            storeFile file(localProperties['FEEDWATCH_STORE_FILE'] ?: System.getenv('FEEDWATCH_STORE_FILE') ?: '../feedwatch-release.jks')
+            storePassword localProperties['FEEDWATCH_STORE_PASSWORD'] ?: System.getenv('FEEDWATCH_STORE_PASSWORD') ?: ''
+            keyAlias localProperties['FEEDWATCH_KEY_ALIAS'] ?: System.getenv('FEEDWATCH_KEY_ALIAS') ?: 'feedwatch'
+            keyPassword localProperties['FEEDWATCH_KEY_PASSWORD'] ?: System.getenv('FEEDWATCH_KEY_PASSWORD') ?: ''
         }
     }
 
