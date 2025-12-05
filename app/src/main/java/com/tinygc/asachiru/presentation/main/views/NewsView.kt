@@ -269,11 +269,11 @@ class NewsView @JvmOverloads constructor(
      */
     fun setIsSpeaking(speaking: Boolean) {
         // TTS読み上げ状態に応じてアニメーション制御
-        if (speaking && enableTts) {
-            // TTS有効かつ読み上げ中の場合のみアニメーション開始
+        if (speaking && enableTts && currentNews != null) {
+            // TTS有効かつ読み上げ中で、記事が存在する場合のみアニメーション開始
             blinkAnimator.start()
         } else {
-            // 読み上げ完了時またはTTS無効時はアニメーション停止
+            // 読み上げ完了時、TTS無効時、または記事がない場合はアニメーション停止
             blinkAnimator.cancel()
             blinkAlpha = 0f // リセット
         }
@@ -325,7 +325,7 @@ class NewsView @JvmOverloads constructor(
         }
 
         // TTS ON時は読み上げ中を示す点滅表示（Viewの一番上）
-        if (enableTts && blinkAlpha > 0f) {
+        if (enableTts && blinkAlpha > 0f && currentNews != null) {
             drawTtsBlinkIndicator(canvas)
         }
 
