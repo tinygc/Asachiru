@@ -128,7 +128,8 @@ class MainViewModel(
                                 showAd = false, // インターバル中も広告非表示
                                 adRemainingSeconds = 0L,
                                 currentArticleIndex = state.nextArticleIndex - 1,
-                                totalArticles = state.totalArticles
+                                totalArticles = state.totalArticles,
+                                nextEventRemainingMinutes = calculateNextEventRemainingMinutes(state)
                             ) 
                         }
                     }
@@ -150,7 +151,8 @@ class MainViewModel(
                                 showAd = showAd,
                                 adRemainingSeconds = adRemainingSeconds,
                                 currentArticleIndex = 0,
-                                totalArticles = 0
+                                totalArticles = 0,
+                                nextEventRemainingMinutes = calculateNextEventRemainingMinutes(state)
                             ) 
                         }
                     }
@@ -204,6 +206,34 @@ class MainViewModel(
                 (elapsedMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
             }
             else -> 0f
+        }
+    }
+
+    /**
+     * 次のイベント（記事取得・読み上げ）までの残り時間（分単位）を計算
+     * 記事がない状態でユーザーに表示するための値
+     */
+    private fun calculateNextEventRemainingMinutes(state: NewsReadingState): Long {
+        return when (state) {
+            is NewsReadingState.ArticleInterval -> {
+                // 次の記事まで5秒
+                1L // 1分未満は1分と表示
+            }
+            is NewsReadingState.SessionInterval -> {
+                // セッション間待機（広告10秒または5分）
+                val remainingMs = (state.endTimeMs - System.currentTimeMillis()).coerceAtLeast(0L)
+                val remainingMinutes = (remainingMs + 59_999) / 60_000L // 切り上げ
+                remainingMinutes.coerceAtLeast(1L)
+            }
+            is NewsReadingState.FetchingNews -> {
+                // ニュース取得中
+                1L // 1分未満は1分と表示
+            }
+            is NewsReadingState.WaitingForStart -> {
+                // 初回開始待機
+                1L // 1分未満は1分と表示
+            }
+            else -> 0L // 記事表示中またはIdle時は表示しない
         }
     }
 

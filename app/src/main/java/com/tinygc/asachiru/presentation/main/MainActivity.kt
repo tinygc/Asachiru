@@ -169,6 +169,7 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.setEnableTts(state.enableTts)
                         binding.newsView.setIsSpeaking(state.isSpeaking)
                         binding.newsView.setProgress(state.newsProgressPercent)
+                        binding.newsView.setNextEventRemainingMinutes(state.nextEventRemainingMinutes)
                         
                         // 「次へ」ラベルの表示制御（TTS OFF かつ進行中のみ表示）
                         val showNextLabel = !state.enableTts && state.newsProgressPercent > 0f
