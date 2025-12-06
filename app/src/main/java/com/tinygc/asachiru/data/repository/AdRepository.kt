@@ -37,8 +37,9 @@ class AdRepository(private val context: Context) {
         }
         
         try {
-            // クリップボード追跡を無効化する設定
+            // テストデバイスIDを設定（開発中は必ずテスト広告を表示）
             val requestConfiguration = RequestConfiguration.Builder()
+                .setTestDeviceIds(listOf(AdRequest.DEVICE_ID_EMULATOR))
                 .build()
             MobileAds.setRequestConfiguration(requestConfiguration)
             
@@ -65,6 +66,31 @@ class AdRepository(private val context: Context) {
             val adRequest = AdRequest.Builder().build()
             adView.loadAd(adRequest)
             Log.d(TAG, "Ad request sent for AdView: ${adView.adUnitId}")
+            
+            // 広告読み込み状況をログ出力（デバッグ用）
+            adView.adListener = object : com.google.android.gms.ads.AdListener() {
+                override fun onAdLoaded() {
+                    Log.d(TAG, "✅ Ad loaded successfully")
+                }
+                
+                override fun onAdFailedToLoad(error: com.google.android.gms.ads.LoadAdError) {
+                    Log.e(TAG, "❌ Ad failed to load: ${error.message}")
+                    Log.e(TAG, "Error code: ${error.code}")
+                    Log.e(TAG, "Error domain: ${error.domain}")
+                    Log.e(TAG, "Error cause: ${error.cause}")
+                    // エラーコード3 = 広告在庫なし
+                    // エラーコード0 = 内部エラー
+                    // エラーコード1 = ネットワークエラー
+                }
+                
+                override fun onAdOpened() {
+                    Log.d(TAG, "Ad opened")
+                }
+                
+                override fun onAdClosed() {
+                    Log.d(TAG, "Ad closed")
+                }
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load ad", e)
         }
