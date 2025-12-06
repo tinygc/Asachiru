@@ -143,13 +143,15 @@ private fun generateWeatherIconText(telop: String): String {
 
 /**
  * 天気テキストをアイコンに変換
+ * 絵文字形式（U+FE0F付き）を使用して、TVでも塗りつぶし表示されるようにする
  */
 private fun weatherTextToIcon(weatherText: String): String {
+    // U+FE0F (Variation Selector-16) を付けて絵文字形式にする
     return when {
-        weatherText.contains("雪") -> "⛄"
-        weatherText.contains("雨") -> "☂"
-        weatherText.contains("曇") -> "☁"
-        weatherText.contains("晴") -> "☀"
+        weatherText.contains("雪") -> "⛄️"  // U+26C4 + U+FE0F
+        weatherText.contains("雨") -> "☂️"   // U+2602 + U+FE0F
+        weatherText.contains("曇") -> "☁️"   // U+2601 + U+FE0F
+        weatherText.contains("晴") -> "☀️"   // U+2600 + U+FE0F
         else -> "?"
     }
 }

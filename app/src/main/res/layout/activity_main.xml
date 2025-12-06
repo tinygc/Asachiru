@@ -214,6 +214,28 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
+    <!-- 広告カウントダウン表示（広告の上に表示） -->
+    <TextView
+        android:id="@+id/ad_countdown_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/rounded_button_bg"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
+        android:text="広告終了まで 10秒"
+        android:textColor="#FFFFFF"
+        android:textSize="14sp"
+        android:letterSpacing="0.02"
+        android:elevation="12dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/ad_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:visibility="visible" />
+
     <!-- 設定ボタン（画面右下） -->
     <Button
         android:id="@+id/settings_button"

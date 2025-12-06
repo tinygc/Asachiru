@@ -17,6 +17,7 @@ import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
 import com.tinygc.asachiru.domain.entity.News
+import com.tinygc.asachiru.domain.util.DeviceUtils
 import java.util.Calendar
 import java.util.TimeZone
 
@@ -46,6 +47,9 @@ class NewsView @JvmOverloads constructor(
     // QRコードキャッシュ
     private var qrCodeBitmap: Bitmap? = null
     private var qrCodeUrl: String? = null
+    
+    // QRコードの描画位置（タップ判定用）
+    private var qrCodeRect: RectF? = null
 
     // Material Design 3 + Neumorphism背景用
     private val backgroundPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -802,7 +806,12 @@ class NewsView @JvmOverloads constructor(
             color = hintColor
             letterSpacing = 0.02f
         }
-        val hintText = "🔙 戻るキーで閉じる"
+        // スマホとTVでヒントテキストを切り替え
+        val hintText = if (DeviceUtils.isPhone(context)) {
+            "👆 再タップで閉じる"
+        } else {
+            "🔙 戻るキーで閉じる"
+        }
         val hintY = height.toFloat() - cardPadding - 20f.dp()
         canvas.drawText(hintText, startX, hintY, hintPaint)
     }
@@ -826,18 +835,21 @@ class NewsView @JvmOverloads constructor(
         val qrLeft = cardRect.right - qrSize - qrPadding
         val qrTop = cardRect.bottom - qrSize - qrPadding
 
-        // 白い背景
-        val qrBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.FILL
-        }
+        // QRコードの位置を保存（タップ判定用）
         val qrBgMargin = 10f.dp()
-        val qrBgRect = RectF(
+        qrCodeRect = RectF(
             qrLeft - qrBgMargin,
             qrTop - qrBgMargin,
             qrLeft + qrSize + qrBgMargin,
             qrTop + qrSize + qrBgMargin
         )
+
+        // 白い背景
+        val qrBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.FILL
+        }
+        val qrBgRect = qrCodeRect!!
         val qrBgCornerRadius = 8f.dp()
         canvas.drawRoundRect(qrBgRect, qrBgCornerRadius, qrBgCornerRadius, qrBgPaint)
         
@@ -1000,5 +1012,23 @@ class NewsView @JvmOverloads constructor(
         // 右矢印
         val rightArrowX = textX + statusWidth + spacing
         canvas.drawText(rightArrow, rightArrowX, y, ttsArrowPaint)
+    }
+
+    /**
+     * 指定座標がQRコードエリア内かどうかを判定
+     * @param x タップのX座標
+     * @param y タップのY座標
+     * @return QRコードエリア内ならtrue
+     */
+    fun isQrCodeAreaTapped(x: Float, y: Float): Boolean {
+        return qrCodeRect?.contains(x, y) == true
+    }
+
+    /**
+     * 現在表示中のニュースURLを取得
+     * @return ニュースのURL（news.id）、なければnull
+     */
+    fun getCurrentNewsUrl(): String? {
+        return currentNews?.id
     }
 }

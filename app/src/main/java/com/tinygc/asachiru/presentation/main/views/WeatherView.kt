@@ -267,13 +267,15 @@ class WeatherView @JvmOverloads constructor(
 
     /**
      * 文字に応じた色を返す（絵文字は天気色、それ以外は白）
+     * U+FE0F (Variation Selector-16) は無視する
      */
     private fun getCharColor(char: Char): Int {
         return when (char) {
             '☀' -> Color.parseColor("#FFD54F") // 晴れ: 黄色
             '☁' -> Color.parseColor("#B0BEC5") // 曇り: グレー
             '☂' -> Color.parseColor("#64B5F6") // 雨: 青
-            '❄' -> Color.parseColor("#81D4FA") // 雪: 水色
+            '⛄' -> Color.parseColor("#81D4FA") // 雪: 水色
+            '\uFE0F' -> Color.WHITE // Variation Selector-16は無視（前の色を維持するため白）
             else -> Color.WHITE // テキストは白
         }
     }

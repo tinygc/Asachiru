@@ -144,6 +144,10 @@ class SetupActivity : AppCompatActivity() {
         // binding.enableBgmCheckbox は feedwatch 版レイアウトには存在しない
 
         // 保存ボタン
+        // スマホではfocusableInTouchModeを無効化（1タップで即反応させる）
+        if (DeviceUtils.isPhone(applicationContext)) {
+            binding.saveButton.isFocusableInTouchMode = false
+        }
         binding.saveButton.setOnClickListener {
             viewModel.saveSettings()
         }

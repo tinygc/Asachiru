@@ -1,6 +1,7 @@
 package com.tinygc.asachiru.presentation.main
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.GestureDetector
 import android.view.KeyEvent
@@ -93,13 +94,14 @@ class MainActivity : AppCompatActivity() {
                 }
                 
                 // 縦方向のフリックかどうか判定（縦移動が横移動の2倍以上）
+                // スマホはSNS風操作: 上スワイプ=次、下スワイプ=前（コンテンツを押し上げる感覚）
                 if (abs(diffY) > abs(diffX) * 2 && abs(diffY) > 100) {
                     if (diffY < 0) {
-                        // 上フリック: 前のニュースへ
-                        viewModel.navigateToPreviousNews()
-                    } else {
-                        // 下フリック: 次のニュースへ
+                        // 上フリック: 次のニュースへ（TikTok/Instagram風）
                         viewModel.navigateToNextNews()
+                    } else {
+                        // 下フリック: 前のニュースへ
+                        viewModel.navigateToPreviousNews()
                     }
                     return true
                 }
@@ -110,6 +112,16 @@ class MainActivity : AppCompatActivity() {
             // シングルタップで詳細表示切り替え（スマホのみ）
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                 if (DeviceUtils.isPhone(applicationContext)) {
+                    // QRコードエリアをタップした場合はブラウザで記事を開く
+                    if (binding.newsView.isQrCodeAreaTapped(e.x, e.y)) {
+                        binding.newsView.getCurrentNewsUrl()?.let { url ->
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                            startActivity(intent)
+                        }
+                        return true
+                    }
+                    
+                    // それ以外のエリアは詳細表示切り替え
                     val state = viewModel.stateMachine.state.value
                     if (state is NewsReadingState.ReadingArticle) {
                         viewModel.toggleNewsDetail()
@@ -125,6 +137,8 @@ class MainActivity : AppCompatActivity() {
             // スマホ: 設定ボタンを表示（キー操作ヒントは非表示）
             binding.settingsButton.visibility = android.view.View.VISIBLE
             binding.keyHintView.visibility = android.view.View.GONE
+            // スマホではfocusableInTouchModeを無効化（1タップで即反応させる）
+            binding.settingsButton.isFocusableInTouchMode = false
             binding.settingsButton.setOnClickListener {
                 navigateToSetup()
             }
@@ -193,7 +207,7 @@ class MainActivity : AppCompatActivity() {
                     binding.musicTrackView.updateMusic(state.currentTrack)
 
                     // 広告の表示/非表示制御
-                    updateAdView(state.showAd)
+                    updateAdView(state.showAd, state.adRemainingSeconds)
 
                     // Asachiru: ビジュアライザー表示制御（BGM OFF時は非表示）
                     // FeedWatch: ビジュアライザーなしため常に非表示
@@ -494,8 +508,18 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * 広告ビューの表示/非表示を制御
+     * 
+     * 注: AdMobはAndroid TVを正式サポートしていないため、TVでは広告を表示しない
+     * https://developers.google.com/admob/android/sdk?hl=ja
      */
-    private fun updateAdView(showAd: Boolean) {
+    private fun updateAdView(showAd: Boolean, adRemainingSeconds: Long = 0L) {
+        // TVデバイスでは広告を表示しない（AdMob非対応のため）
+        if (DeviceUtils.isTV(applicationContext)) {
+            binding.adView.visibility = android.view.View.GONE
+            binding.adCountdownView.visibility = android.view.View.GONE
+            return
+        }
+        
         if (showAd && binding.adView.visibility != android.view.View.VISIBLE) {
             // AdMob初期化済みなら広告を表示
             if (isAdMobInitialized) {
@@ -510,6 +534,15 @@ class MainActivity : AppCompatActivity() {
             // 広告非表示
             binding.adView.visibility = android.view.View.GONE
             android.util.Log.d("Ad", "広告を非表示にしました")
+        }
+        
+        // カウントダウン表示の制御
+        if (showAd && isAdMobInitialized) {
+            binding.adCountdownView.visibility = android.view.View.VISIBLE
+            binding.adCountdownView.text = "広告終了まで ${adRemainingSeconds}秒"
+            binding.adCountdownView.bringToFront()
+        } else {
+            binding.adCountdownView.visibility = android.view.View.GONE
         }
     }
 }
