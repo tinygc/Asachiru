@@ -540,21 +540,28 @@ class BackgroundGradientView @JvmOverloads constructor(
     }
 
     /**
-     * 2つの色を補間
+     * 2つの色をHSV色空間で補間
+     * 色相（Hue）は最短距離で補間し、より自然な色の移り変わりを実現
      */
     private fun interpolateColor(color1: Int, color2: Int, fraction: Float): Int {
-        val r1 = Color.red(color1)
-        val g1 = Color.green(color1)
-        val b1 = Color.blue(color1)
+        val hsv1 = FloatArray(3)
+        val hsv2 = FloatArray(3)
+        Color.colorToHSV(color1, hsv1)
+        Color.colorToHSV(color2, hsv2)
 
-        val r2 = Color.red(color2)
-        val g2 = Color.green(color2)
-        val b2 = Color.blue(color2)
+        // 色相(Hue)の補間（最短距離）
+        var hue_diff = hsv2[0] - hsv1[0]
+        if (hue_diff > 180) {
+            hue_diff -= 360
+        } else if (hue_diff < -180) {
+            hue_diff += 360
+        }
+        val hue = (hsv1[0] + hue_diff * fraction + 360) % 360
 
-        val r = (r1 + (r2 - r1) * fraction).toInt()
-        val g = (g1 + (g2 - g1) * fraction).toInt()
-        val b = (b1 + (b2 - b1) * fraction).toInt()
+        // 彩度(Saturation)と明度(Value)は線形補間
+        val saturation = hsv1[1] + (hsv2[1] - hsv1[1]) * fraction
+        val value = hsv1[2] + (hsv2[2] - hsv1[2]) * fraction
 
-        return Color.rgb(r, g, b)
+        return Color.HSVToColor(floatArrayOf(hue, saturation, value))
     }
 }
