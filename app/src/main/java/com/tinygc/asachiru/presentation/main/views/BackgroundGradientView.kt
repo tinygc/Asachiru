@@ -66,8 +66,8 @@ class BackgroundGradientView @JvmOverloads constructor(
     private var transitionFromGradient: IntArray? = null
     private var transitionToGradient: IntArray? = null
     private val timeOfDayTransitionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 2500 // 2.5秒で遷移
-        interpolator = AccelerateDecelerateInterpolator()
+        duration = 5000 // 5秒で遷移
+        interpolator = android.view.animation.LinearInterpolator()
         addUpdateListener { animation ->
             timeOfDayTransitionProgress = animation.animatedValue as Float
             invalidate()
