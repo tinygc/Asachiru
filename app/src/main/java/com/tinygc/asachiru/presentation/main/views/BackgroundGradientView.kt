@@ -60,6 +60,29 @@ class BackgroundGradientView @JvmOverloads constructor(
     // 発光エフェクト用
     private var glowAnimationTime = 0f
 
+    // 時間帯遷移用
+    private var isTransitioningTimeOfDay = false
+    private var timeOfDayTransitionProgress = 0f
+    private var transitionFromGradient: IntArray? = null
+    private var transitionToGradient: IntArray? = null
+    private val timeOfDayTransitionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+        duration = 2500 // 2.5秒で遷移
+        interpolator = AccelerateDecelerateInterpolator()
+        addUpdateListener { animation ->
+            timeOfDayTransitionProgress = animation.animatedValue as Float
+            invalidate()
+        }
+        addListener(object : AnimatorListenerAdapter() {
+            override fun onAnimationEnd(animation: Animator) {
+                isTransitioningTimeOfDay = false
+                currentGradientIndex = 0
+                nextGradientIndex = 1
+                animator.start() // 通常のアニメーションを再開
+            }
+        })
+    }
+
+
     // ===========================================
     // Asachiru専用 色彩理論に基づく自然光グラデーション
     // 白→金→オレンジ/朱→黒/紺の循環
@@ -270,21 +293,49 @@ class BackgroundGradientView @JvmOverloads constructor(
     )
 
     // 現在の時間帯に応じたグラデーションを取得（フレーバーによって分岐）
-    private val gradientColors: List<IntArray>
-        get() {
-            val isAsachiru = com.tinygc.asachiru.BuildConfig.FLAVOR == "asachiru"
-            return when (getCurrentTimeOfDay()) {
-                TimeOfDay.EARLY_MORNING -> if (isAsachiru) earlyMorningGradientsAsachiru else earlyMorningGradients
-                TimeOfDay.DAY -> if (isAsachiru) dayGradientsAsachiru else dayGradients
-                TimeOfDay.EVENING -> if (isAsachiru) eveningGradientsAsachiru else eveningGradients
-                TimeOfDay.NIGHT -> if (isAsachiru) nightGradientsAsachiru else nightGradients
-            }
+    private fun getGradientColors(): List<IntArray> {
+        val isAsachiru = com.tinygc.asachiru.BuildConfig.FLAVOR == "asachiru"
+        return when (getCurrentTimeOfDay()) {
+            TimeOfDay.EARLY_MORNING -> if (isAsachiru) earlyMorningGradientsAsachiru else earlyMorningGradients
+            TimeOfDay.DAY -> if (isAsachiru) dayGradientsAsachiru else dayGradients
+            TimeOfDay.EVENING -> if (isAsachiru) eveningGradientsAsachiru else eveningGradients
+            TimeOfDay.NIGHT -> if (isAsachiru) nightGradientsAsachiru else nightGradients
         }
+    }
 
     private var currentGradientIndex = 0
     private var nextGradientIndex = 1
     private var animationProgress = 0f
     private var currentTimeOfDay = getCurrentTimeOfDay()
+
+    private val timeCheckHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val timeCheckRunnable = object : Runnable {
+        override fun run() {
+            val newTimeOfDay = getCurrentTimeOfDay()
+            if (newTimeOfDay != currentTimeOfDay) {
+                // 時間帯が変更されたら、遷移アニメーションを開始
+                if (!timeOfDayTransitionAnimator.isRunning) {
+                    // 現在の描画色を遷移元としてキャプチャ
+                    val currentColors = getGradientColors()[currentGradientIndex]
+                    val nextColors = getGradientColors()[nextGradientIndex]
+                    transitionFromGradient = IntArray(currentColors.size) { i ->
+                        interpolateColor(currentColors[i], nextColors[i], animationProgress)
+                    }
+
+                    // 新しい時間帯の最初のグラデーションを遷移先として設定
+                    currentTimeOfDay = newTimeOfDay
+                    transitionToGradient = getGradientColors()[0]
+
+                    // 遷移アニメーションを開始
+                    isTransitioningTimeOfDay = true
+                    animator.cancel() // 通常アニメーションを一旦停止
+                    timeOfDayTransitionAnimator.start()
+                }
+            }
+            // 1分後に再度チェック
+            timeCheckHandler.postDelayed(this, 60000)
+        }
+    }
 
     private val animator = ValueAnimator.ofFloat(0f, 1f).apply {
         duration = 30000 // 30秒 - よりゆったりとした遷移
@@ -292,26 +343,15 @@ class BackgroundGradientView @JvmOverloads constructor(
         repeatCount = ValueAnimator.INFINITE
         addUpdateListener { animation ->
             animationProgress = animation.animatedValue as Float
-
-            // 時間帯の変化をチェック
-            val newTimeOfDay = getCurrentTimeOfDay()
-            if (newTimeOfDay != currentTimeOfDay) {
-                currentTimeOfDay = newTimeOfDay
-                // 時間帯が変わったらグラデーションをリセット
-                currentGradientIndex = 0
-                nextGradientIndex = 1
-            }
-
             // 発光アニメーション
             glowAnimationTime += 0.016f // 約60fps想定
-
             invalidate() // 再描画
         }
         addListener(object : AnimatorListenerAdapter() {
             override fun onAnimationRepeat(animation: Animator) {
                 // アニメーションがリピートする際に次のグラデーションへ切り替え
                 currentGradientIndex = nextGradientIndex
-                nextGradientIndex = (nextGradientIndex + 1) % gradientColors.size
+                nextGradientIndex = (nextGradientIndex + 1) % getGradientColors().size
             }
         })
     }
@@ -344,11 +384,13 @@ class BackgroundGradientView @JvmOverloads constructor(
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         animator.start()
+        timeCheckHandler.post(timeCheckRunnable) // 時間チェックを開始
     }
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         animator.cancel()
+        timeCheckHandler.removeCallbacks(timeCheckRunnable) // 時間チェックを停止
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -371,11 +413,20 @@ class BackgroundGradientView @JvmOverloads constructor(
      * ベースグラデーションを描画
      */
     private fun drawBaseGradient(canvas: Canvas) {
-        val currentColors = gradientColors[currentGradientIndex]
-        val nextColors = gradientColors[nextGradientIndex]
+        val interpolatedColors: IntArray
 
-        val interpolatedColors = IntArray(currentColors.size) { i ->
-            interpolateColor(currentColors[i], nextColors[i], animationProgress)
+        val (colors1, colors2, progress) = if (isTransitioningTimeOfDay && transitionFromGradient != null && transitionToGradient != null) {
+            // 時間帯遷移中のグラデーション情報を取得
+            Triple(transitionFromGradient!!, transitionToGradient!!, timeOfDayTransitionProgress)
+        } else {
+            // 通常時のグラデーション情報を取得
+            val current = getGradientColors()[currentGradientIndex]
+            val next = getGradientColors()[nextGradientIndex]
+            Triple(current, next, animationProgress)
+        }
+
+        interpolatedColors = IntArray(colors1.size) { i ->
+            interpolateColor(colors1[i], colors2[i], progress)
         }
 
         val gradient = LinearGradient(
@@ -438,7 +489,7 @@ class BackgroundGradientView @JvmOverloads constructor(
         val radius = 300f + brightness * 100f // 300-400pxの半径
 
         // 現在のグラデーション色をベースにした発光色
-        val baseColor = gradientColors[currentGradientIndex][0]
+        val baseColor = getGradientColors()[currentGradientIndex][0]
         val r = Color.red(baseColor)
         val g = Color.green(baseColor)
         val b = Color.blue(baseColor)
