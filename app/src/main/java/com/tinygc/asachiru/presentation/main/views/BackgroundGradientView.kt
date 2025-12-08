@@ -40,6 +40,7 @@ class BackgroundGradientView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val transitionPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val vignettePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val ripplePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -66,7 +67,7 @@ class BackgroundGradientView @JvmOverloads constructor(
     private var transitionFromGradient: IntArray? = null
     private var transitionToGradient: IntArray? = null
     private val timeOfDayTransitionAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 5000 // 5秒で遷移
+        duration = 30000 // 30秒で遷移
         interpolator = android.view.animation.LinearInterpolator()
         addUpdateListener { animation ->
             timeOfDayTransitionProgress = animation.animatedValue as Float
@@ -413,32 +414,45 @@ class BackgroundGradientView @JvmOverloads constructor(
      * ベースグラデーションを描画
      */
     private fun drawBaseGradient(canvas: Canvas) {
-        val interpolatedColors: IntArray
+        val from = transitionFromGradient
+        val to = transitionToGradient
 
-        val (colors1, colors2, progress) = if (isTransitioningTimeOfDay && transitionFromGradient != null && transitionToGradient != null) {
-            // 時間帯遷移中のグラデーション情報を取得
-            Triple(transitionFromGradient!!, transitionToGradient!!, timeOfDayTransitionProgress)
+        if (isTransitioningTimeOfDay && from != null && to != null) {
+            // --- クロスフェード遷移中 ---
+
+            // 1. 遷移元のグラデーションを描画（アルファは常に100%）
+            val fromGradient = LinearGradient(0f, 0f, 0f, height.toFloat(), from, null, Shader.TileMode.CLAMP)
+            paint.shader = fromGradient
+            paint.alpha = 255
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
+
+            // 2. 遷移先のグラデーションを上に重ねて描画（アルファを0%->100%に変化させる）
+            val toGradient = LinearGradient(0f, 0f, 0f, height.toFloat(), to, null, Shader.TileMode.CLAMP)
+            transitionPaint.shader = toGradient
+            transitionPaint.alpha = (255 * timeOfDayTransitionProgress).toInt()
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), transitionPaint)
+
         } else {
-            // 通常時のグラデーション情報を取得
-            val current = getGradientColors()[currentGradientIndex]
-            val next = getGradientColors()[nextGradientIndex]
-            Triple(current, next, animationProgress)
+            // --- 通常時のアニメーション ---
+            val currentColors = getGradientColors()[currentGradientIndex]
+            val nextColors = getGradientColors()[nextGradientIndex]
+
+            val interpolatedColors = IntArray(currentColors.size) { i ->
+                interpolateColor(currentColors[i], nextColors[i], animationProgress)
+            }
+
+            val gradient = LinearGradient(
+                0f, 0f,
+                0f, height.toFloat(),
+                interpolatedColors,
+                null,
+                Shader.TileMode.CLAMP
+            )
+
+            paint.shader = gradient
+            paint.alpha = 255
+            canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
         }
-
-        interpolatedColors = IntArray(colors1.size) { i ->
-            interpolateColor(colors1[i], colors2[i], progress)
-        }
-
-        val gradient = LinearGradient(
-            0f, 0f,
-            0f, height.toFloat(),
-            interpolatedColors,
-            null,
-            Shader.TileMode.CLAMP
-        )
-
-        paint.shader = gradient
-        canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), paint)
     }
 
     /**
