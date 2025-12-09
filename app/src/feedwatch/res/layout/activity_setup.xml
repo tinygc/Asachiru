@@ -67,6 +67,25 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_label" />
 
+    <TextView
+        android:id="@+id/data_source_credits"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="📊 天気データ: 気象庁 (tsukumijima.net API経由)"
+        android:textColor="#90CAF9"
+        android:textSize="10sp"
+        android:letterSpacing="0.01"
+        android:gravity="start"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/postal_code_description" />
+
     <EditText
         android:id="@+id/postal_code_edit_text"
         android:layout_width="0dp"
@@ -87,7 +106,7 @@
         android:layout_marginTop="6dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/postal_code_description" />
+        app:layout_constraintTop_toBottomOf="@id/data_source_credits" />
 
     <!-- RSS配信元（フル幅） -->
     <TextView
@@ -184,24 +203,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/enable_tts_checkbox" />
 
-    <TextView
-        android:id="@+id/data_source_credits"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="📊 天気データ: 気象庁 (tsukumijima.net API経由)"
-        android:textColor="#90CAF9"
-        android:textSize="10sp"
-        android:letterSpacing="0.01"
-        android:gravity="start"
-        android:shadowColor="#000000"
-        android:shadowDx="1"
-        android:shadowDy="1"
-        android:shadowRadius="2"
-        android:layout_marginTop="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
-
     <!-- 保存ボタン -->
     <Button
         android:id="@+id/save_button"
@@ -220,7 +221,7 @@
         android:layout_marginTop="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/data_source_credits" />
+        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
