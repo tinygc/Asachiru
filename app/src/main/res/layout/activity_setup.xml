@@ -202,6 +202,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/enable_bgm_checkbox" />
 
+    <TextView
+        android:id="@+id/data_source_credits"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="📊 天気データ: 気象庁 (tsukumijima.net API経由)"
+        android:textColor="#90CAF9"
+        android:textSize="10sp"
+        android:letterSpacing="0.01"
+        android:gravity="start"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"
+        android:layout_marginTop="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
+
     <!-- 保存ボタン -->
     <Button
         android:id="@+id/save_button"
@@ -222,7 +240,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/tts_copyright_notice" />
+        app:layout_constraintTop_toBottomOf="@id/data_source_credits" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
