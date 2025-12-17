@@ -50,8 +50,19 @@ class WeatherRepositoryImpl(
                 jstCalendar.get(java.util.Calendar.MONTH) + 1,
                 jstCalendar.get(java.util.Calendar.DAY_OF_MONTH)
             )
+            
+            // 明日の日付も計算
+            val tomorrowCalendar = jstCalendar.clone() as java.util.Calendar
+            tomorrowCalendar.add(java.util.Calendar.DAY_OF_MONTH, 1)
+            val tomorrowDate = String.format(
+                "%04d-%02d-%02d",
+                tomorrowCalendar.get(java.util.Calendar.YEAR),
+                tomorrowCalendar.get(java.util.Calendar.MONTH) + 1,
+                tomorrowCalendar.get(java.util.Calendar.DAY_OF_MONTH)
+            )
+            
             val currentHour = jstCalendar.get(java.util.Calendar.HOUR_OF_DAY)
-            Log.d(TAG, "getWeather: currentDate=$currentDate (JST), currentHour=$currentHour (JST), deviceTimeZone=${TimeZone.getDefault().id}")
+            Log.d(TAG, "getWeather: currentDate=$currentDate (JST), tomorrowDate=$tomorrowDate (JST), currentHour=$currentHour (JST), deviceTimeZone=${TimeZone.getDefault().id}")
 
             // forecasts[0]とforecasts[1]の日付を確認
             val todayForecast = apiResponse.forecasts.getOrNull(0)
@@ -62,25 +73,44 @@ class WeatherRepositoryImpl(
 
             // 17時以降は明日の天気、それ以外は今日の天気を表示
             val (forecast, dateLabel) = if (currentHour >= 17) {
-                // forecasts[1]が明日の日付か確認
+                // 17時以降: 明日の天気を表示
                 if (tomorrowForecast != null) {
                     Pair(tomorrowForecast, "明日")
                 } else {
-                    Log.w(TAG, "getWeather: No tomorrow forecast, using today's")
-                    Pair(todayForecast ?: throw IOException("No forecast data available"), "今日")
+                    Log.w(TAG, "getWeather: No tomorrow forecast available after 17:00, using forecast[0]")
+                    // forecasts[1]がない場合はforecasts[0]を使用し、日付に基づいてラベルを決定
+                    val label = when (todayForecast?.date) {
+                        tomorrowDate -> "明日"
+                        currentDate -> "今日"
+                        else -> "明日" // デフォルトは「明日」（17時以降のため）
+                    }
+                    Pair(todayForecast ?: throw IOException("No forecast data available"), label)
                 }
             } else {
-                // forecasts[0]が今日の日付か確認
+                // 17時前: 今日の天気を表示
                 if (todayForecast != null && todayForecast.date == currentDate) {
+                    // forecasts[0]が今日の日付
                     Pair(todayForecast, "今日")
                 } else if (tomorrowForecast != null && tomorrowForecast.date == currentDate) {
-                    // forecasts[0]が昨日のデータの場合、forecasts[1]を使用
-                    Log.w(TAG, "getWeather: forecast[0] is not today, using forecast[1]")
+                    // forecasts[0]が昨日または他の日付で、forecasts[1]が今日の日付
+                    Log.w(TAG, "getWeather: forecast[0] is not today, but forecast[1] is today")
                     Pair(tomorrowForecast, "今日")
                 } else {
-                    // どちらも今日でない場合は最初の予報を使用
-                    Log.w(TAG, "getWeather: Neither forecast matches today, using forecast[0]")
-                    Pair(todayForecast ?: throw IOException("No forecast data available"), "今日")
+                    // どちらも今日でない場合は、forecasts[0]の日付に基づいてラベルを決定
+                    Log.w(TAG, "getWeather: Neither forecast matches today (currentDate=$currentDate), using forecast[0] with date-based label")
+                    val label = when (todayForecast?.date) {
+                        currentDate -> "今日"
+                        tomorrowDate -> "明日"
+                        else -> {
+                            // 日付が今日でも明日でもない場合、forecasts[0]が「今日より後」なら「明日」、それ以外は「今日」
+                            if (todayForecast != null && todayForecast.date > currentDate) {
+                                "明日"
+                            } else {
+                                "今日"
+                            }
+                        }
+                    }
+                    Pair(todayForecast ?: throw IOException("No forecast data available"), label)
                 }
             }
 
