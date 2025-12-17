@@ -59,13 +59,13 @@ class WeatherRepositoryImpl(
                             Log.w(TAG, "determineDateLabel: Failed to parse date, using default label")
                             if (isAfter17) "明日" else "今日"
                         }
-                        forecastDateNum == tomorrowDateNum -> "明日"
-                        forecastDateNum > tomorrowDateNum -> {
-                            // 明後日以降のデータの場合も「明日」とする（より遠い未来のデータ）
-                            Log.w(TAG, "determineDateLabel: Forecast is for day after tomorrow or later, using '明日' label")
+                        forecastDateNum >= tomorrowDateNum -> {
+                            // 明日以降のデータの場合は「明日」とする
+                            if (forecastDateNum > tomorrowDateNum) {
+                                Log.w(TAG, "determineDateLabel: Forecast is for day after tomorrow or later, using '明日' label")
+                            }
                             "明日"
                         }
-                        forecastDateNum > currentDateNum -> "明日"
                         else -> {
                             // 過去または今日以前のデータ
                             Log.w(TAG, "determineDateLabel: Forecast is for past or current date, using '今日' label")
