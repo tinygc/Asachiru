@@ -20,6 +20,15 @@ class WeatherRepositoryImpl(
 
     companion object {
         private const val TAG = "WeatherRepository"
+        
+        /**
+         * YYYY-MM-DD形式の日付文字列を数値に変換（比較用）
+         * 例: "2025-12-17" → 20251217L
+         * @return 変換された数値、パース失敗時はnull
+         */
+        private fun parseDateToNumber(dateString: String?): Long? {
+            return dateString?.replace("-", "")?.toLongOrNull()
+        }
     }
 
     override suspend fun getWeather(postalCode: String): Result<Weather> {
@@ -83,10 +92,16 @@ class WeatherRepositoryImpl(
                         tomorrowDate -> "明日"
                         currentDate -> "今日"
                         else -> {
-                            // 日付を数値として比較（YYYY-MM-DD形式なので文字列→数値変換）
-                            val forecastDateNum = todayForecast?.date?.replace("-", "")?.toLongOrNull() ?: 0L
-                            val tomorrowDateNum = tomorrowDate.replace("-", "").toLong()
-                            if (forecastDateNum >= tomorrowDateNum) "明日" else "今日"
+                            // 日付を数値として比較
+                            val forecastDateNum = parseDateToNumber(todayForecast?.date)
+                            val tomorrowDateNum = parseDateToNumber(tomorrowDate)
+                            if (forecastDateNum != null && tomorrowDateNum != null && forecastDateNum >= tomorrowDateNum) {
+                                "明日"
+                            } else {
+                                // パース失敗またはtomorrowDateより前の日付の場合は「今日」（17時以降だが安全側に倒す）
+                                Log.w(TAG, "getWeather: Failed to parse date or date is before tomorrow, using '今日' label")
+                                "今日"
+                            }
                         }
                     }
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
@@ -107,10 +122,16 @@ class WeatherRepositoryImpl(
                         currentDate -> "今日"
                         tomorrowDate -> "明日"
                         else -> {
-                            // 日付を数値として比較（YYYY-MM-DD形式なので文字列→数値変換）
-                            val forecastDateNum = todayForecast?.date?.replace("-", "")?.toLongOrNull() ?: 0L
-                            val currentDateNum = currentDate.replace("-", "").toLong()
-                            if (forecastDateNum > currentDateNum) "明日" else "今日"
+                            // 日付を数値として比較
+                            val forecastDateNum = parseDateToNumber(todayForecast?.date)
+                            val currentDateNum = parseDateToNumber(currentDate)
+                            if (forecastDateNum != null && currentDateNum != null && forecastDateNum > currentDateNum) {
+                                "明日"
+                            } else {
+                                // パース失敗または過去の日付の場合は「今日」（安全側に倒す）
+                                Log.w(TAG, "getWeather: Failed to parse date or date is in the past, using '今日' label")
+                                "今日"
+                            }
                         }
                     }
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
