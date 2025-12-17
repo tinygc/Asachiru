@@ -82,7 +82,12 @@ class WeatherRepositoryImpl(
                     val label = when (todayForecast?.date) {
                         tomorrowDate -> "明日"
                         currentDate -> "今日"
-                        else -> "明日" // デフォルトは「明日」（17時以降のため）
+                        else -> {
+                            // 日付を数値として比較（YYYY-MM-DD形式なので文字列→数値変換）
+                            val forecastDateNum = todayForecast?.date?.replace("-", "")?.toLongOrNull() ?: 0L
+                            val tomorrowDateNum = tomorrowDate.replace("-", "").toLong()
+                            if (forecastDateNum >= tomorrowDateNum) "明日" else "今日"
+                        }
                     }
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
                 }
@@ -102,12 +107,10 @@ class WeatherRepositoryImpl(
                         currentDate -> "今日"
                         tomorrowDate -> "明日"
                         else -> {
-                            // 日付が今日でも明日でもない場合、forecasts[0]が「今日より後」なら「明日」、それ以外は「今日」
-                            if (todayForecast != null && todayForecast.date > currentDate) {
-                                "明日"
-                            } else {
-                                "今日"
-                            }
+                            // 日付を数値として比較（YYYY-MM-DD形式なので文字列→数値変換）
+                            val forecastDateNum = todayForecast?.date?.replace("-", "")?.toLongOrNull() ?: 0L
+                            val currentDateNum = currentDate.replace("-", "").toLong()
+                            if (forecastDateNum > currentDateNum) "明日" else "今日"
                         }
                     }
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
