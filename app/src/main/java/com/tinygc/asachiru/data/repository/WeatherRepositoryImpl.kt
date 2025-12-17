@@ -29,6 +29,52 @@ class WeatherRepositoryImpl(
         private fun parseDateToNumber(dateString: String?): Long? {
             return dateString?.replace("-", "")?.toLongOrNull()
         }
+        
+        /**
+         * 予報の日付に基づいて日付ラベル（「今日」「明日」）を決定する
+         * @param forecastDate 予報の日付（YYYY-MM-DD形式）
+         * @param currentDate 現在の日付（YYYY-MM-DD形式）
+         * @param tomorrowDate 明日の日付（YYYY-MM-DD形式）
+         * @param isAfter17 17時以降かどうか
+         * @return 日付ラベル（「今日」または「明日」）
+         */
+        private fun determineDateLabel(
+            forecastDate: String?,
+            currentDate: String,
+            tomorrowDate: String,
+            isAfter17: Boolean
+        ): String {
+            return when (forecastDate) {
+                tomorrowDate -> "明日"
+                currentDate -> "今日"
+                else -> {
+                    // 日付を数値として比較
+                    val forecastDateNum = parseDateToNumber(forecastDate)
+                    val currentDateNum = parseDateToNumber(currentDate)
+                    val tomorrowDateNum = parseDateToNumber(tomorrowDate)
+                    
+                    when {
+                        forecastDateNum == null || currentDateNum == null || tomorrowDateNum == null -> {
+                            // パース失敗時は安全側に倒す
+                            Log.w(TAG, "determineDateLabel: Failed to parse date, using default label")
+                            if (isAfter17) "明日" else "今日"
+                        }
+                        forecastDateNum == tomorrowDateNum -> "明日"
+                        forecastDateNum > tomorrowDateNum -> {
+                            // 明後日以降のデータの場合も「明日」とする（より遠い未来のデータ）
+                            Log.w(TAG, "determineDateLabel: Forecast is for day after tomorrow or later, using '明日' label")
+                            "明日"
+                        }
+                        forecastDateNum > currentDateNum -> "明日"
+                        else -> {
+                            // 過去または今日以前のデータ
+                            Log.w(TAG, "determineDateLabel: Forecast is for past or current date, using '今日' label")
+                            "今日"
+                        }
+                    }
+                }
+            }
+        }
     }
 
     override suspend fun getWeather(postalCode: String): Result<Weather> {
@@ -88,22 +134,12 @@ class WeatherRepositoryImpl(
                 } else {
                     Log.w(TAG, "getWeather: No tomorrow forecast available after 17:00, using forecast[0]")
                     // forecasts[1]がない場合はforecasts[0]を使用し、日付に基づいてラベルを決定
-                    val label = when (todayForecast?.date) {
-                        tomorrowDate -> "明日"
-                        currentDate -> "今日"
-                        else -> {
-                            // 日付を数値として比較
-                            val forecastDateNum = parseDateToNumber(todayForecast?.date)
-                            val tomorrowDateNum = parseDateToNumber(tomorrowDate)
-                            if (forecastDateNum != null && tomorrowDateNum != null && forecastDateNum >= tomorrowDateNum) {
-                                "明日"
-                            } else {
-                                // パース失敗またはtomorrowDateより前の日付の場合は「今日」（17時以降だが安全側に倒す）
-                                Log.w(TAG, "getWeather: Failed to parse date or date is before tomorrow, using '今日' label")
-                                "今日"
-                            }
-                        }
-                    }
+                    val label = determineDateLabel(
+                        forecastDate = todayForecast?.date,
+                        currentDate = currentDate,
+                        tomorrowDate = tomorrowDate,
+                        isAfter17 = true
+                    )
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
                 }
             } else {
@@ -118,22 +154,12 @@ class WeatherRepositoryImpl(
                 } else {
                     // どちらも今日でない場合は、forecasts[0]の日付に基づいてラベルを決定
                     Log.w(TAG, "getWeather: Neither forecast matches today (currentDate=$currentDate), using forecast[0] with date-based label")
-                    val label = when (todayForecast?.date) {
-                        currentDate -> "今日"
-                        tomorrowDate -> "明日"
-                        else -> {
-                            // 日付を数値として比較
-                            val forecastDateNum = parseDateToNumber(todayForecast?.date)
-                            val currentDateNum = parseDateToNumber(currentDate)
-                            if (forecastDateNum != null && currentDateNum != null && forecastDateNum > currentDateNum) {
-                                "明日"
-                            } else {
-                                // パース失敗または過去の日付の場合は「今日」（安全側に倒す）
-                                Log.w(TAG, "getWeather: Failed to parse date or date is in the past, using '今日' label")
-                                "今日"
-                            }
-                        }
-                    }
+                    val label = determineDateLabel(
+                        forecastDate = todayForecast?.date,
+                        currentDate = currentDate,
+                        tomorrowDate = tomorrowDate,
+                        isAfter17 = false
+                    )
                     Pair(todayForecast ?: throw IOException("No forecast data available"), label)
                 }
             }
