@@ -712,7 +712,7 @@ class NewsView @JvmOverloads constructor(
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
         // テキストペイント（スマホとTVでサイズを調整）
-        // 注: 通常表示のフォントサイズ（init block）と同じ値を使用
+        // 注: 通常表示のフォントサイズ（init block, line 141-142）と同じ値を使用して一貫性を保つ
         // スマホ: タイトル18sp, 本文14sp / TV: タイトル24sp, 本文20sp
         val detailTextSize = if (isPhone) 14f else 20f
         val detailTitleSize = if (isPhone) 18f else 24f
