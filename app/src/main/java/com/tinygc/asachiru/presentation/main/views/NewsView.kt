@@ -635,6 +635,9 @@ class NewsView @JvmOverloads constructor(
      */
     private fun drawDetailPopup(canvas: Canvas) {
         val news = currentNews ?: return
+        
+        // デバイス種別を一度だけ判定
+        val isPhone = DeviceUtils.isPhone(context)
 
         // フレーバー別の色定義
         val overlayColor = getFlavorColor(
@@ -709,8 +712,10 @@ class NewsView @JvmOverloads constructor(
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
         // テキストペイント（スマホとTVでサイズを調整）
-        val detailTextSize = if (DeviceUtils.isPhone(context)) 14f else 20f
-        val detailTitleSize = if (DeviceUtils.isPhone(context)) 18f else 24f
+        // 注: 通常表示のフォントサイズ（init block）と同じ値を使用
+        // スマホ: タイトル18sp, 本文14sp / TV: タイトル24sp, 本文20sp
+        val detailTextSize = if (isPhone) 14f else 20f
+        val detailTitleSize = if (isPhone) 18f else 24f
         
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, detailTextSize, context.resources.displayMetrics)
@@ -804,14 +809,14 @@ class NewsView @JvmOverloads constructor(
         drawQRCode(canvas, news.id, cardRect)
         
         // フッター情報（閉じるヒント、スマホとTVでサイズを調整）
-        val hintTextSize = if (DeviceUtils.isPhone(context)) 10f else 12f
+        val hintTextSize = if (isPhone) 10f else 12f
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, hintTextSize, context.resources.displayMetrics)
             color = hintColor
             letterSpacing = 0.02f
         }
         // スマホとTVでヒントテキストを切り替え
-        val hintText = if (DeviceUtils.isPhone(context)) {
+        val hintText = if (isPhone) {
             "👆 再タップで閉じる"
         } else {
             "🔙 戻るキーで閉じる"
