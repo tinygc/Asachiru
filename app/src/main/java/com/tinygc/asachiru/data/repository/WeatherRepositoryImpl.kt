@@ -61,6 +61,9 @@ class WeatherRepositoryImpl(
                         }
                         forecastDateNum >= tomorrowDateNum -> {
                             // 明日以降のデータの場合は「明日」とする
+                            // 注: 明後日以降のデータも「明日」として扱う
+                            // これは、天気予報アプリのUI仕様として「今日」か「明日」の2択のみを表示するため
+                            // また、APIから明後日以降のデータが返ってくるケースは稀（通常は今日/明日のみ）
                             if (forecastDateNum > tomorrowDateNum) {
                                 Log.w(TAG, "determineDateLabel: Forecast is for day after tomorrow or later, using '明日' label")
                             }
