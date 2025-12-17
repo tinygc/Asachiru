@@ -708,16 +708,19 @@ class NewsView @JvmOverloads constructor(
         }
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
-        // テキストペイント
+        // テキストペイント（スマホとTVでサイズを調整）
+        val detailTextSize = if (DeviceUtils.isPhone(context)) 14f else 20f
+        val detailTitleSize = if (DeviceUtils.isPhone(context)) 18f else 24f
+        
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, detailTextSize, context.resources.displayMetrics)
             color = textColor
             letterSpacing = 0.03f
             setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), shadowColor)
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, detailTitleSize, context.resources.displayMetrics)
             color = titleColor
             letterSpacing = 0.02f
             isFakeBoldText = true
@@ -800,9 +803,10 @@ class NewsView @JvmOverloads constructor(
         // QRコード表示（右下）
         drawQRCode(canvas, news.id, cardRect)
         
-        // フッター情報（閉じるヒント）
+        // フッター情報（閉じるヒント、スマホとTVでサイズを調整）
+        val hintTextSize = if (DeviceUtils.isPhone(context)) 10f else 12f
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, hintTextSize, context.resources.displayMetrics)
             color = hintColor
             letterSpacing = 0.02f
         }
