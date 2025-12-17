@@ -56,7 +56,7 @@ class WeatherRepositoryImpl(
                     when {
                         forecastDateNum == null || currentDateNum == null || tomorrowDateNum == null -> {
                             // パース失敗時は安全側に倒す
-                            Log.w(TAG, "determineDateLabel: Failed to parse date, using default label")
+                            Log.w(TAG, "determineDateLabel: Failed to parse date - forecastDate=$forecastDate, currentDate=$currentDate, tomorrowDate=$tomorrowDate")
                             if (isAfter17) "明日" else "今日"
                         }
                         forecastDateNum >= tomorrowDateNum -> {
