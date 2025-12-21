@@ -635,9 +635,6 @@ class NewsView @JvmOverloads constructor(
      */
     private fun drawDetailPopup(canvas: Canvas) {
         val news = currentNews ?: return
-        
-        // デバイス種別を一度だけ判定
-        val isPhone = DeviceUtils.isPhone(context)
 
         // フレーバー別の色定義
         val overlayColor = getFlavorColor(
@@ -711,21 +708,16 @@ class NewsView @JvmOverloads constructor(
         }
         canvas.drawRoundRect(cardRect, cardCornerRadius, cardCornerRadius, borderPaint)
 
-        // テキストペイント（スマホとTVでサイズを調整）
-        // 注: 通常表示のフォントサイズ（init block, line 141-142）と同じ値を使用して一貫性を保つ
-        // スマホ: タイトル18sp, 本文14sp / TV: タイトル24sp, 本文20sp
-        val detailTextSize = if (isPhone) 14f else 20f
-        val detailTitleSize = if (isPhone) 18f else 24f
-        
+        // テキストペイント
         val detailTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, detailTextSize, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 20f, context.resources.displayMetrics)
             color = textColor
             letterSpacing = 0.03f
             setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), shadowColor)
         }
 
         val detailTitlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, detailTitleSize, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics)
             color = titleColor
             letterSpacing = 0.02f
             isFakeBoldText = true
@@ -737,8 +729,7 @@ class NewsView @JvmOverloads constructor(
         val textLineSpacing = detailTextPaint.textSize * 1.3f // 本文行間: テキストサイズの130%
 
         // QRコードのサイズとパディングを定義（drawQRCodeと同じ値）
-        // スマホでは本文幅確保のため少し小さめに設定
-        val qrSize = (if (isPhone) 160f else 200f).dp()
+        val qrSize = 200f.dp()
         val qrPaddingValue = 50f.dp()
         val qrTotalWidth = qrSize + qrPaddingValue * 2  // QRコードが占有する幅
         
@@ -756,20 +747,19 @@ class NewsView @JvmOverloads constructor(
         val restrictedTextMaxWidth = width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
 
         // タイトル描画（行ごとに幅を動的に調整）
-        // split("") は空要素や結合文字の問題が出るため逐次文字で処理
-        val titleChars = news.title.toCharArray()
+        val titleWords = news.title.split("")
         var currentTitleLine = ""
-        titleChars.forEach { ch ->
-            val testLine = currentTitleLine + ch
+        titleWords.forEach { char ->
+            val testLine = currentTitleLine + char
             // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else kotlin.math.max(0f, restrictedTextMaxWidth)
+            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
             val lineWidth = detailTitlePaint.measureText(testLine)
             
             if (lineWidth > maxWidth && currentTitleLine.isNotEmpty()) {
                 // 現在の行を描画
                 canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
                 currentY += titleLineSpacing
-                currentTitleLine = ch.toString()
+                currentTitleLine = char
             } else {
                 currentTitleLine = testLine
             }
@@ -784,36 +774,25 @@ class NewsView @JvmOverloads constructor(
 
         // 概要描画（行ごとに幅を動的に調整）
         val description = news.description.ifBlank { news.title }
-        val descChars = description.toCharArray()
+        val descWords = description.split("")
         var currentDescLine = ""
-        var overflowEllipsisDrawn = false
-        descChars.forEach { ch ->
-            // 縦方向の収まりチェック（次行がカード下端を超える場合は打ち切り）
-            val bottomLimit = cardRect.bottom - 40f.dp() // 下端にマージン
-            if (!overflowEllipsisDrawn && currentY + textLineSpacing > bottomLimit) {
-                // 省略記号で締める
-                val ellipsis = "…"
-                canvas.drawText(ellipsis, startX, currentY, detailTextPaint)
-                overflowEllipsisDrawn = true
-                return@forEach
-            }
-
-            val testLine = currentDescLine + ch
+        descWords.forEach { char ->
+            val testLine = currentDescLine + char
             // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else kotlin.math.max(0f, restrictedTextMaxWidth)
+            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
             val lineWidth = detailTextPaint.measureText(testLine)
             
             if (lineWidth > maxWidth && currentDescLine.isNotEmpty()) {
                 // 現在の行を描画
                 canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
                 currentY += textLineSpacing
-                currentDescLine = ch.toString()
+                currentDescLine = char
             } else {
                 currentDescLine = testLine
             }
         }
         // 最後の行を描画
-        if (!overflowEllipsisDrawn && currentDescLine.isNotEmpty()) {
+        if (currentDescLine.isNotEmpty()) {
             canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
             currentY += textLineSpacing
         }
@@ -821,15 +800,14 @@ class NewsView @JvmOverloads constructor(
         // QRコード表示（右下）
         drawQRCode(canvas, news.id, cardRect)
         
-        // フッター情報（閉じるヒント、スマホとTVでサイズを調整）
-        val hintTextSize = if (isPhone) 10f else 12f
+        // フッター情報（閉じるヒント）
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, hintTextSize, context.resources.displayMetrics)
+            textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
             color = hintColor
             letterSpacing = 0.02f
         }
         // スマホとTVでヒントテキストを切り替え
-        val hintText = if (isPhone) {
+        val hintText = if (DeviceUtils.isPhone(context)) {
             "👆 再タップで閉じる"
         } else {
             "🔙 戻るキーで閉じる"
