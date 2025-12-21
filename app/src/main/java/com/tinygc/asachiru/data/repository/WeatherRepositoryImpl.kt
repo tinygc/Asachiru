@@ -131,9 +131,15 @@ class WeatherRepositoryImpl(
 
             // 17時以降は明日の天気、それ以外は今日の天気を表示
             val (forecast, dateLabel) = if (currentHour >= 17) {
-                // 17時以降: 明日の天気を表示
+                // 17時以降: 明日の天気を表示（実際の日付に基づきラベルを決定）
                 if (tomorrowForecast != null) {
-                    Pair(tomorrowForecast, "明日")
+                    val label = determineDateLabel(
+                        forecastDate = tomorrowForecast.date,
+                        currentDate = currentDate,
+                        tomorrowDate = tomorrowDate,
+                        isAfter17 = true
+                    )
+                    Pair(tomorrowForecast, label)
                 } else {
                     Log.w(TAG, "getWeather: No tomorrow forecast available after 17:00, using forecast[0]")
                     // forecasts[1]がない場合はforecasts[0]を使用し、日付に基づいてラベルを決定
