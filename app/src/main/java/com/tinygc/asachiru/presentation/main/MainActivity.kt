@@ -7,8 +7,11 @@ import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.tinygc.asachiru.presentation.setup.SetupActivity
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +19,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.core.content.ContextCompat
 import androidx.core.app.ActivityCompat
 import com.tinygc.asachiru.BuildConfig
+import com.tinygc.asachiru.R
 import com.tinygc.asachiru.databinding.ActivityMainBinding
 import com.tinygc.asachiru.domain.util.DeviceUtils
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
@@ -52,6 +56,9 @@ class MainActivity : AppCompatActivity() {
     // AdMob用Repository（シングルトンとして保持）
     private lateinit var adRepository: com.tinygc.asachiru.data.repository.AdRepository
     private var isAdMobInitialized = false
+    
+    // 動的に作成するAdView（アダプティブバナー対応）
+    private var adView: AdView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -69,6 +76,9 @@ class MainActivity : AppCompatActivity() {
         
         // AdMob Repository初期化（実際の初期化はonResumeで行う）
         adRepository = com.tinygc.asachiru.data.repository.AdRepository(applicationContext)
+        
+        // AdViewのサイズを設定（observeViewModelより前に実行）
+        setupAdView()
 
         // スマホ用フリック検出のGestureDetector初期化
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
@@ -420,7 +430,7 @@ class MainActivity : AppCompatActivity() {
 
         // AdMobの広告を破棄してからアプリを終了
         // (ClipboardServiceエラー回避のため)
-        binding.adView.destroy()
+        adView?.destroy()
         // バックグラウンドに移行したらアプリを終了
         // finishAndRemoveTask()を使用してタスクリストからも削除
         finishAndRemoveTask()
@@ -460,6 +470,47 @@ class MainActivity : AppCompatActivity() {
         if (!hasAudioPermission()) {
             ActivityCompat.requestPermissions(this, arrayOf(audioPermission), requestCodeAudio)
         }
+    }
+
+    /**
+     * AdViewを動的に作成（画面幅に合わせたアダプティブバナー）
+     * TVデバイスでは設定をスキップ
+     * 
+     * 注: AdMobのアダプティブバナーを使うためには、AdViewをXMLで定義せずプログラムで作成する必要がある
+     * （XMLでadSizeを設定するとsetAdSize()が一度しか呼べないため）
+     */
+    private fun setupAdView() {
+        if (DeviceUtils.isTV(applicationContext)) {
+            android.util.Log.d("AdView", "TV device detected, skipping AdView setup")
+            return
+        }
+
+        // 既に作成済みならスキップ
+        if (adView != null) return
+
+        // AdUnitId を文字列リソースから取得
+        val adUnitId = getString(R.string.admob_banner_ad_unit_id)
+
+        // 画面幅を取得（displayMetricsを使用）
+        val displayMetrics = resources.displayMetrics
+        val adWidthDp = (displayMetrics.widthPixels / displayMetrics.density).toInt()
+        
+        // アダプティブバナーサイズを取得
+        val adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, adWidthDp)
+        
+        // AdViewをプログラムで作成
+        adView = AdView(this).apply {
+            setAdSize(adSize)
+            this.adUnitId = adUnitId
+        }
+        
+        // FrameLayoutコンテナに追加
+        binding.adViewContainer.addView(adView, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        ))
+        
+        android.util.Log.d("AdView", "AdView created dynamically: width=${adWidthDp}dp, adSize=${adSize}, adUnitId=$adUnitId")
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -515,24 +566,26 @@ class MainActivity : AppCompatActivity() {
     private fun updateAdView(showAd: Boolean, adRemainingSeconds: Long = 0L) {
         // TVデバイスでは広告を表示しない（AdMob非対応のため）
         if (DeviceUtils.isTV(applicationContext)) {
-            binding.adView.visibility = android.view.View.GONE
+            binding.adViewContainer.visibility = android.view.View.GONE
             binding.adCountdownView.visibility = android.view.View.GONE
             return
         }
         
-        if (showAd && binding.adView.visibility != android.view.View.VISIBLE) {
+        val currentAdView = adView ?: return  // AdViewが未作成なら何もしない
+        
+        if (showAd && binding.adViewContainer.visibility != android.view.View.VISIBLE) {
             // AdMob初期化済みなら広告を表示
             if (isAdMobInitialized) {
-                binding.adView.visibility = android.view.View.VISIBLE
-                binding.adView.bringToFront() // 最前面に表示
-                adRepository.loadAd(binding.adView)
+                binding.adViewContainer.visibility = android.view.View.VISIBLE
+                binding.adViewContainer.bringToFront() // 最前面に表示
+                adRepository.loadAd(currentAdView)
                 android.util.Log.d("Ad", "広告表示を開始")
             } else {
                 android.util.Log.d("Ad", "AdMob未初期化のため広告スキップ")
             }
-        } else if (!showAd && binding.adView.visibility == android.view.View.VISIBLE) {
+        } else if (!showAd && binding.adViewContainer.visibility == android.view.View.VISIBLE) {
             // 広告非表示
-            binding.adView.visibility = android.view.View.GONE
+            binding.adViewContainer.visibility = android.view.View.GONE
             android.util.Log.d("Ad", "広告を非表示にしました")
         }
         

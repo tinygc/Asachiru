@@ -199,16 +199,14 @@
         app:layout_constraintTop_toBottomOf="@id/news_view"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 広告ビュー（画面下中央、初期は非表示） -->
-    <com.google.android.gms.ads.AdView
-        android:id="@+id/ad_view"
-        android:layout_width="728dp"
-        android:layout_height="90dp"
+    <!-- 広告ビューコンテナ（画面下中央、初期は非表示）動的にAdViewを追加 -->
+    <FrameLayout
+        android:id="@+id/ad_view_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="40dp"
         android:visibility="gone"
         android:elevation="10dp"
-        app:adSize="LEADERBOARD"
-        app:adUnitId="@string/admob_banner_ad_unit_id"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -231,7 +229,7 @@
         android:letterSpacing="0.02"
         android:elevation="12dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toTopOf="@id/ad_view"
+        app:layout_constraintBottom_toTopOf="@id/ad_view_container"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
