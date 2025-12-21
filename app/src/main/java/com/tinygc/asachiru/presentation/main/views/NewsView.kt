@@ -737,7 +737,8 @@ class NewsView @JvmOverloads constructor(
         val textLineSpacing = detailTextPaint.textSize * 1.3f // 本文行間: テキストサイズの130%
 
         // QRコードのサイズとパディングを定義（drawQRCodeと同じ値）
-        val qrSize = 200f.dp()
+        // スマホでは本文幅確保のため少し小さめに設定
+        val qrSize = (if (isPhone) 160f else 200f).dp()
         val qrPaddingValue = 50f.dp()
         val qrTotalWidth = qrSize + qrPaddingValue * 2  // QRコードが占有する幅
         
@@ -755,19 +756,20 @@ class NewsView @JvmOverloads constructor(
         val restrictedTextMaxWidth = width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
 
         // タイトル描画（行ごとに幅を動的に調整）
-        val titleWords = news.title.split("")
+        // split("") は空要素や結合文字の問題が出るため逐次文字で処理
+        val titleChars = news.title.toCharArray()
         var currentTitleLine = ""
-        titleWords.forEach { char ->
-            val testLine = currentTitleLine + char
+        titleChars.forEach { ch ->
+            val testLine = currentTitleLine + ch
             // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
+            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else kotlin.math.max(0f, restrictedTextMaxWidth)
             val lineWidth = detailTitlePaint.measureText(testLine)
             
             if (lineWidth > maxWidth && currentTitleLine.isNotEmpty()) {
                 // 現在の行を描画
                 canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
                 currentY += titleLineSpacing
-                currentTitleLine = char
+                currentTitleLine = ch.toString()
             } else {
                 currentTitleLine = testLine
             }
@@ -782,25 +784,36 @@ class NewsView @JvmOverloads constructor(
 
         // 概要描画（行ごとに幅を動的に調整）
         val description = news.description.ifBlank { news.title }
-        val descWords = description.split("")
+        val descChars = description.toCharArray()
         var currentDescLine = ""
-        descWords.forEach { char ->
-            val testLine = currentDescLine + char
+        var overflowEllipsisDrawn = false
+        descChars.forEach { ch ->
+            // 縦方向の収まりチェック（次行がカード下端を超える場合は打ち切り）
+            val bottomLimit = cardRect.bottom - 40f.dp() // 下端にマージン
+            if (!overflowEllipsisDrawn && currentY + textLineSpacing > bottomLimit) {
+                // 省略記号で締める
+                val ellipsis = "…"
+                canvas.drawText(ellipsis, startX, currentY, detailTextPaint)
+                overflowEllipsisDrawn = true
+                return@forEach
+            }
+
+            val testLine = currentDescLine + ch
             // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
+            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else kotlin.math.max(0f, restrictedTextMaxWidth)
             val lineWidth = detailTextPaint.measureText(testLine)
             
             if (lineWidth > maxWidth && currentDescLine.isNotEmpty()) {
                 // 現在の行を描画
                 canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
                 currentY += textLineSpacing
-                currentDescLine = char
+                currentDescLine = ch.toString()
             } else {
                 currentDescLine = testLine
             }
         }
         // 最後の行を描画
-        if (currentDescLine.isNotEmpty()) {
+        if (!overflowEllipsisDrawn && currentDescLine.isNotEmpty()) {
             canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
             currentY += textLineSpacing
         }
