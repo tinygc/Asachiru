@@ -97,7 +97,7 @@
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:hint="例: 1000001"
-        android:inputType="phone"
+        android:inputType="number"
         android:imeOptions="actionDone"
         android:maxLength="7"
         android:padding="12dp"
