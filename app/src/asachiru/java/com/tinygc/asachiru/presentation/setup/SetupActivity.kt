@@ -118,7 +118,6 @@ class SetupActivity : AppCompatActivity() {
                 if (selected == RssPresets.CUSTOM_URL) {
                     binding.rssCustomUrlEditText.visibility = View.VISIBLE
                     viewModel.updateRssPreset(selected)
-                    viewModel.updateRssUrl("") // カスタムURLは空から始める
                     // フォーカス移動は少し遅延させる
                     binding.rssCustomUrlEditText.postDelayed({
                         binding.rssCustomUrlEditText.requestFocus()
