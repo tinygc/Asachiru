@@ -8,5 +8,19 @@
         tools:node="remove" />
     
     <application
-        android:name=".FeedWatchApplication" />
+        android:name=".FeedWatchApplication">
+        <activity
+            android:name=".presentation.splash.SplashActivity"
+            android:resizeableActivity="true"
+            tools:targetApi="24" />
+        <activity
+            android:name=".presentation.setup.SetupActivity"
+            android:resizeableActivity="true"
+            tools:targetApi="24" />
+        <activity
+            android:name=".presentation.main.MainActivity"
+            android:resizeableActivity="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
+            tools:targetApi="24" />
+    </application>
 </manifest>

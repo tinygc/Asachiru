@@ -10,6 +10,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.tinygc.asachiru.R
 import com.tinygc.asachiru.domain.entity.DateTime
 
 /**
@@ -76,6 +77,15 @@ class ClockView @JvmOverloads constructor(
         typeface = Typeface.MONOSPACE
         letterSpacing = 0.02f // Material Design 3準拠（視認性向上）
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
+    }
+
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        // リソースから比率を取得してテキストサイズを計算
+        val timeRatio = resources.getFraction(R.fraction.clock_time_text_ratio, 1, 1)
+        val dateRatio = resources.getFraction(R.fraction.clock_date_text_ratio, 1, 1)
+        timePaint.textSize = h * timeRatio
+        datePaint.textSize = h * dateRatio
     }
 
     /**

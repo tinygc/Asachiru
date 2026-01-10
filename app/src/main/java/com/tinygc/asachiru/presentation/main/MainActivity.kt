@@ -1,5 +1,6 @@
 package com.tinygc.asachiru.presentation.main
 
+import android.app.UiModeManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -8,7 +9,12 @@ import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.FrameLayout
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
+import android.content.res.Configuration
 import com.tinygc.asachiru.presentation.setup.SetupActivity
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -23,6 +29,8 @@ import com.tinygc.asachiru.R
 import com.tinygc.asachiru.databinding.ActivityMainBinding
 import com.tinygc.asachiru.domain.util.DeviceUtils
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -59,12 +67,47 @@ class MainActivity : AppCompatActivity() {
     
     // 動的に作成するAdView（アダプティブバナー対応）
     private var adView: AdView? = null
+    private val constraintSetPortrait = ConstraintSet()
+    private val constraintSetLandscape = ConstraintSet()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!isTelevision()) {
+            enableEdgeToEdge()
+        }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // 事前に両方のレイアウトからConstraintSetを読み込む（動的切り替え用）
+        try {
+            constraintSetPortrait.clone(this, R.layout.activity_main)
+        } catch (_: Exception) {}
+        try {
+            constraintSetLandscape.clone(this, R.layout.activity_main)
+        } catch (_: Exception) {}
+
+        applyConstraintsForCurrentOrientation()
+
+        if (!isTelevision()) {
+            // Edge-to-edge: 上端のビュー（時計）、下端のビュー（広告・設定ボタン）にinsetsを適用
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // 時計ビューに上部insetを適用
+                binding.clockView.updatePadding(
+                    top = binding.clockView.paddingTop + systemBars.top
+                )
+                // 広告コンテナに下部insetを適用
+                binding.adViewContainer.updatePadding(
+                    bottom = binding.adViewContainer.paddingBottom + systemBars.bottom
+                )
+                // 設定ボタンに下部insetを適用（ナビゲーションバー対応）
+                binding.settingsButton.updatePadding(
+                    bottom = binding.settingsButton.paddingBottom + systemBars.bottom
+                )
+                WindowInsetsCompat.CONSUMED
+            }
+        }
 
         // 画面を常にオンに保つ（アンビエントモード防止）
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -146,7 +189,7 @@ class MainActivity : AppCompatActivity() {
         if (DeviceUtils.isPhone(applicationContext)) {
             // スマホ: 設定ボタンを表示（キー操作ヒントは非表示）
             binding.settingsButton.visibility = android.view.View.VISIBLE
-            binding.keyHintView.visibility = android.view.View.GONE
+            binding.keyHintView?.visibility = android.view.View.GONE
             // スマホではfocusableInTouchModeを無効化（1タップで即反応させる）
             binding.settingsButton.isFocusableInTouchMode = false
             binding.settingsButton.setOnClickListener {
@@ -155,7 +198,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             // TV: キー操作ヒントを表示し、設定ボタンは非表示
             binding.settingsButton.visibility = android.view.View.GONE
-            binding.keyHintView.visibility = android.view.View.VISIBLE
+            binding.keyHintView?.visibility = android.view.View.VISIBLE
         }
 
         observeViewModel()
@@ -164,6 +207,31 @@ class MainActivity : AppCompatActivity() {
         if (BuildConfig.FLAVOR == "asachiru") {
             checkAudioPermission()
         }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // 回転時にレイアウトを再適用（180度回転含む）
+        applyConstraintsForCurrentOrientation()
+        // CustomViewを強制的に再描画して、サイズ変更を反映
+        binding.clockView.requestLayout()
+        binding.weatherView.requestLayout()
+        binding.newsView.requestLayout()
+    }
+
+    private fun applyConstraintsForCurrentOrientation() {
+        val root = binding.root as? ConstraintLayout ?: return
+        // 現在のorientationに応じてactivity_mainの適切なバリアントを読み直して適用
+        val cs = ConstraintSet()
+        cs.clone(this, R.layout.activity_main)
+        cs.applyTo(root)
+        // レイアウト変更後、全体を再描画
+        root.requestLayout()
+    }
+
+    private fun isTelevision(): Boolean {
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
 
     /**
@@ -202,12 +270,12 @@ class MainActivity : AppCompatActivity() {
                         binding.newsView.setProgress(state.newsProgressPercent)
                         
                         // 新着待ちアナウンスの表示制御（左下のテキスト）
-                        binding.waitingAnnouncementView.visibility = 
+                        binding.waitingAnnouncementView?.visibility = 
                             if (state.showWaitingAnnouncement) android.view.View.VISIBLE else android.view.View.GONE
                         
                         // 「次へ」ラベルの表示制御（TTS OFF かつ進行中のみ表示）
                         val showNextLabel = !state.enableTts && state.newsProgressPercent > 0f
-                        binding.progressNextLabel.visibility = if (showNextLabel) android.view.View.VISIBLE else android.view.View.GONE
+                        binding.progressNextLabel?.visibility = if (showNextLabel) android.view.View.VISIBLE else android.view.View.GONE
                         
                         // 詳細表示時はNewsViewを全画面表示にする
                         updateNewsViewLayout(state.showNewsDetail)
@@ -540,12 +608,12 @@ class MainActivity : AppCompatActivity() {
     private fun updateDebugInfo(state: MainUiState) {
         if (!BuildConfig.DEBUG) {
             binding.debugInfoView.visibility = android.view.View.GONE
-            binding.newsDebugView.visibility = android.view.View.GONE
+            binding.newsDebugView?.visibility = android.view.View.GONE
             return
         }
 
         binding.debugInfoView.visibility = android.view.View.VISIBLE
-        binding.newsDebugView.visibility = android.view.View.VISIBLE
+        binding.newsDebugView?.visibility = android.view.View.VISIBLE
         
         // TTS ON/OFF状態と次のニュースまでの残り秒数、広告表示状態を表示
         val ttsStatus = if (state.enableTts) "ON" else "OFF"
@@ -554,7 +622,7 @@ class MainActivity : AppCompatActivity() {
         binding.debugInfoView.text = "[DEBUG] TTS: $ttsStatus | 次の記事まで: ${remainingSeconds}秒 | $adStatus"
         
         // NewsDebugViewを更新（RSS取得時刻と記事リスト）
-        binding.newsDebugView.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
+        binding.newsDebugView?.updateDebugInfo(state.debugNewsList, state.debugLastFetchTime)
     }
 
     /**

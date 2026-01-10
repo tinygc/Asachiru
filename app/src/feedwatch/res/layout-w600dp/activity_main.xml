@@ -66,154 +66,167 @@
         tools:text="[DEBUG] TTS: ON"
         tools:visibility="visible" />
 
-    <!-- 時計（上部） -->
+    <!-- ニュースデバッグビュー（DEBUG BUILD時のみ表示） -->
+    <com.tinygc.asachiru.presentation.main.views.NewsDebugView
+        android:id="@+id/news_debug_view"
+        android:layout_width="400dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/debug_info_view"
+        tools:visibility="visible" />
+
+    <!-- 時計（左上） -->
     <com.tinygc.asachiru.presentation.main.views.ClockView
         android:id="@+id/clock_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="320dp"
+        android:layout_height="160dp"
         android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintHeight_percent="0.13"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/weather_view"
-        app:layout_constraintVertical_chainStyle="packed"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 天気（中央） -->
+    <!-- 天気（右上） -->
     <com.tinygc.asachiru.presentation.main.views.WeatherView
         android:id="@+id/weather_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
+        android:layout_width="320dp"
+        android:layout_height="160dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintHeight_percent="0.22"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/clock_view"
-        app:layout_constraintBottom_toTopOf="@id/music_track_view" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 音楽トラック名（天気の下に控えめ表示） -->
+    <!-- 音楽トラック名（右上・天気の下に控えめ表示） -->
     <com.tinygc.asachiru.presentation.main.views.MusicTrackView
         android:id="@+id/music_track_view"
-        android:layout_width="0dp"
+        android:layout_width="280dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/weather_view"
-        app:layout_constraintBottom_toTopOf="@id/news_view" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- ニュース（下部） -->
+    <!-- ニュース（左下）- FeedWatch: 2行表示のため高さを拡張 -->
     <com.tinygc.asachiru.presentation.main.views.NewsView
         android:id="@+id/news_view"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="130dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintHeight_percent="0.26"
+        android:layout_marginBottom="70dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/music_track_view"
-        app:layout_constraintBottom_toTopOf="@id/settings_button" />
+        app:layout_constraintStart_toStartOf="parent" />
 
     <!-- 上三角（前の記事） -->
     <ImageView
         android:id="@+id/arrow_up"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:src="@drawable/ic_triangle_up"
         android:scaleType="center"
-        android:scaleY="1.2"
+        android:scaleY="1.5"
         android:alpha="0.5"
         android:layout_marginBottom="-16dp"
         app:layout_constraintBottom_toTopOf="@id/news_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- 「次へ →」ラベル（プログレスバーの右端、NewsViewの上部右側） -->
+    <TextView
+        android:id="@+id/progress_next_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="次へ →"
+        android:textSize="10sp"
+        android:textColor="@android:color/white"
+        android:alpha="0.6"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="2dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/news_view"
+        app:layout_constraintEnd_toEndOf="@id/news_view" />
 
     <!-- 下三角（次の記事） -->
     <ImageView
         android:id="@+id/arrow_down"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
         android:src="@drawable/ic_triangle_down"
         android:scaleType="center"
-        android:scaleY="1.2"
+        android:scaleY="1.5"
         android:alpha="0.5"
         android:layout_marginTop="-16dp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/news_view"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/news_view" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 新着待ちアナウンス -->
-    <TextView
-        android:id="@+id/waiting_announcement_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="📰 新着記事があれば、またお届けします…"
-        android:textColor="#AAFFFFFF"
-        android:textSize="11sp"
-        android:letterSpacing="0.02"
-        android:textAlignment="center"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/arrow_down"
-        tools:visibility="visible" />
-
-    <!-- キー操作ヒント（非表示・後方互換性） -->
+    <!-- キー操作ヒント（記事タイトル下に薄く表示・TVのみ） -->
     <TextView
         android:id="@+id/key_hint_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="16dp"
+        android:text="🎮 決定キー長押しで設定"
+        android:textColor="#CCFFFFFF"
+        android:textSize="12sp"
+        android:letterSpacing="0.02"
+        android:textAlignment="center"
         android:visibility="gone"
-        tools:visibility="gone" />
+        app:layout_constraintTop_toBottomOf="@id/news_view"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- 「次へ →」ラベル（非表示・後方互換性） -->
+    <!-- 新着待ちアナウンス（左下に薄く表示） -->
     <TextView
-        android:id="@+id/progress_next_label"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:id="@+id/waiting_announcement_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="16dp"
+        android:text="📰 新着記事があれば、またお届けします…"
+        android:textColor="#AAFFFFFF"
+        android:textSize="12sp"
+        android:letterSpacing="0.02"
+        android:textAlignment="center"
         android:visibility="gone"
-        tools:visibility="gone" />
+        app:layout_constraintTop_toBottomOf="@id/news_view"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- 広告ビューコンテナ（画面下部） -->
+    <!-- 広告ビューコンテナ（画面下中央、初期は非表示）動的にAdViewを追加 -->
     <FrameLayout
         android:id="@+id/ad_view_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="40dp"
         android:visibility="gone"
         android:elevation="10dp"
-        app:layout_constraintBottom_toTopOf="@id/settings_button"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <!-- 広告カウントダウン表示 -->
+    <!-- 広告カウントダウン表示（広告の上に表示） -->
     <TextView
         android:id="@+id/ad_countdown_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
+        android:layout_marginBottom="8dp"
         android:background="@drawable/rounded_button_bg"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:paddingTop="4dp"
-        android:paddingBottom="4dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
         android:text="広告終了まで 10秒"
         android:textColor="#FFFFFF"
-        android:textSize="12sp"
-        android:letterSpacing="0.01"
+        android:textSize="14sp"
+        android:letterSpacing="0.02"
         android:elevation="12dp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/ad_view_container"
@@ -221,16 +234,16 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <!-- 設定ボタン（画面下部中央） -->
+    <!-- 設定ボタン（画面右下） -->
     <Button
         android:id="@+id/settings_button"
         android:layout_width="wrap_content"
         android:layout_height="48dp"
-        android:minHeight="48dp"
+        android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="⚙️ 設定"
         android:textColor="#FFFFFF"
-        android:textSize="13sp"
+        android:textSize="14sp"
         android:letterSpacing="0.05"
         android:background="@drawable/rounded_button_bg"
         android:paddingStart="24dp"
@@ -239,7 +252,6 @@
         android:focusableInTouchMode="true"
         android:elevation="4dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

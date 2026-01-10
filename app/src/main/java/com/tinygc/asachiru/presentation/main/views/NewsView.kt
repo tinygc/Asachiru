@@ -427,12 +427,19 @@ class NewsView @JvmOverloads constructor(
 
         val availableWidth = width - (paddingHorizontal * 2)
 
+        // 縦画面かどうかを判定
+        val isPortrait = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+
         if (isAsachiru()) {
             // Asachiru: 1行表示（従来通り）
             drawNewsTitleSingleLine(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
         } else {
-            // FeedWatch: 2行表示
-            drawNewsTitleTwoLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
+            // FeedWatch: 縦画面は5行、横画面は2行
+            if (isPortrait) {
+                drawNewsTitleFiveLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
+            } else {
+                drawNewsTitleTwoLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
+            }
         }
     }
 
@@ -511,6 +518,111 @@ class NewsView @JvmOverloads constructor(
         canvas.drawText(line1, paddingHorizontal, titleLine1Y, textPaint)
         // 2行目を描画（空でも常に描画位置は確保済み）
         canvas.drawText(line2, paddingHorizontal, titleLine2Y, textPaint)
+    }
+
+    /**
+     * 5行表示（FeedWatch縦画面用）
+     */
+    private fun drawNewsTitleFiveLines(
+        canvas: Canvas,
+        news: News,
+        timeText: String,
+        paddingHorizontal: Float,
+        lineSpacing: Float,
+        availableWidth: Float
+    ) {
+        val titleLineSpacing = textPaint.textSize * 0.3f // タイトル行間
+
+        // 全体の高さを計算（時刻 + タイトル5行）
+        val totalTextHeight = timePaint.textSize + lineSpacing + (textPaint.textSize * 5) + (titleLineSpacing * 4)
+
+        // 垂直方向の中央位置を計算
+        val centerY = height / 2f
+
+        // 時刻のY位置（中央から上にオフセット）
+        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+
+        // タイトル各行のY位置
+        val titleLine1Y = timeY + lineSpacing + textPaint.textSize
+        val titleLine2Y = titleLine1Y + textPaint.textSize + titleLineSpacing
+        val titleLine3Y = titleLine2Y + textPaint.textSize + titleLineSpacing
+        val titleLine4Y = titleLine3Y + textPaint.textSize + titleLineSpacing
+        val titleLine5Y = titleLine4Y + textPaint.textSize + titleLineSpacing
+
+        // 時刻を描画（省略表示）
+        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
+
+        // タイトルを5行に分割して描画
+        textPaint.color = Color.WHITE
+        val fullTitleText = "📰 ${news.title}"
+        val lines = splitTextIntoMultipleLines(fullTitleText, textPaint, availableWidth, 5)
+        
+        canvas.drawText(lines.getOrElse(0) { "" }, paddingHorizontal, titleLine1Y, textPaint)
+        canvas.drawText(lines.getOrElse(1) { "" }, paddingHorizontal, titleLine2Y, textPaint)
+        canvas.drawText(lines.getOrElse(2) { "" }, paddingHorizontal, titleLine3Y, textPaint)
+        canvas.drawText(lines.getOrElse(3) { "" }, paddingHorizontal, titleLine4Y, textPaint)
+        canvas.drawText(lines.getOrElse(4) { "" }, paddingHorizontal, titleLine5Y, textPaint)
+    }
+
+    /**
+     * テキストを指定行数に分割する
+     */
+    private fun splitTextIntoMultipleLines(text: String, paint: Paint, maxWidth: Float, maxLines: Int): List<String> {
+        val result = mutableListOf<String>()
+        var remaining = text
+
+        for (i in 0 until maxLines) {
+            if (remaining.isEmpty()) {
+                break
+            }
+
+            val (line, rest) = if (i == maxLines - 1) {
+                // 最終行は省略表示
+                Pair(ellipsizeText(remaining, paint, maxWidth), "")
+            } else {
+                splitLineAtBreakPoint(remaining, paint, maxWidth)
+            }
+
+            result.add(line)
+            remaining = rest
+        }
+
+        return result
+    }
+
+    /**
+     * テキストを1行分に分割する補助メソッド
+     */
+    private fun splitLineAtBreakPoint(text: String, paint: Paint, maxWidth: Float): Pair<String, String> {
+        if (paint.measureText(text) <= maxWidth) {
+            return Pair(text, "")
+        }
+
+        // 最大文字数を探す
+        var endIndex = text.length
+        for (i in text.indices) {
+            val subText = text.substring(0, i + 1)
+            if (paint.measureText(subText) > maxWidth) {
+                endIndex = i
+                break
+            }
+        }
+
+        // 単語の途中で切れないように調整
+        val breakChars = listOf(' ', '　', '、', '。', '・', '/', ':', '：', '）', '」', '』', '】')
+        var adjustedEndIndex = endIndex
+        for (i in (endIndex - 1) downTo maxOf(0, endIndex - 10)) {
+            if (i < text.length && text[i] in breakChars) {
+                adjustedEndIndex = i + 1
+                break
+            }
+        }
+
+        val line = text.substring(0, adjustedEndIndex).trim()
+        val remaining = text.substring(adjustedEndIndex).trim()
+
+        return Pair(line, remaining)
     }
 
     /**

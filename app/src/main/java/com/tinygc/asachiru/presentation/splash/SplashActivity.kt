@@ -1,8 +1,15 @@
 package com.tinygc.asachiru.presentation.splash
 
+import android.app.UiModeManager
 import android.content.Intent
+import android.content.pm.ConfigurationInfo
+import android.content.res.Configuration
 import android.os.Bundle
+import android.view.View
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.tinygc.asachiru.R
@@ -26,7 +33,22 @@ class SplashActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Edge-to-edge（TVは除外）
+        if (!isTelevision()) {
+            enableEdgeToEdge()
+        }
+
         setContentView(R.layout.activity_splash)
+
+        if (!isTelevision()) {
+            val content: View = findViewById(android.R.id.content)
+            ViewCompat.setOnApplyWindowInsetsListener(content) { v, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // 上下のinsetsのみ適用（左右はゼロ）
+                v.setPadding(0, bars.top, 0, bars.bottom)
+                WindowInsetsCompat.CONSUMED
+            }
+        }
 
         // ViewModelFactoryを使用してViewModelを生成
         val factory = ViewModelFactory(this)
@@ -67,5 +89,10 @@ class SplashActivity : AppCompatActivity() {
         val intent = Intent(this, SetupActivity::class.java)
         startActivity(intent)
         finish()
+    }
+
+    private fun isTelevision(): Boolean {
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
 }

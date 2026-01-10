@@ -49,7 +49,6 @@
         <activity
             android:name=".presentation.splash.SplashActivity"
             android:exported="true"
-            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -62,14 +61,12 @@
         <activity
             android:name=".presentation.setup.SetupActivity"
             android:exported="false"
-            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback" />
 
         <!-- Main Activity -->
         <activity
             android:name=".presentation.main.MainActivity"
             android:exported="false"
-            android:screenOrientation="landscape"
             android:theme="@style/Theme.Leanback" />
 
     </application>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ClockView のテキストサイズ比率 -->
+    <fraction name="clock_time_text_ratio">30%</fraction>
+    <fraction name="clock_date_text_ratio">13%</fraction>
+
+    <!-- WeatherView のテキストサイズ比率 -->
+    <fraction name="weather_icon_text_ratio">25%</fraction>
+    <fraction name="weather_text_ratio">9%</fraction>
+    <fraction name="weather_date_label_ratio">10%</fraction>
+
+    <!-- NewsView のテキストサイズ比率 -->
+    <fraction name="news_text_ratio">15%</fraction>
+    <fraction name="news_time_ratio">12%</fraction>
+    <fraction name="news_tts_status_ratio">10%</fraction>
+    <fraction name="news_tts_arrow_ratio">8%</fraction>
+</resources>

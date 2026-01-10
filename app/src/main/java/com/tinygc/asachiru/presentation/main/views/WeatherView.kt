@@ -9,6 +9,7 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import com.tinygc.asachiru.R
 import com.tinygc.asachiru.domain.entity.Weather
 import com.tinygc.asachiru.domain.entity.WeatherCondition
 
@@ -80,6 +81,18 @@ class WeatherView @JvmOverloads constructor(
         setShadowLayer(6f, 2f, 2f, Color.argb(180, 0, 0, 0)) // 影を追加（視認性向上）
     }
 
+    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+        super.onSizeChanged(w, h, oldw, oldh)
+        // リソースから比率を取得してテキストサイズを計算
+        val iconRatio = resources.getFraction(R.fraction.weather_icon_text_ratio, 1, 1)
+        val textRatio = resources.getFraction(R.fraction.weather_text_ratio, 1, 1)
+        val dateLabelRatio = resources.getFraction(R.fraction.weather_date_label_ratio, 1, 1)
+        iconPaint.textSize = h * iconRatio
+        textPaint.textSize = h * textRatio
+        errorPaint.textSize = h * textRatio
+        dateLabelPaint.textSize = h * dateLabelRatio
+    }
+
     private val dateLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 24f, context.resources.displayMetrics) // 14sp → 24sp（大きく）
         color = Color.WHITE // デフォルトは白（後で動的に変更）
@@ -145,9 +158,9 @@ class WeatherView @JvmOverloads constructor(
      * Material Design 3 + Neumorphism背景を描画
      */
     private fun drawGlassmorphismBackground(canvas: Canvas) {
-        val padding = 24f
-        val cornerRadius = 48f
-        val shadowOffset = 8f
+        val padding = 24f // ClockViewと統一
+        val cornerRadius = 48f // ClockViewと統一（Material Design 3風）
+        val shadowOffset = height * 0.04f // 高さの4%を影オフセットに
 
         // 外側の影
         shadowRect.set(
@@ -210,8 +223,8 @@ class WeatherView @JvmOverloads constructor(
      * 「今日」は黄色で強調、「明日」は白で表示
      */
     private fun drawDateLabel(canvas: Canvas, weather: Weather) {
-        // マージンを追加して少し内側に配置（64dp）
-        val paddingHorizontal = 64f
+        // マージンを高さに応じて調整
+        val paddingHorizontal = height * 0.12f // 高さの12%
         val y = height * 0.22f // Viewの高さの22%位置（少し下に）
 
         // 「今日」は黄色、「明日」は白で色分け
@@ -233,13 +246,14 @@ class WeatherView @JvmOverloads constructor(
         // iconTextをそのまま使用（例：「☀のち☁」）
         val icon = weather.iconText
 
-        // 8dpグリッド準拠のパディング（48dp = 48f）
-        val paddingHorizontal = 48f
+        // パディングを高さに応じて調整
+        val paddingHorizontal = height * 0.10f // 高さの10%
         val y = height * 0.5f // Viewの高さの50%位置（中央）
 
         // アイコンが使用できる最大幅
-        // 画面中央まで使用可能、右側にマージン（32f = 4 × 8dp）を確保
-        val maxIconWidth = (width / 2) - paddingHorizontal - 32f
+        // 画面中央まで使用可能、右側にマージンを確保
+        val marginRight = height * 0.08f // 高さの8%をマージンに
+        val maxIconWidth = (width / 2) - paddingHorizontal - marginRight
         val iconWidth = iconPaint.measureText(icon)
 
         // アイコンが最大幅を超える場合はスケーリング

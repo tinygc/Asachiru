@@ -1,7 +1,9 @@
 package com.tinygc.asachiru.presentation.setup
 
+import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -11,7 +13,10 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import com.tinygc.asachiru.R
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
@@ -38,15 +43,32 @@ class SetupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!isTelevision()) {
+            enableEdgeToEdge()
+        }
 
         binding = ActivitySetupBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        if (!isTelevision()) {
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+                val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // 上下のinsetsのみ適用（左右はゼロで圧迫感を軽減）
+                v.setPadding(0, bars.top, 0, bars.bottom)
+                WindowInsetsCompat.CONSUMED
+            }
+        }
 
         // ViewModelFactoryを使用してViewModelを生成
         viewModel = ViewModelProvider(this, ViewModelFactory(applicationContext))[SetupViewModel::class.java]
 
         setupViews()
         observeViewModel()
+    }
+
+    private fun isTelevision(): Boolean {
+        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
+        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
     }
 
     /**
