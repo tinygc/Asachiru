@@ -476,6 +476,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 念のため回転や画面復帰後にもボタン属性を復元
+        restoreSettingsButtonAttributes()
         viewModel.onResume()
     }
     
