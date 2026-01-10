@@ -195,6 +195,8 @@ class MainActivity : AppCompatActivity() {
             binding.settingsButton.setOnClickListener {
                 navigateToSetup()
             }
+            // 設定ボタンの属性を初期化
+            restoreSettingsButtonAttributes()
         } else {
             // TV: キー操作ヒントを表示し、設定ボタンは非表示
             binding.settingsButton.visibility = android.view.View.GONE
@@ -213,6 +215,8 @@ class MainActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         // 回転時にレイアウトを再適用（180度回転含む）
         applyConstraintsForCurrentOrientation()
+        // 設定ボタンのテキスト属性を復元（ConstraintSet適用時にリセットされることがあるため）
+        restoreSettingsButtonAttributes()
         // CustomViewを強制的に再描画して、サイズ変更を反映
         binding.clockView.requestLayout()
         binding.weatherView.requestLayout()
@@ -228,6 +232,19 @@ class MainActivity : AppCompatActivity() {
         cs.applyTo(root)
         // レイアウト変更後、全体を再描画
         root.requestLayout()
+    }
+
+    /**
+     * 設定ボタンの属性を復元
+     * ConstraintSet適用時にテキストサイズなどの属性がリセットされることがあるため
+     */
+    private fun restoreSettingsButtonAttributes() {
+        binding.settingsButton.apply {
+            text = "⚙️ 設定"
+            setTextColor(0xFFFFFFFF.toInt())
+            textSize = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 12f else 14f
+            letterSpacing = 0.05f
+        }
     }
 
     private fun isTelevision(): Boolean {
