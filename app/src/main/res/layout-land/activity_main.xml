@@ -243,7 +243,7 @@
         android:layout_height="40dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
-        android:text="⚙️ 設定"
+        android:text="設定"
         android:textColor="#FFFFFF"
         android:textSize="12sp"
         android:letterSpacing="0.05"

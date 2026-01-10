@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun restoreSettingsButtonAttributes() {
         binding.settingsButton.apply {
-            text = "⚙️ 設定"
+            text = "設定"
             setTextColor(0xFFFFFFFF.toInt())
             textSize = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 12f else 14f
             letterSpacing = 0.05f

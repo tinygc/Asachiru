@@ -228,7 +228,7 @@
         android:layout_height="48dp"
         android:minHeight="48dp"
         android:layout_marginBottom="16dp"
-        android:text="⚙️ 設定"
+        android:text="設定"
         android:textColor="#FFFFFF"
         android:textSize="13sp"
         android:letterSpacing="0.05"
