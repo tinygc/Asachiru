@@ -221,7 +221,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyConstraintsForCurrentOrientation() {
         val root = binding.root as? ConstraintLayout ?: return
-        // 現在のorientationに応じてactivity_mainの適切なバリアントを読み直して適用
+        // 現在のorientationに応じてactivity_mainのConstraintSetを読み込む
+        // Androidは自動的にlayout/またはlayout-land/から適切なファイルを選択する
         val cs = ConstraintSet()
         cs.clone(this, R.layout.activity_main)
         cs.applyTo(root)
