@@ -195,8 +195,6 @@ class MainActivity : AppCompatActivity() {
             binding.settingsButton.setOnClickListener {
                 navigateToSetup()
             }
-            // 設定ボタンの属性を初期化
-            restoreSettingsButtonAttributes()
         } else {
             // TV: キー操作ヒントを表示し、設定ボタンは非表示
             binding.settingsButton.visibility = android.view.View.GONE
@@ -213,10 +211,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // 回転時にレイアウトを再適用（180度回転含む）
+        // 回転時にレイアウトを再計算
         applyConstraintsForCurrentOrientation()
-        // 設定ボタンのテキスト属性を復元（ConstraintSet適用時にリセットされることがあるため）
-        restoreSettingsButtonAttributes()
         // CustomViewを強制的に再描画して、サイズ変更を反映
         binding.clockView.requestLayout()
         binding.weatherView.requestLayout()
@@ -225,26 +221,10 @@ class MainActivity : AppCompatActivity() {
 
     private fun applyConstraintsForCurrentOrientation() {
         val root = binding.root as? ConstraintLayout ?: return
-        // 現在のorientationに応じてactivity_mainのConstraintSetを読み込む
+        // ConstraintSetの適用は避け、単にレイアウトの再計算を促す
         // Androidは自動的にlayout/またはlayout-land/から適切なファイルを選択する
-        val cs = ConstraintSet()
-        cs.clone(this, R.layout.activity_main)
-        cs.applyTo(root)
-        // レイアウト変更後、全体を再描画
+        // ConstraintSet.clone/applyは制約のみで属性(text等)を失うため使用しない
         root.requestLayout()
-    }
-
-    /**
-     * 設定ボタンの属性を復元
-     * ConstraintSet適用時にテキストサイズなどの属性がリセットされることがあるため
-     */
-    private fun restoreSettingsButtonAttributes() {
-        binding.settingsButton.apply {
-            text = "設定"
-            setTextColor(0xFFFFFFFF.toInt())
-            textSize = if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) 12f else 14f
-            letterSpacing = 0.05f
-        }
     }
 
     private fun isTelevision(): Boolean {
@@ -476,8 +456,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // 念のため回転や画面復帰後にもボタン属性を復元
-        restoreSettingsButtonAttributes()
         viewModel.onResume()
     }
     
