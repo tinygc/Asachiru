@@ -57,7 +57,6 @@ class MainActivity : AppCompatActivity() {
     
     // NewsViewの元のレイアウトパラメータを保存（詳細表示から戻る時にXMLの設定を復元するため）
     private var originalNewsViewLayoutParams: androidx.constraintlayout.widget.ConstraintLayout.LayoutParams? = null
-
     // スマホでのフリック検出用GestureDetector
     private lateinit var gestureDetector: GestureDetector
     
@@ -67,8 +66,6 @@ class MainActivity : AppCompatActivity() {
     
     // 動的に作成するAdView（アダプティブバナー対応）
     private var adView: AdView? = null
-    private val constraintSetPortrait = ConstraintSet()
-    private val constraintSetLandscape = ConstraintSet()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -79,38 +76,9 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 事前に両方のレイアウトからConstraintSetを読み込む（動的切り替え用）
-        try {
-            constraintSetPortrait.clone(this, R.layout.activity_main)
-        } catch (_: Exception) {}
-        try {
-            constraintSetLandscape.clone(this, R.layout.activity_main)
-        } catch (_: Exception) {}
-
-        applyConstraintsForCurrentOrientation()
-
-        if (!isTelevision()) {
-            // Edge-to-edge: 上端のビュー（時計）、下端のビュー（広告・設定ボタン）にinsetsを適用
-            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                // 時計ビューに上部insetを適用
-                binding.clockView.updatePadding(
-                    top = binding.clockView.paddingTop + systemBars.top
-                )
-                // 広告コンテナに下部insetを適用
-                binding.adViewContainer.updatePadding(
-                    bottom = binding.adViewContainer.paddingBottom + systemBars.bottom
-                )
-                // 設定ボタンに下部insetを適用（ナビゲーションバー対応）
-                binding.settingsButton.updatePadding(
-                    bottom = binding.settingsButton.paddingBottom + systemBars.bottom
-                )
-                WindowInsetsCompat.CONSUMED
-            }
-        }
-
-        // 画面を常にオンに保つ（アンビエントモード防止）
-        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        // Edge-to-edge設定とイベントリスナー
+        applyEdgeToEdgeAndWindowInsets()
+        setupEventListeners()
 
         // ViewModelFactoryを生成して保持
         viewModelFactory = ViewModelFactory(applicationContext)
@@ -123,6 +91,18 @@ class MainActivity : AppCompatActivity() {
         // AdViewのサイズを設定（observeViewModelより前に実行）
         setupAdView()
 
+        observeViewModel()
+        // Asachiru: 音声ビジュアライザー用に音声録音権限が必要
+        // FeedWatch: ビジュアライザーがないため不要
+        if (BuildConfig.FLAVOR == "asachiru") {
+            checkAudioPermission()
+        }
+    }
+
+    /**
+     * イベントリスナーを設定
+     */
+    private fun setupEventListeners() {
         // スマホ用フリック検出のGestureDetector初期化
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onFling(
@@ -200,31 +180,51 @@ class MainActivity : AppCompatActivity() {
             binding.settingsButton.visibility = android.view.View.GONE
             binding.keyHintView?.visibility = android.view.View.VISIBLE
         }
-
-        observeViewModel()
-        // Asachiru: 音声ビジュアライザー用に音声録音権限が必要
-        // FeedWatch: ビジュアライザーがないため不要
-        if (BuildConfig.FLAVOR == "asachiru") {
-            checkAudioPermission()
-        }
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        // 回転時にレイアウトを再計算
-        applyConstraintsForCurrentOrientation()
+        // 回転時に新しいレイアウトをインフレートして適用
+        // Androidは自動的にlayout/またはlayout-land/を選択する
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        
+        // レイアウト設定を再初期化
+        applyEdgeToEdgeAndWindowInsets()
+        setupEventListeners()
+        
         // CustomViewを強制的に再描画して、サイズ変更を反映
         binding.clockView.requestLayout()
         binding.weatherView.requestLayout()
         binding.newsView.requestLayout()
     }
 
-    private fun applyConstraintsForCurrentOrientation() {
-        val root = binding.root as? ConstraintLayout ?: return
-        // ConstraintSetの適用は避け、単にレイアウトの再計算を促す
-        // Androidは自動的にlayout/またはlayout-land/から適切なファイルを選択する
-        // ConstraintSet.clone/applyは制約のみで属性(text等)を失うため使用しない
-        root.requestLayout()
+    /**
+     * Edge-to-edgeとWindowInsetsを設定
+     */
+    private fun applyEdgeToEdgeAndWindowInsets() {
+        if (!isTelevision()) {
+            // Edge-to-edge: 上端のビュー（時計）、下端のビュー（広告・設定ボタン）にinsetsを適用
+            ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                // 時計ビューに上部insetを適用
+                binding.clockView.updatePadding(
+                    top = systemBars.top
+                )
+                // 広告コンテナに下部insetを適用
+                binding.adViewContainer.updatePadding(
+                    bottom = systemBars.bottom
+                )
+                // 設定ボタンに下部insetを適用（ナビゲーションバー対応）
+                binding.settingsButton.updatePadding(
+                    bottom = systemBars.bottom
+                )
+                WindowInsetsCompat.CONSUMED
+            }
+        }
+
+        // 画面を常にオンに保つ（アンビエントモード防止）
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
     private fun isTelevision(): Boolean {
