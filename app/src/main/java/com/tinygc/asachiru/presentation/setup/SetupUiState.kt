@@ -1,5 +1,7 @@
 package com.tinygc.asachiru.presentation.setup
 
+import com.tinygc.asachiru.domain.entity.RssFeed
+
 /**
  * 設定画面のUI状態
  *
@@ -9,9 +11,14 @@ data class SetupUiState(
     /** 郵便番号（7桁、ハイフンなし） */
     val postalCode: String = "",
 
-
-    /** RSS URL */
+    /** RSS URL（旧形式、後方互換性のため残す） */
     val rssUrl: String = "",
+
+    /** 選択されたRSSフィードリスト（新形式） */
+    val selectedRssFeeds: List<RssFeed> = emptyList(),
+
+    /** カスタムRSSフィードリスト */
+    val customRssFeeds: List<RssFeed> = emptyList(),
 
     /** TTS有効化 */
     val enableTts: Boolean = false,
@@ -19,7 +26,7 @@ data class SetupUiState(
     /** BGM有効化 */
     val enableBgm: Boolean = true,
 
-    /** RSSプリセット名 */
+    /** RSSプリセット名（旧形式、後方互換性のため残す） */
     val rssPreset: String? = null,
 
     /** 郵便番号のバリデーション結果 */
@@ -31,8 +38,11 @@ data class SetupUiState(
     /** ニュース読み上げ間隔のバリデーション結果: UIでは使用しない */
     val isNewsIntervalValid: Boolean = true,
 
-    /** RSS URLのバリデーション結果 */
+    /** RSS URLのバリデーション結果（旧形式、後方互換性のため残す） */
     val isRssUrlValid: Boolean = false,
+
+    /** RSSフィード選択のバリデーション結果（最低1つ選択必須） */
+    val isRssFeedsValid: Boolean = false,
 
     /** 保存処理中フラグ */
     val isSaving: Boolean = false,

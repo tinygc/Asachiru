@@ -9,5 +9,6 @@ data class News(
     val description: String,
     val link: String,
     val imageUrl: String?,
-    val publishedAt: Long = 0L // Unixタイムスタンプ（ミリ秒）
+    val publishedAt: Long = 0L, // Unixタイムスタンプ（ミリ秒）
+    val sourceName: String? = null // 配信元名（RSS複数対応）
 )

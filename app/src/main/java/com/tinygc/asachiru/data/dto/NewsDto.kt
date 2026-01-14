@@ -11,7 +11,8 @@ data class NewsDto(
     val title: String,
     val description: String,
     val link: String,
-    val pubDate: String // RFC 822形式 (RSS 2.0) または ISO 8601形式 (RSS 1.0/Atom)
+    val pubDate: String, // RFC 822形式 (RSS 2.0) または ISO 8601形式 (RSS 1.0/Atom)
+    val sourceName: String? = null // 配信元名（RSS複数対応）
 ) {
     /**
      * NewsエンティティへConverter
@@ -21,7 +22,8 @@ data class NewsDto(
             id = link, // リンクをIDとして使用
             title = title,
             description = description,
-            publishedAt = parsePubDate(pubDate)
+            publishedAt = parsePubDate(pubDate),
+            sourceName = sourceName
         )
     }
 

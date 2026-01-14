@@ -1,6 +1,9 @@
 package com.tinygc.asachiru.data.datasource.local
 
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import com.tinygc.asachiru.domain.entity.RssFeed
 import com.tinygc.asachiru.domain.entity.Settings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -19,7 +22,10 @@ class SettingsLocalDataSource(
         private const val KEY_ENABLE_BGM = "enable_bgm"
         private const val KEY_RSS_PRESET = "rss_preset"
         private const val KEY_READ_ARTICLE_IDS = "read_article_ids"
+        private const val KEY_RSS_FEEDS = "rss_feeds" // 複数RSS対応（新形式）
     }
+
+    private val gson = Gson()
 
     /**
      * 設定を取得
@@ -32,6 +38,14 @@ class SettingsLocalDataSource(
         val enableTts = sharedPreferences.getBoolean(KEY_ENABLE_TTS, false)
         val enableBgm = sharedPreferences.getBoolean(KEY_ENABLE_BGM, true)
         val rssPreset = sharedPreferences.getString(KEY_RSS_PRESET, null)
+        
+        // 複数RSS読み込み（JSON形式）
+        val rssFeedsJson = sharedPreferences.getString(KEY_RSS_FEEDS, null)
+        val rssFeeds = if (rssFeedsJson != null) {
+            deserializeRssFeeds(rssFeedsJson)
+        } else {
+            emptyList()
+        }
 
         Settings(
             postalCode = postalCode,
@@ -39,7 +53,8 @@ class SettingsLocalDataSource(
             rssUrl = rssUrl,
             enableTts = enableTts,
             enableBgm = enableBgm,
-            rssPreset = rssPreset
+            rssPreset = rssPreset,
+            rssFeeds = rssFeeds
         )
     }
 
@@ -48,6 +63,9 @@ class SettingsLocalDataSource(
      * @param settings 設定
      */
     suspend fun saveSettings(settings: Settings) = withContext(Dispatchers.IO) {
+        // 複数RSSをJSON化
+        val rssFeedsJson = serializeRssFeeds(settings.rssFeeds)
+        
         sharedPreferences.edit()
             .putString(KEY_POSTAL_CODE, settings.postalCode)
             .putInt(KEY_NEWS_INTERVAL, settings.newsIntervalMinutes)
@@ -55,6 +73,7 @@ class SettingsLocalDataSource(
             .putBoolean(KEY_ENABLE_TTS, settings.enableTts)
             .putBoolean(KEY_ENABLE_BGM, settings.enableBgm)
             .putString(KEY_RSS_PRESET, settings.rssPreset)
+            .putString(KEY_RSS_FEEDS, rssFeedsJson) // 複数RSS保存
             .apply()
     }
 
@@ -66,7 +85,27 @@ class SettingsLocalDataSource(
     suspend fun hasSettings(): Boolean = withContext(Dispatchers.IO) {
         val hasPostalCode = sharedPreferences.contains(KEY_POSTAL_CODE)
         val hasRssUrl = sharedPreferences.contains(KEY_RSS_URL)
-        hasPostalCode && hasRssUrl
+        val hasRssFeeds = sharedPreferences.contains(KEY_RSS_FEEDS)
+        hasPostalCode && (hasRssUrl || hasRssFeeds)
+    }
+
+    /**
+     * RssFeedリストをJSON化
+     */
+    private fun serializeRssFeeds(feeds: List<RssFeed>): String {
+        return gson.toJson(feeds)
+    }
+
+    /**
+     * JSONからRssFeedリストをデシリアライズ
+     */
+    private fun deserializeRssFeeds(json: String): List<RssFeed> {
+        return try {
+            val type = object : TypeToken<List<RssFeed>>() {}.type
+            gson.fromJson<List<RssFeed>>(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
+        }
     }
 
     /**

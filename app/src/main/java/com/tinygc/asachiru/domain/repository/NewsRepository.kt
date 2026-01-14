@@ -13,4 +13,12 @@ interface NewsRepository {
      * @return ニュースリスト（Result型）
      */
     suspend fun getLatestNews(count: Int): Result<List<News>>
+
+    /**
+     * 指定されたRSS URLからニュースを取得
+     * @param rssUrl RSS URL
+     * @param sourceName 配信元名（表示用）
+     * @return ニュースリスト（Result型）
+     */
+    suspend fun fetchNewsFromUrl(rssUrl: String, sourceName: String): Result<List<News>>
 }

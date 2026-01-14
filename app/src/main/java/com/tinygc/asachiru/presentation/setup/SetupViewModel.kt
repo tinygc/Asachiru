@@ -3,6 +3,7 @@ package com.tinygc.asachiru.presentation.setup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tinygc.asachiru.domain.common.Result
+import com.tinygc.asachiru.domain.entity.RssFeed
 import com.tinygc.asachiru.domain.entity.Settings
 import com.tinygc.asachiru.domain.usecase.settings.GetSettingsUseCase
 import com.tinygc.asachiru.domain.usecase.settings.SaveSettingsUseCase
@@ -44,6 +45,8 @@ class SetupViewModel(
                             isPostalCodeValid = validatePostalCode(settings.postalCode),
                             rssUrl = settings.rssUrl ?: "",
                             isRssUrlValid = validateRssUrl(settings.rssUrl ?: ""),
+                            selectedRssFeeds = settings.rssFeeds,
+                            isRssFeedsValid = settings.rssFeeds.isNotEmpty(),
                             enableTts = settings.enableTts,
                             enableBgm = settings.enableBgm,
                             rssPreset = settings.rssPreset,
@@ -75,7 +78,7 @@ class SetupViewModel(
     // ViewModel側ではデフォルト値を保持するのみとし、明示的な更新は行わない
 
     /**
-     * RSS URLを更新
+     * RSS URLを更新（旧形式、後方互換性のため残す）
      */
     fun updateRssUrl(url: String) {
         _uiState.update { 
@@ -83,6 +86,59 @@ class SetupViewModel(
                 rssUrl = url,
                 isRssUrlValid = validateRssUrl(url)
             ) 
+        }
+    }
+
+    /**
+     * RSSフィード選択切り替え
+     * @param feed 選択/解除するRSSフィード
+     */
+    fun toggleRssFeed(feed: RssFeed) {
+        _uiState.update { state ->
+            val currentFeeds = state.selectedRssFeeds
+            val updatedFeeds = if (currentFeeds.any { it.id == feed.id }) {
+                // 既に選択されていたら解除
+                currentFeeds.filter { it.id != feed.id }
+            } else {
+                // 未選択なら追加
+                currentFeeds + feed
+            }
+            state.copy(
+                selectedRssFeeds = updatedFeeds,
+                isRssFeedsValid = updatedFeeds.isNotEmpty()
+            )
+        }
+    }
+
+    /**
+     * カスタムRSS追加
+     * @param url RSS URL
+     * @param name カスタム名（任意）
+     */
+    fun addCustomRss(url: String, name: String? = null) {
+        val customFeed = RssFeed.fromCustomUrl(url, name)
+        _uiState.update { state ->
+            state.copy(
+                customRssFeeds = state.customRssFeeds + customFeed,
+                selectedRssFeeds = state.selectedRssFeeds + customFeed,
+                isRssFeedsValid = true
+            )
+        }
+    }
+
+    /**
+     * カスタムRSS削除
+     * @param feedId 削除するRSSフィードのID
+     */
+    fun removeCustomRss(feedId: String) {
+        _uiState.update { state ->
+            val updatedCustom = state.customRssFeeds.filter { it.id != feedId }
+            val updatedSelected = state.selectedRssFeeds.filter { it.id != feedId }
+            state.copy(
+                customRssFeeds = updatedCustom,
+                selectedRssFeeds = updatedSelected,
+                isRssFeedsValid = updatedSelected.isNotEmpty()
+            )
         }
     }
 
@@ -97,11 +153,15 @@ class SetupViewModel(
      * BGM有効化を更新
      */
     fun updateEnableBgm(enable: Boolean) {
+    /**
+     * BGM有効化を更新
+     */
+    fun updateEnableBgm(enable: Boolean) {
         _uiState.update { it.copy(enableBgm = enable) }
     }
 
     /**
-     * RSSプリセット名を更新
+     * RSSプリセット名を更新（旧形式、後方互換性のため残す）
      */
     fun updateRssPreset(preset: String?) {
         _uiState.update { it.copy(rssPreset = preset) }
@@ -115,8 +175,10 @@ class SetupViewModel(
     fun saveSettings() {
         val currentState = _uiState.value
 
-        // バリデーションチェック（ニュース間隔はデフォルト値を使用するためUIではチェックしない）
-        if (!currentState.isPostalCodeValid || !currentState.isRssUrlValid) {
+        // バリデーションチェック
+        // 新形式（selectedRssFeeds）か旧形式（rssUrl）のどちらかが有効ならOK
+        val hasValidRss = currentState.isRssFeedsValid || currentState.isRssUrlValid
+        if (!currentState.isPostalCodeValid || !hasValidRss) {
             return
         }
 
@@ -129,7 +191,8 @@ class SetupViewModel(
                 rssUrl = currentState.rssUrl,
                 enableTts = currentState.enableTts,
                 enableBgm = currentState.enableBgm,
-                rssPreset = currentState.rssPreset
+                rssPreset = currentState.rssPreset,
+                rssFeeds = currentState.selectedRssFeeds
             )
 
             when (val result = saveSettingsUseCase(settings)) {

@@ -7,7 +7,8 @@ data class News(
     val id: String,
     val title: String,
     val description: String,
-    val publishedAt: Long // Unixタイムスタンプ（ミリ秒）
+    val publishedAt: Long, // Unixタイムスタンプ（ミリ秒）
+    val sourceName: String? = null // 配信元名（RSS複数対応）
 ) {
     /**
      * 読み上げ用テキストを取得
@@ -24,7 +25,8 @@ data class News(
             id = "",
             title = "",
             description = "",
-            publishedAt = 0L
+            publishedAt = 0L,
+            sourceName = null
         )
     }
 }

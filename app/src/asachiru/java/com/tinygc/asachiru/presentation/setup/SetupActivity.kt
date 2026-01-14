@@ -1,5 +1,6 @@
 package com.tinygc.asachiru.presentation.setup
 
+import android.app.AlertDialog
 import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
@@ -9,8 +10,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
+import android.widget.EditText
 import com.tinygc.asachiru.R
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -21,6 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.tinygc.asachiru.data.RssPresets
 import com.tinygc.asachiru.databinding.ActivitySetupBinding
 import com.tinygc.asachiru.domain.util.DeviceUtils
@@ -105,56 +106,40 @@ class SetupActivity : AppCompatActivity() {
 
         // ニュース間隔設定は一旦UIから削除
 
-        // RSSプリセットSpinner（カスタムレイアウトで白文字表示）
-        val adapter = ArrayAdapter(this, R.layout.item_rss_preset_spinner, RssPresets.PRESET_NAMES)
-        adapter.setDropDownViewResource(R.layout.item_rss_preset_dropdown)
-        binding.rssPresetSpinner.adapter = adapter
-
-        binding.rssPresetSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selected = RssPresets.PRESET_NAMES[position]
-                
-                // "カスタムURL入力"選択時はEditTextを表示してフォーカス
-                if (selected == RssPresets.CUSTOM_URL) {
-                    binding.rssCustomUrlEditText.visibility = View.VISIBLE
-                    viewModel.updateRssPreset(selected)
-                    // フォーカス移動は少し遅延させる
-                    binding.rssCustomUrlEditText.postDelayed({
-                        binding.rssCustomUrlEditText.requestFocus()
-                        // スマホの場合、キーボードを表示
-                        if (DeviceUtils.isPhone(applicationContext)) {
-                            showKeyboard(binding.rssCustomUrlEditText)
-                        }
-                    }, 100)
-                } else if (selected != "選択してください") {
-                    binding.rssCustomUrlEditText.visibility = View.GONE
-                    val url = RssPresets.getUrl(selected)
-                    viewModel.updateRssUrl(url ?: "")
-                    viewModel.updateRssPreset(selected)
+        // RSSプリセット一覧（チェックボックスリスト）
+        val presets = RssPresets.PRESETS.toList()
+        val rssPresetAdapter = RssPresetAdapter(
+            presets = presets,
+            selectedFeeds = emptyList(),
+            onItemChecked = { feed, isChecked ->
+                if (isChecked) {
+                    viewModel.toggleRssFeed(feed)
                 } else {
-                    binding.rssCustomUrlEditText.visibility = View.GONE
-                    viewModel.updateRssUrl("")
-                    viewModel.updateRssPreset(null)
+                    viewModel.toggleRssFeed(feed)
                 }
             }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {
-                // 何もしない
-            }
+        )
+        binding.rssPresetsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@SetupActivity)
+            adapter = rssPresetAdapter
         }
 
-        // カスタムURL入力
-        binding.rssCustomUrlEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+        // カスタムURL追加ボタン
+        binding.addCustomRssButton.setOnClickListener {
+            showAddCustomRssDialog()
+        }
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                if (binding.rssCustomUrlEditText.visibility == View.VISIBLE) {
-                    viewModel.updateRssUrl(s?.toString() ?: "")
-                }
+        // カスタムRSSリスト（初期は空）
+        val customRssAdapter = CustomRssAdapter(
+            customFeeds = emptyList(),
+            onDelete = { feedId ->
+                viewModel.removeCustomRss(feedId)
             }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
+        )
+        binding.customRssRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@SetupActivity)
+            adapter = customRssAdapter
+        }
 
         // TTS有効化チェックボックス
         binding.enableTtsCheckbox.setOnCheckedChangeListener { _, isChecked ->
@@ -201,20 +186,29 @@ class SetupActivity : AppCompatActivity() {
             binding.postalCodeEditText.setSelection(state.postalCode.length)
         }
 
-        // RSSプリセットの選択を反映
-        state.rssPreset?.let { preset ->
-            val position = RssPresets.PRESET_NAMES.indexOf(preset)
-            if (position >= 0 && binding.rssPresetSpinner.selectedItemPosition != position) {
-                binding.rssPresetSpinner.setSelection(position)
+        // RSSプリセットチェックボックスリスト更新
+        val presets = RssPresets.PRESETS.toList()
+        val rssPresetAdapter = RssPresetAdapter(
+            presets = presets,
+            selectedFeeds = state.selectedRssFeeds,
+            onItemChecked = { feed, _ ->
+                viewModel.toggleRssFeed(feed)
             }
-        }
+        )
+        binding.rssPresetsRecyclerView.adapter = rssPresetAdapter
 
-        // カスタムURLの値を反映（カスタムURL選択時のみ）
-        if (state.rssPreset == RssPresets.CUSTOM_URL) {
-            binding.rssCustomUrlEditText.visibility = View.VISIBLE
-            if (binding.rssCustomUrlEditText.text.toString() != state.rssUrl) {
-                binding.rssCustomUrlEditText.setText(state.rssUrl)
-            }
+        // カスタムRSSリスト更新
+        if (state.customRssFeeds.isNotEmpty()) {
+            binding.customRssRecyclerView.visibility = View.VISIBLE
+            val customRssAdapter = CustomRssAdapter(
+                customFeeds = state.customRssFeeds,
+                onDelete = { feedId ->
+                    viewModel.removeCustomRss(feedId)
+                }
+            )
+            binding.customRssRecyclerView.adapter = customRssAdapter
+        } else {
+            binding.customRssRecyclerView.visibility = View.GONE
         }
 
         // チェックボックスの状態を反映
@@ -228,17 +222,12 @@ class SetupActivity : AppCompatActivity() {
         // 郵便番号バリデーションエラーは、フォーカス変更時にのみ表示するため、
         // ここでは何もしない（入力中に表示されないようにするため）
 
-        // RSS URLのバリデーションエラー表示
-        if (!state.isRssUrlValid && state.rssUrl.isEmpty() && binding.rssCustomUrlEditText.visibility == View.VISIBLE) {
-            binding.rssCustomUrlEditText.error = "URLを入力してください"
-        } else {
-            binding.rssCustomUrlEditText.error = null
-        }
-
-        // 保存ボタンの有効/無効（ニュース間隔はデフォルト値固定のためチェック対象外）
+        // 保存ボタンの有効/無効
+        // 新形式（selectedRssFeeds）か旧形式（rssUrl）のどちらかが有効ならOK
+        val hasValidRss = state.isRssFeedsValid || state.isRssUrlValid
         binding.saveButton.isEnabled = !state.isSaving &&
             state.isPostalCodeValid &&
-            state.isRssUrlValid
+            hasValidRss
 
         // エラーメッセージ表示
         state.saveError?.let {
@@ -268,5 +257,29 @@ class SetupActivity : AppCompatActivity() {
     private fun showKeyboard(view: View) {
         val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
         inputMethodManager?.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    /**
+     * カスタムURL追加ダイアログを表示
+     */
+    private fun showAddCustomRssDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_custom_rss, null)
+        val urlEditText = dialogView.findViewById<EditText>(R.id.custom_rss_url_input)
+        val nameEditText = dialogView.findViewById<EditText>(R.id.custom_rss_name_input)
+
+        AlertDialog.Builder(this)
+            .setTitle("カスタムURL追加")
+            .setView(dialogView)
+            .setPositiveButton("追加") { _, _ ->
+                val url = urlEditText.text.toString().trim()
+                val name = nameEditText.text.toString().trim()
+                if (url.isNotEmpty()) {
+                    viewModel.addCustomRss(url, name.ifEmpty { null })
+                } else {
+                    Toast.makeText(this, "URLを入力してください", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("キャンセル", null)
+            .show()
     }
 }
