@@ -317,8 +317,6 @@ class NewsView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        android.util.Log.d("NewsView", "onDraw: width=$width, height=$height, currentNews=${currentNews?.title?.take(30)}, error=$errorMessage, isFeedWatch=${!isAsachiru()}")
-
         // 詳細表示時は全画面ポップアップ
         if (showDetail) {
             drawDetailPopup(canvas)
@@ -416,8 +414,6 @@ class NewsView @JvmOverloads constructor(
      * FeedWatch: 2行表示対応
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
-        android.util.Log.d("NewsView", "drawNewsTitle: flavor=${if (isAsachiru()) "asachiru" else "feedwatch"}")
-        
         // スマホとTVで異なるパディング
         val paddingHorizontal = if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
             16f.dp() // スマホ: 16dp（画面が小さいため）
@@ -433,8 +429,6 @@ class NewsView @JvmOverloads constructor(
 
         // 縦画面かどうかを判定
         val isPortrait = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
-        
-        android.util.Log.d("NewsView", "drawNewsTitle: isPortrait=$isPortrait, availableWidth=$availableWidth")
 
         if (isAsachiru()) {
             // Asachiru: 1行表示（従来通り）
@@ -442,10 +436,8 @@ class NewsView @JvmOverloads constructor(
         } else {
             // FeedWatch: 縦画面は5行、横画面は2行
             if (isPortrait) {
-                android.util.Log.d("NewsView", "drawNewsTitle: calling drawNewsTitleFiveLines")
                 drawNewsTitleFiveLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
             } else {
-                android.util.Log.d("NewsView", "drawNewsTitle: calling drawNewsTitleTwoLines")
                 drawNewsTitleTwoLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
             }
         }
