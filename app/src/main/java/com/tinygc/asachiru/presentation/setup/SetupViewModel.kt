@@ -37,6 +37,10 @@ class SetupViewModel(
         viewModelScope.launch {
             try {
                 val settings = getSettingsUseCase()
+                // 新形式・旧形式を統合した実際の有効フィードを取得
+                val activeFeeds = settings.getActiveRssFeeds()
+                val customFeeds = activeFeeds.filter { it.isCustom }
+
                 // 設定が存在する場合はUIStateに反映
                 if (settings.postalCode.isNotEmpty()) {
                     _uiState.update {
@@ -45,8 +49,9 @@ class SetupViewModel(
                             isPostalCodeValid = validatePostalCode(settings.postalCode),
                             rssUrl = settings.rssUrl ?: "",
                             isRssUrlValid = validateRssUrl(settings.rssUrl ?: ""),
-                            selectedRssFeeds = settings.rssFeeds,
-                            isRssFeedsValid = settings.rssFeeds.isNotEmpty(),
+                            selectedRssFeeds = activeFeeds,
+                            customRssFeeds = customFeeds,
+                            isRssFeedsValid = activeFeeds.isNotEmpty(),
                             enableTts = settings.enableTts,
                             enableBgm = settings.enableBgm,
                             rssPreset = settings.rssPreset,
@@ -153,10 +158,6 @@ class SetupViewModel(
      * BGM有効化を更新
      */
     fun updateEnableBgm(enable: Boolean) {
-    /**
-     * BGM有効化を更新
-     */
-    fun updateEnableBgm(enable: Boolean) {
         _uiState.update { it.copy(enableBgm = enable) }
     }
 
@@ -172,13 +173,13 @@ class SetupViewModel(
      *
      * バリデーションが全て通過している場合のみ保存を実行します。
      */
-    fun saveSettings() {
+    fun saveSettings(force: Boolean = false, navigateOnSuccess: Boolean = true) {
         val currentState = _uiState.value
 
         // バリデーションチェック
         // 新形式（selectedRssFeeds）か旧形式（rssUrl）のどちらかが有効ならOK
         val hasValidRss = currentState.isRssFeedsValid || currentState.isRssUrlValid
-        if (!currentState.isPostalCodeValid || !hasValidRss) {
+        if (!force && (!currentState.isPostalCodeValid || !hasValidRss)) {
             return
         }
 
@@ -195,13 +196,13 @@ class SetupViewModel(
                 rssFeeds = currentState.selectedRssFeeds
             )
 
-            when (val result = saveSettingsUseCase(settings)) {
+            when (val result = saveSettingsUseCase(settings, force)) {
                 is Result.Success -> {
                     _uiState.update {
                         it.copy(
                             isSaving = false,
                             saveError = null,
-                            isComplete = true
+                            isComplete = navigateOnSuccess
                         )
                     }
                 }

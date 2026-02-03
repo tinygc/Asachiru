@@ -317,6 +317,8 @@ class NewsView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
+        android.util.Log.d("NewsView", "onDraw: width=$width, height=$height, currentNews=${currentNews?.title?.take(30)}, error=$errorMessage, isFeedWatch=${!isAsachiru()}")
+
         // 詳細表示時は全画面ポップアップ
         if (showDetail) {
             drawDetailPopup(canvas)
@@ -414,6 +416,8 @@ class NewsView @JvmOverloads constructor(
      * FeedWatch: 2行表示対応
      */
     private fun drawNewsTitle(canvas: Canvas, news: News) {
+        android.util.Log.d("NewsView", "drawNewsTitle: flavor=${if (isAsachiru()) "asachiru" else "feedwatch"}")
+        
         // スマホとTVで異なるパディング
         val paddingHorizontal = if (com.tinygc.asachiru.domain.util.DeviceUtils.isPhone(context)) {
             16f.dp() // スマホ: 16dp（画面が小さいため）
@@ -429,6 +433,8 @@ class NewsView @JvmOverloads constructor(
 
         // 縦画面かどうかを判定
         val isPortrait = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+        
+        android.util.Log.d("NewsView", "drawNewsTitle: isPortrait=$isPortrait, availableWidth=$availableWidth")
 
         if (isAsachiru()) {
             // Asachiru: 1行表示（従来通り）
@@ -436,8 +442,10 @@ class NewsView @JvmOverloads constructor(
         } else {
             // FeedWatch: 縦画面は5行、横画面は2行
             if (isPortrait) {
+                android.util.Log.d("NewsView", "drawNewsTitle: calling drawNewsTitleFiveLines")
                 drawNewsTitleFiveLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
             } else {
+                android.util.Log.d("NewsView", "drawNewsTitle: calling drawNewsTitleTwoLines")
                 drawNewsTitleTwoLines(canvas, news, timeText, paddingHorizontal, lineSpacing, availableWidth)
             }
         }
@@ -454,27 +462,31 @@ class NewsView @JvmOverloads constructor(
         lineSpacing: Float,
         availableWidth: Float
     ) {
-        // 全体の高さを計算
+        // 全体の高さを計算（時刻 + タイトル）
         val totalTextHeight = timePaint.textSize + lineSpacing + textPaint.textSize
 
         // 垂直方向の中央位置を計算
         val centerY = height / 2f
 
         // 時刻のY位置（中央から上にオフセット）
-        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
-
-        // タイトルのY位置（時刻の下）
-        val titleY = timeY + lineSpacing + textPaint.textSize
-
-        // 時刻を描画（省略表示）
-        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
-        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
+        var currentY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+        
+        // 時刻を描画（配信元をカッコ付で追加）
+        timePaint.color = Color.LTGRAY
+        val timeWithSource = if (!news.sourceName.isNullOrBlank()) {
+            "$timeText (${news.sourceName})"
+        } else {
+            timeText
+        }
+        val displayTime = ellipsizeText(timeWithSource, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, currentY, timePaint)
+        currentY += lineSpacing + textPaint.textSize
 
         // タイトルを描画（省略表示）
         textPaint.color = Color.WHITE
         val fullTitleText = "📰 ${news.title}"
         val displayTitle = ellipsizeText(fullTitleText, textPaint, availableWidth)
-        canvas.drawText(displayTitle, paddingHorizontal, titleY, textPaint)
+        canvas.drawText(displayTitle, paddingHorizontal, currentY, textPaint)
     }
 
     /**
@@ -489,7 +501,7 @@ class NewsView @JvmOverloads constructor(
         availableWidth: Float
     ) {
         val titleLineSpacing = textPaint.textSize * 0.3f // タイトル行間
-
+        
         // 全体の高さを計算（時刻 + タイトル2行）
         val totalTextHeight = timePaint.textSize + lineSpacing + (textPaint.textSize * 2) + titleLineSpacing
 
@@ -497,17 +509,18 @@ class NewsView @JvmOverloads constructor(
         val centerY = height / 2f
 
         // 時刻のY位置（中央から上にオフセット）
-        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
-
-        // タイトル1行目のY位置（時刻の下）
-        val titleLine1Y = timeY + lineSpacing + textPaint.textSize
-
-        // タイトル2行目のY位置
-        val titleLine2Y = titleLine1Y + textPaint.textSize + titleLineSpacing
-
-        // 時刻を描画（省略表示）
-        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
-        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
+        var currentY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+        
+        // 時刻を描画（配信元をカッコ付で追加）
+        timePaint.color = Color.LTGRAY
+        val timeWithSource = if (!news.sourceName.isNullOrBlank()) {
+            "$timeText (${news.sourceName})"
+        } else {
+            timeText
+        }
+        val displayTime = ellipsizeText(timeWithSource, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, currentY, timePaint)
+        currentY += lineSpacing + textPaint.textSize
 
         // タイトルを2行に分割して描画（常に2行分のスペースを確保）
         textPaint.color = Color.WHITE
@@ -515,9 +528,10 @@ class NewsView @JvmOverloads constructor(
         val (line1, line2) = splitTextIntoTwoLines(fullTitleText, textPaint, availableWidth)
         
         // 1行目を描画
-        canvas.drawText(line1, paddingHorizontal, titleLine1Y, textPaint)
+        canvas.drawText(line1, paddingHorizontal, currentY, textPaint)
+        currentY += textPaint.textSize + titleLineSpacing
         // 2行目を描画（空でも常に描画位置は確保済み）
-        canvas.drawText(line2, paddingHorizontal, titleLine2Y, textPaint)
+        canvas.drawText(line2, paddingHorizontal, currentY, textPaint)
     }
 
     /**
@@ -532,7 +546,7 @@ class NewsView @JvmOverloads constructor(
         availableWidth: Float
     ) {
         val titleLineSpacing = textPaint.textSize * 0.3f // タイトル行間
-
+        
         // 全体の高さを計算（時刻 + タイトル5行）
         val totalTextHeight = timePaint.textSize + lineSpacing + (textPaint.textSize * 5) + (titleLineSpacing * 4)
 
@@ -540,29 +554,28 @@ class NewsView @JvmOverloads constructor(
         val centerY = height / 2f
 
         // 時刻のY位置（中央から上にオフセット）
-        val timeY = centerY - (totalTextHeight / 2f) + timePaint.textSize
-
-        // タイトル各行のY位置
-        val titleLine1Y = timeY + lineSpacing + textPaint.textSize
-        val titleLine2Y = titleLine1Y + textPaint.textSize + titleLineSpacing
-        val titleLine3Y = titleLine2Y + textPaint.textSize + titleLineSpacing
-        val titleLine4Y = titleLine3Y + textPaint.textSize + titleLineSpacing
-        val titleLine5Y = titleLine4Y + textPaint.textSize + titleLineSpacing
-
-        // 時刻を描画（省略表示）
-        val displayTime = ellipsizeText(timeText, timePaint, availableWidth)
-        canvas.drawText(displayTime, paddingHorizontal, timeY, timePaint)
+        var currentY = centerY - (totalTextHeight / 2f) + timePaint.textSize
+        
+        // 時刻を描画（配信元をカッコ付で追加）
+        timePaint.color = Color.LTGRAY
+        val timeWithSource = if (!news.sourceName.isNullOrBlank()) {
+            "$timeText (${news.sourceName})"
+        } else {
+            timeText
+        }
+        val displayTime = ellipsizeText(timeWithSource, timePaint, availableWidth)
+        canvas.drawText(displayTime, paddingHorizontal, currentY, timePaint)
+        currentY += lineSpacing + textPaint.textSize
 
         // タイトルを5行に分割して描画
         textPaint.color = Color.WHITE
         val fullTitleText = "📰 ${news.title}"
         val lines = splitTextIntoMultipleLines(fullTitleText, textPaint, availableWidth, 5)
         
-        canvas.drawText(lines.getOrElse(0) { "" }, paddingHorizontal, titleLine1Y, textPaint)
-        canvas.drawText(lines.getOrElse(1) { "" }, paddingHorizontal, titleLine2Y, textPaint)
-        canvas.drawText(lines.getOrElse(2) { "" }, paddingHorizontal, titleLine3Y, textPaint)
-        canvas.drawText(lines.getOrElse(3) { "" }, paddingHorizontal, titleLine4Y, textPaint)
-        canvas.drawText(lines.getOrElse(4) { "" }, paddingHorizontal, titleLine5Y, textPaint)
+        for (line in lines) {
+            canvas.drawText(line, paddingHorizontal, currentY, textPaint)
+            currentY += textPaint.textSize + titleLineSpacing
+        }
     }
 
     /**
@@ -857,6 +870,19 @@ class NewsView @JvmOverloads constructor(
         val fullTextMaxWidth = width - (cardPadding + 30f.dp()) * 2
         // 制限幅テキスト幅（QRコードと重なる高さで使用）
         val restrictedTextMaxWidth = width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
+
+        // 配信元を描画（存在する場合）
+        if (!news.sourceName.isNullOrBlank()) {
+            val sourcePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 18f, context.resources.displayMetrics)
+                color = Color.argb(255, 135, 206, 250) // スカイブルー
+                letterSpacing = 0.02f
+                setShadowLayer(4f.dp(), 2f.dp(), 2f.dp(), shadowColor)
+            }
+            val sourceText = "📡 ${news.sourceName}"
+            canvas.drawText(sourceText, startX, currentY, sourcePaint)
+            currentY += textLineSpacing
+        }
 
         // タイトル描画（行ごとに幅を動的に調整）
         val titleWords = news.title.split("")

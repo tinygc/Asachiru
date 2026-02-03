@@ -34,31 +34,37 @@ class NewsRepositoryImpl(
 
             Log.d(TAG, "getLatestNews: Fetching from ${rssFeeds.size} RSS feeds")
 
-            // 複数のRSSフィードから並列取得
+            // 複数のRSSフィードから並列取得（coroutineで並列実行）
             val allNews = mutableListOf<News>()
             rssFeeds.forEach { feed ->
                 try {
+                    Log.d(TAG, "getLatestNews: Fetching from ${feed.name} (${feed.url})")
                     val result = fetchNewsFromUrl(feed.url, feed.name)
                     if (result is Result.Success) {
+                        Log.d(TAG, "getLatestNews: Successfully fetched ${result.data.size} news from ${feed.name}")
                         allNews.addAll(result.data)
-                    } else {
-                        Log.w(TAG, "getLatestNews: Failed to fetch from ${feed.name}")
+                    } else if (result is Result.Error) {
+                        Log.w(TAG, "getLatestNews: Failed to fetch from ${feed.name}: ${result.exception.message}")
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "getLatestNews: Error fetching from ${feed.name}", e)
                 }
             }
 
+            Log.d(TAG, "getLatestNews: Total ${allNews.size} raw news items from ${rssFeeds.size} feeds")
+
             // 公開日時でソート（新しい順）
             val sortedNews = allNews.sortedByDescending { it.publishedAt }
 
             // 重複削除（タイトルとIDで判定）
             val uniqueNews = sortedNews.distinctBy { "${it.id}_${it.title}" }
+            
+            Log.d(TAG, "getLatestNews: ${uniqueNews.size} unique news items after deduplication")
 
             // 件数制限
             val limitedNews = uniqueNews.take(maxOf(0, count))
 
-            Log.d(TAG, "getLatestNews: Total ${limitedNews.size} news items after merge")
+            Log.d(TAG, "getLatestNews: Returning ${limitedNews.size} news items (requested: $count)")
 
             Result.Success(limitedNews)
         } catch (e: IOException) {

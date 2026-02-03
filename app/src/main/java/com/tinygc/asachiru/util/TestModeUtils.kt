@@ -15,11 +15,22 @@ object TestModeUtils {
 
     /**
      * テストモードかどうかを判定
-     * @param rssUrl RSS URL
+     * @param rssUrl RSS URL（旧形式、後方互換性のため残す）
      * @return "TEST"が含まれていればtrue
      */
     fun isTestMode(rssUrl: String?): Boolean {
         return rssUrl?.uppercase()?.contains("TEST") == true
+    }
+
+    /**
+     * テストモードかどうかを判定（RSSフィードリスト対応）
+     * @param rssFeeds RSSフィードのリスト
+     * @return いずれかのフィードのURLまたは名前に"TEST"が含まれていればtrue
+     */
+    fun isTestMode(rssFeeds: List<com.tinygc.asachiru.domain.entity.RssFeed>): Boolean {
+        return rssFeeds.any { feed ->
+            feed.url.uppercase().contains("TEST") || feed.name.uppercase().contains("TEST")
+        }
     }
 
     /**

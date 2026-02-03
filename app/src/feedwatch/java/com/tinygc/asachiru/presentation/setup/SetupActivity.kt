@@ -151,7 +151,18 @@ class SetupActivity : AppCompatActivity() {
             binding.saveButton.isFocusableInTouchMode = false
         }
         binding.saveButton.setOnClickListener {
-            viewModel.saveSettings()
+            val currentState = viewModel.uiState.value
+            val hasValidRss = currentState.isRssFeedsValid || currentState.isRssUrlValid
+            
+            if (!currentState.isPostalCodeValid) {
+                Toast.makeText(this, "郵便番号を正しく入力してください（7桁の数字）", Toast.LENGTH_LONG).show()
+                binding.postalCodeEditText.requestFocus()
+            } else if (!hasValidRss) {
+                Toast.makeText(this, "RSSフィードを1つ以上選択してください", Toast.LENGTH_LONG).show()
+                binding.rssPresetsRecyclerView.requestFocus()
+            } else {
+                viewModel.saveSettings()
+            }
         }
     }
 
@@ -198,6 +209,8 @@ class SetupActivity : AppCompatActivity() {
                 customFeeds = state.customRssFeeds,
                 onDelete = { feedId ->
                     viewModel.removeCustomRss(feedId)
+                    // 削除後、すぐに保存（バリデーション無視・ナビゲーションなし）
+                    viewModel.saveSettings(force = true, navigateOnSuccess = false)
                 }
             )
             binding.customRssRecyclerView.adapter = customRssAdapter
@@ -216,12 +229,8 @@ class SetupActivity : AppCompatActivity() {
         // 郵便番号バリデーションエラーは、フォーカス変更時にのみ表示するため、
         // ここでは何もしない（入力中に表示されないようにするため）
 
-        // 保存ボタンの有効/無効
-        // 新形式（selectedRssFeeds）か旧形式（rssUrl）のどちらかが有効ならOK
-        val hasValidRss = state.isRssFeedsValid || state.isRssUrlValid
-        binding.saveButton.isEnabled = !state.isSaving &&
-            state.isPostalCodeValid &&
-            hasValidRss
+        // 保存ボタンの有効/無効（保存中のみ無効化、バリデーションはクリック時に行う）
+        binding.saveButton.isEnabled = !state.isSaving
 
         // エラーメッセージ表示
         state.saveError?.let {
@@ -269,6 +278,8 @@ class SetupActivity : AppCompatActivity() {
                 val name = nameEditText.text.toString().trim()
                 if (url.isNotEmpty()) {
                     viewModel.addCustomRss(url, name.ifEmpty { null })
+                    // 追加後、すぐに保存（バリデーション無視・ナビゲーションなし）
+                    viewModel.saveSettings(force = true, navigateOnSuccess = false)
                 } else {
                     Toast.makeText(this, "URLを入力してください", Toast.LENGTH_SHORT).show()
                 }

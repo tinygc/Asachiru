@@ -271,7 +271,8 @@ class MainViewModel(
     private suspend fun fetchNewsArticles(): com.tinygc.asachiru.domain.model.NewsResult {
         // テストモードチェック
         val settings = settingsRepository.getSettings()
-        if (TestModeUtils.isTestMode(settings.rssUrl)) {
+        val activeFeeds = settings.getActiveRssFeeds()
+        if (TestModeUtils.isTestMode(activeFeeds)) {
             Log.d("MainViewModel", "テストモード: ダミー記事データを使用")
             val testResult = TestModeUtils.createTestNewsResult()
             _uiState.update {
@@ -294,7 +295,10 @@ class MainViewModel(
         
         _uiState.update { it.copy(isNewsLoading = true) }
 
-        return when (val result = getLatestNewsUseCase(10)) {
+        // フィード数に応じて最大取得件数を動的に拡張（最低10件）
+        val maxArticles = maxOf(10, settings.getActiveRssFeeds().size * 10)
+
+        return when (val result = getLatestNewsUseCase(maxArticles)) {
             is Result.Success -> {
                 _uiState.update {
                     it.copy(
@@ -352,7 +356,8 @@ class MainViewModel(
             description = entityNews.description,
             link = entityNews.id, // entityにはlinkフィールドがないのでidを使用
             imageUrl = null, // entityにはimageUrlフィールドがない
-            publishedAt = entityNews.publishedAt // 公開時刻を保持
+            publishedAt = entityNews.publishedAt, // 公開時刻を保持
+            sourceName = entityNews.sourceName // 配信元名を保持
         )
     }
 
@@ -364,7 +369,8 @@ class MainViewModel(
             id = domainNews.id,
             title = domainNews.title,
             description = domainNews.description,
-            publishedAt = domainNews.publishedAt // 記事の公開時刻を使用
+            publishedAt = domainNews.publishedAt, // 記事の公開時刻を使用
+            sourceName = domainNews.sourceName // 配信元名を保持
         )
     }
 
@@ -416,7 +422,8 @@ class MainViewModel(
         viewModelScope.launch {
             // テストモードチェック
             val settings = settingsRepository.getSettings()
-            if (TestModeUtils.isTestMode(settings.rssUrl)) {
+            val activeFeeds = settings.getActiveRssFeeds()
+            if (TestModeUtils.isTestMode(activeFeeds)) {
                 Log.d("MainViewModel", "テストモード: ダミー天気データを使用")
                 _uiState.update {
                     it.copy(

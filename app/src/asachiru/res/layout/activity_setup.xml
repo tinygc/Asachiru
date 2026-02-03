@@ -108,7 +108,7 @@
         android:id="@+id/rss_preset_label"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📰 RSS配信元"
+        android:text="📰 RSS配信元（複数選択可）"
         android:textColor="@color/text_primary"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -121,42 +121,45 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/postal_code_edit_text" />
 
-    <Spinner
-        android:id="@+id/rss_preset_spinner"
+    <!-- RSSプリセット一覧（チェックボックスリスト） -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rss_presets_recycler_view"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:background="@drawable/input_bg_selector"
         android:elevation="4dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:padding="12dp"
-        android:popupBackground="@color/card_bg_semi"
-        android:layout_marginTop="8dp"
+        android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/rss_preset_label" />
 
-    <EditText
-        android:id="@+id/rss_custom_url_edit_text"
+    <!-- カスタムURL追加ボタン -->
+    <Button
+        android:id="@+id/add_custom_rss_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="＋ カスタムURL追加"
+        android:textColor="@color/text_white"
+        android:textSize="14sp"
+        android:background="@drawable/rounded_button_bg"
+        android:padding="12dp"
+        android:layout_marginTop="12dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/rss_presets_recycler_view" />
+
+    <!-- カスタムRSSリスト -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/custom_rss_recycler_view"
         android:layout_width="0dp"
-        android:layout_height="52dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
         android:background="@drawable/input_bg_selector"
         android:elevation="4dp"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:gravity="center_vertical"
-        android:hint="🔗 カスタムURL入力"
-        android:inputType="textUri"
-        android:imeOptions="actionDone"
-        android:padding="12dp"
-        android:textColor="@color/text_primary"
-        android:textColorHint="@color/text_secondary"
-        android:textSize="14sp"
-        android:visibility="gone"
-        android:layout_marginTop="8dp"
+        android:padding="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rss_preset_spinner" />
+        app:layout_constraintTop_toBottomOf="@id/add_custom_rss_button" />
 
     <!-- TTS設定 -->
     <CheckBox
@@ -175,7 +178,7 @@
         android:checked="false"
         android:layout_marginTop="14dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/rss_custom_url_edit_text" />
+        app:layout_constraintTop_toBottomOf="@id/custom_rss_recycler_view" />
 
     <!-- BGM設定 -->
     <CheckBox
