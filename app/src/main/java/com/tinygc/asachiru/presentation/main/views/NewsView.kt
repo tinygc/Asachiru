@@ -255,6 +255,10 @@ class NewsView @JvmOverloads constructor(
      */
     fun setShowDetail(show: Boolean) {
         this.showDetail = show
+        // 詳細画面を閉じたときはQRコード領域をクリア（タップ判定を無効化）
+        if (!show) {
+            qrCodeRect = null
+        }
         invalidate()
     }
 
@@ -1213,6 +1217,9 @@ class NewsView @JvmOverloads constructor(
      * @return QRコードエリア内ならtrue
      */
     fun isQrCodeAreaTapped(x: Float, y: Float): Boolean {
+        if (!showDetail) {
+            return false
+        }
         return qrCodeRect?.contains(x, y) == true
     }
 
