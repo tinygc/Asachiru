@@ -105,6 +105,29 @@ class MainViewModel(
         viewModelScope.launch {
             stateMachine.state.collect { state ->
                 when (state) {
+                    is NewsReadingState.WaitingForStart -> {
+                        // 起動時広告表示制御
+                        val dateTime = getCurrentDateTimeUseCase()
+                        val currentTimeMs = System.currentTimeMillis()
+                        val showAd = state.showAd && currentTimeMs < state.adEndTimeMs
+                        val adRemainingSeconds = if (showAd) {
+                            ((state.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
+                        } else {
+                            0L
+                        }
+                        _uiState.update { 
+                            it.copy(
+                                dateTime = dateTime,
+                                currentNews = null,
+                                newsProgressPercent = 0f,
+                                showAd = showAd,
+                                adRemainingSeconds = adRemainingSeconds,
+                                currentArticleIndex = 0,
+                                totalArticles = 0,
+                                showWaitingAnnouncement = false
+                            ) 
+                        }
+                    }
                     is NewsReadingState.ReadingArticle -> {
                         // 時計は常に現在時刻を表示（記事の時刻は使わない）
                         val dateTime = getCurrentDateTimeUseCase()
@@ -389,17 +412,30 @@ class MainViewModel(
                 val progress = calculateProgress(currentState)
                 
                 // 広告表示中の残り時間を更新
-                val (showAd, adRemainingSeconds) = if (currentState is NewsReadingState.SessionInterval) {
-                    val currentTimeMs = System.currentTimeMillis()
-                    val adActive = currentState.showAd && currentTimeMs < currentState.adEndTimeMs
-                    val adRemaining = if (adActive) {
-                        ((currentState.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
-                    } else {
-                        0L
+                val (showAd, adRemainingSeconds) = when (currentState) {
+                    is NewsReadingState.WaitingForStart -> {
+                        val currentTimeMs = System.currentTimeMillis()
+                        val adActive = currentState.showAd && currentTimeMs < currentState.adEndTimeMs
+                        val adRemaining = if (adActive) {
+                            ((currentState.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
+                        } else {
+                            0L
+                        }
+                        Pair(adActive, adRemaining)
                     }
-                    Pair(adActive, adRemaining)
-                } else {
-                    Pair(_uiState.value.showAd, _uiState.value.adRemainingSeconds)
+                    is NewsReadingState.SessionInterval -> {
+                        val currentTimeMs = System.currentTimeMillis()
+                        val adActive = currentState.showAd && currentTimeMs < currentState.adEndTimeMs
+                        val adRemaining = if (adActive) {
+                            ((currentState.adEndTimeMs - currentTimeMs) / 1000L).coerceAtLeast(0L)
+                        } else {
+                            0L
+                        }
+                        Pair(adActive, adRemaining)
+                    }
+                    else -> {
+                        Pair(_uiState.value.showAd, _uiState.value.adRemainingSeconds)
+                    }
                 }
                 
                 _uiState.update { 

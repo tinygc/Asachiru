@@ -17,6 +17,22 @@ object RssParser {
         UNKNOWN
     }
 
+    /**
+     * HTMLタグを検出したらそこで文字列を切断する
+     * 例: "これはテキスト<p>これはHTML</p>" → "これはテキスト"
+     */
+    private fun removeHtmlTagsAndAfter(text: String): String {
+        // HTMLタグの開始（< で始まる）を検出
+        val htmlTagIndex = text.indexOf('<')
+        return if (htmlTagIndex >= 0) {
+            // HTMLタグが見つかったら、そこまでの文字列を返す
+            text.substring(0, htmlTagIndex).trim()
+        } else {
+            // HTMLタグがなければそのまま返す
+            text
+        }
+    }
+
     fun parse(inputStream: InputStream): List<NewsDto> {
         val factory = XmlPullParserFactory.newInstance()
         factory.isNamespaceAware = true  // 名前空間を認識
@@ -81,7 +97,7 @@ object RssParser {
                     if (text != null && text.isNotEmpty() && insideItem) {
                         when (currentTag) {
                             "title" -> if (title == null) title = text
-                            "description" -> if (description == null) description = text
+                            "description" -> if (description == null) description = removeHtmlTagsAndAfter(text)
                             "link" -> if (link == null) link = text
                             "pubDate" -> if (pubDate == null) pubDate = text
                         }
@@ -132,7 +148,7 @@ object RssParser {
                     if (text != null && text.isNotEmpty() && insideItem) {
                         when (currentTag) {
                             "title" -> if (title == null) title = text
-                            "description" -> if (description == null) description = text
+                            "description" -> if (description == null) description = removeHtmlTagsAndAfter(text)
                             "link" -> if (link == null) link = text
                             "date" -> if (pubDate == null) pubDate = text  // dc:date
                         }
@@ -192,8 +208,8 @@ object RssParser {
                     if (text != null && text.isNotEmpty() && insideEntry) {
                         when (currentTag) {
                             "title" -> if (title == null) title = text
-                            "summary" -> if (description == null) description = text  // Atomではsummary
-                            "content" -> if (description == null) description = text  // contentも使用
+                            "summary" -> if (description == null) description = removeHtmlTagsAndAfter(text)  // Atomではsummary
+                            "content" -> if (description == null) description = removeHtmlTagsAndAfter(text)  // contentも使用
                             "updated" -> if (pubDate == null) pubDate = text  // updated
                             "published" -> if (pubDate == null) pubDate = text  // published
                         }

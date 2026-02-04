@@ -14,8 +14,14 @@ sealed class NewsReadingState {
     /**
      * 初回開始待機中（10秒）
      * @param startTimeMs 開始予定時刻（エポックミリ秒）
+     * @param showAd 広告を表示するか（最初の10秒のみtrue）
+     * @param adEndTimeMs 広告表示終了時刻（エポックミリ秒）
      */
-    data class WaitingForStart(val startTimeMs: Long) : NewsReadingState()
+    data class WaitingForStart(
+        val startTimeMs: Long,
+        val showAd: Boolean = false,
+        val adEndTimeMs: Long = 0L
+    ) : NewsReadingState()
 
     /**
      * ニュース取得中
@@ -76,8 +82,14 @@ sealed class NewsReadingState {
         return when (this) {
             is Idle -> 0L
             is WaitingForStart -> {
-                val remaining = (startTimeMs - currentTimeMs) / 1000
-                remaining.coerceAtLeast(0L)
+                if (showAd) {
+                    // 広告表示中は広告の残り時間を返す
+                    val remaining = (adEndTimeMs - currentTimeMs) / 1000
+                    remaining.coerceAtLeast(0L)
+                } else {
+                    val remaining = (startTimeMs - currentTimeMs) / 1000
+                    remaining.coerceAtLeast(0L)
+                }
             }
             is FetchingNews -> 0L
             is ReadingArticle -> {

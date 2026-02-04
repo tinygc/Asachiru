@@ -4,6 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:minHeight="48dp"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:paddingStart="16dp"
     android:paddingEnd="16dp"
     android:paddingTop="12dp"
@@ -11,4 +13,4 @@
     android:textColor="#FFFFFF"
     android:textSize="16sp"
     android:buttonTint="#FFB74D"
-    android:background="?attr/selectableItemBackground" />
+    android:background="@drawable/rss_preset_item_bg" />

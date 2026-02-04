@@ -12,8 +12,12 @@ sealed class NewsReadingState {
     // 待機中（初期状態）
     object Idle : NewsReadingState()
     
-    // 初回開始待機中（10秒）
-    data class WaitingForStart(val startTimeMs: Long) : NewsReadingState()
+    // 初回開始待機中（10秒広告 + 3秒待機）
+    data class WaitingForStart(
+        val startTimeMs: Long,
+        val showAd: Boolean = false,
+        val adEndTimeMs: Long = 0L
+    ) : NewsReadingState()
     
     // ニュース取得中
     object FetchingNews : NewsReadingState()
@@ -35,8 +39,13 @@ sealed class NewsReadingState {
         val isPaused: Boolean = false
     ) : NewsReadingState()
     
-    // セッション間待機中（設定された間隔）
-    data class SessionInterval(val endTimeMs: Long) : NewsReadingState()
+    // セッション間待機中（10秒広告 + 5分待機）
+    data class SessionInterval(
+        val endTimeMs: Long,
+        val showAd: Boolean = false,
+        val adEndTimeMs: Long = 0L,
+        val noNewArticlesSinceMs: Long = 0L
+    ) : NewsReadingState()
 }
 ```
 
@@ -66,7 +75,9 @@ sealed class NewsReadingEvent {
 ```
 [Idle]
   ↓ AppStarted
-[WaitingForStart] (10秒)
+[WaitingForStart] (10秒広告 + 3秒待機)
+  ├─ 最初の10秒: showAd=true（広告表示）
+  └─ 残り3秒: showAd=false（待機）
   ↓ StartTimerExpired
 [FetchingNews]
   ↓ NewsFetched
@@ -82,7 +93,9 @@ sealed class NewsReadingEvent {
   ↓ ArticleCompleted
   ... (全記事繰り返し)
   ↓ AllArticlesCompleted
-[SessionInterval] (30分)
+[SessionInterval] (10秒広告 + 5分待機)
+  ├─ 最初の10秒: showAd=true（広告表示）
+  └─ 残り5分: showAd=false（待機）
   ↓ SessionIntervalExpired
 [FetchingNews] (ループ)
 ```

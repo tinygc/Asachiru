@@ -85,6 +85,13 @@
 | ビジュアライザー | ✅ | ❌ |
 | RECORD_AUDIO権限 | ✅ | ❌ |
 | その他の機能 | ✅ すべて | ✅ すべて |
+
+### 📱 収益化とクロスプラットフォーム誘導
+- **スマートフォン版**: Google AdMob広告表示（10秒/回、記事セッション終了後）
+- **Android TV版**: 広告の代わりに「スマホ版ダウンロードQRコード」を表示（同タイミング10秒）
+  - スマホ版へのクロスプラットフォーム誘導でユーザーベース拡大を図る
+  - TVユーザーに押し付けがましくない、自然な導線設計
+
 ## 技術スタック
 
 - **プラットフォーム**: Android TV / スマートフォン
@@ -125,10 +132,16 @@ asachiru/
 │   ├── Module_*.md           # 各モジュール設計書
 │   ├── DataFlow.md           # データフロー設計書
 │   └── DESIGN_REVIEW.md      # 設計レビュー報告書
-├── issues/                   # Issue管理（#1-31）
 ├── test/                     # テストドキュメント
 │   ├── E2E_TEST_RESULTS.md   # E2Eテスト結果
 │   └── SCREENSHOTS.md        # 画面レイアウト詳細
+├── docs/                     # リリース関連ドキュメント
+│   ├── feedwatch/             # FeedWatch向け公開手順
+│   ├── playstore-description.md
+│   ├── RELEASE_BUILD_GUIDE.md
+│   └── RELEASE_SUMMARY.md
+├── store_assets/             # ストア掲載素材
+│   └── store_listing.md
 ├── app/                      # Androidアプリケーション
 │   └── src/
 │       ├── main/java/com/tinygc/asachiru/
@@ -319,6 +332,22 @@ FeedWatchをPlay Storeにリリースする手順：
 - ⚠️ FeedWatchは**Asachiruとは別のAdMob App ID**が必要です
 - ⚠️ 署名鍵（keystore）も**別ファイル**を使用: `feedwatch-release.jks`
 - ⚠️ `local.properties` に署名情報を設定してください（Gitにはコミットされません）
+
+### 💰 収益化戦略（2025年2月更新）
+
+**スマートフォン版**: AdMob インタースティシャル広告
+- 起動時（10秒表示）
+- セッション終了時（10秒表示）
+- 1日あたり2回表示（平均）
+- 想定CPM: ¥700
+- DAU 100の場合の月間推定収益: **¥4,200**
+
+**Android TV版**: QRコード経由でスマホ版への誘導
+- Android TV向けの広告SDKは個人開発者にとって収益化が困難
+- 広告表示タイミングでQRコードを表示し、スマホ版アプリのインストールを促進
+- スマホ版のDAUを増やすことで間接的に収益化を実現
+
+詳細は [design/AdFeature_FeasibilityStudy.md](design/AdFeature_FeasibilityStudy.md) を参照。
 
 ## Product Flavorsによる管理
 

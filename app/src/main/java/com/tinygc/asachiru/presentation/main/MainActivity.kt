@@ -2,6 +2,7 @@ package com.tinygc.asachiru.presentation.main
 
 import android.app.UiModeManager
 import android.content.Intent
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.view.GestureDetector
@@ -28,6 +29,7 @@ import com.tinygc.asachiru.BuildConfig
 import com.tinygc.asachiru.R
 import com.tinygc.asachiru.databinding.ActivityMainBinding
 import com.tinygc.asachiru.domain.util.DeviceUtils
+import com.tinygc.asachiru.domain.util.QrCodeGenerator
 import com.tinygc.asachiru.presentation.common.ViewModelFactory
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
@@ -66,6 +68,9 @@ class MainActivity : AppCompatActivity() {
     
     // 動的に作成するAdView（アダプティブバナー対応）
     private var adView: AdView? = null
+    
+    // TV版スマホ誘導用QRコード（キャッシュ）
+    private var qrBitmap: Bitmap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,12 +95,32 @@ class MainActivity : AppCompatActivity() {
         
         // AdViewのサイズを設定（observeViewModelより前に実行）
         setupAdView()
+        
+        // TV用QRコードを事前生成（非同期）
+        if (isTelevision()) {
+            preGenerateQrCode()
+        }
 
         observeViewModel()
         // Asachiru: 音声ビジュアライザー用に音声録音権限が必要
         // FeedWatch: ビジュアライザーがないため不要
         if (BuildConfig.FLAVOR == "asachiru") {
             checkAudioPermission()
+        }
+    }
+    
+    /**
+     * TV用QRコードを事前生成（起動時の非同期処理）
+     */
+    private fun preGenerateQrCode() {
+        lifecycleScope.launch {
+            val playStoreUrl = when (BuildConfig.FLAVOR) {
+                "asachiru" -> QrCodeGenerator.PlayStoreUrls.ASACHIRU
+                "feedwatch" -> QrCodeGenerator.PlayStoreUrls.FEEDWATCH
+                else -> QrCodeGenerator.PlayStoreUrls.ASACHIRU
+            }
+            qrBitmap = QrCodeGenerator.generateQrCodeAsync(playStoreUrl, 200)
+            android.util.Log.d("QrPromotion", "QRコード事前生成完了: $playStoreUrl")
         }
     }
 
@@ -624,16 +649,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * 広告ビューの表示/非表示を制御
+     * 広告ビューまたはQR誘導の表示/非表示を制御
      * 
-     * 注: AdMobはAndroid TVを正式サポートしていないため、TVでは広告を表示しない
-     * https://developers.google.com/admob/android/sdk?hl=ja
+     * スマホ: 広告表示（AdMob）
+     * TV: スマホ版QRコード誘導表示
      */
     private fun updateAdView(showAd: Boolean, adRemainingSeconds: Long = 0L) {
-        // TVデバイスでは広告を表示しない（AdMob非対応のため）
+        // TVデバイスではQR誘導を表示
         if (DeviceUtils.isTV(applicationContext)) {
-            binding.adViewContainer.visibility = android.view.View.GONE
-            binding.adCountdownView.visibility = android.view.View.GONE
+            updateQrPromotion(showAd, adRemainingSeconds)
             return
         }
         
@@ -662,6 +686,28 @@ class MainActivity : AppCompatActivity() {
             binding.adCountdownView.bringToFront()
         } else {
             binding.adCountdownView.visibility = android.view.View.GONE
+        }
+    }
+
+    /**
+     * TV版スマホQR誘導の表示/非表示を制御
+     * 
+     * 広告表示タイミングと同じ10秒間、スマホ版ダウンロードQRコードを表示
+     */
+    private fun updateQrPromotion(show: Boolean, remainingSeconds: Long) {
+        if (show) {
+            // QRコードが既に生成済みなら設定（事前生成で既に完了しているはず）
+            if (qrBitmap != null) {
+                binding.qrImageView?.setImageBitmap(qrBitmap)
+            }
+            
+            // QR誘導コンテナを表示
+            binding.qrPromotionContainer?.visibility = android.view.View.VISIBLE
+            binding.qrPromotionContainer?.bringToFront()
+            binding.qrCountdownView?.text = "あと ${remainingSeconds}秒"
+        } else {
+            // QR誘導非表示
+            binding.qrPromotionContainer?.visibility = android.view.View.GONE
         }
     }
 }

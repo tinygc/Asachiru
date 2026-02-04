@@ -670,7 +670,7 @@ class NewsView @JvmOverloads constructor(
     }
 
     /**
-     * 公開時刻をフォーマット（例：「15時30分」）
+     * 公開時刻をフォーマット（例：「2026年2月4日 15時30分」）
      */
     private fun formatPublishTime(publishedAt: Long): String {
         // 新しいCalendarインスタンスを明示的に作成（キャッシュの影響を避ける）
@@ -679,9 +679,12 @@ class NewsView @JvmOverloads constructor(
             timeZone = jstTimeZone
             timeInMillis = publishedAt
         }
+        val year = calendar.get(Calendar.YEAR)
+        val month = calendar.get(Calendar.MONTH) + 1 // 0-indexed
+        val day = calendar.get(Calendar.DAY_OF_MONTH)
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
-        return "${hour}時${minute}分"
+        return "${year}年${month}月${day}日 ${hour}時${minute}分"
     }
 
     /**
@@ -850,18 +853,35 @@ class NewsView @JvmOverloads constructor(
         val qrPaddingValue = 50f.dp()
         val qrTotalWidth = qrSize + qrPaddingValue * 2  // QRコードが占有する幅
         
-        // QRコードの上端Y座標を事前に計算（テキストとの余裕を持たせるため、少し上にマージンを追加）
+        // QRコードの上端Y座標を事前に計算
         val qrTop = cardRect.bottom - qrSize - qrPaddingValue
-        val qrSafeZone = qrTop - (textLineSpacing * 2)  // QRコードの少し上から幅を制限開始
+        
+        // フッターテキスト領域を考慮（フッターテキスト高さ + 余裕）
+        val footerHeight = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics) + 20f.dp()
+        val footerTop = cardRect.bottom - qrSize - qrPaddingValue - footerHeight - 10f.dp()
+        
+        // 縦画面かどうかを判定
+        val isPortrait = resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+
+        // テキスト描画可能範囲の下端（画面方向による）
+        val textMaxBottom = if (isPortrait) {
+            // 縦画面：QR + フッター領域を考慮
+            minOf(qrTop, footerTop)
+        } else {
+            // 横画面：カード下端のみ（フッターより上にマージン確保、もう1行表示可能に）
+            cardRect.bottom - 45f.dp()
+        }
+        val textMaxWidth = if (isPortrait) {
+            // 縦画面：全幅を使用（下端でQRコード判定する）
+            width - (cardPadding + 30f.dp()) * 2
+        } else {
+            // 横画面：右側のQRコード領域を避けるため幅制限
+            width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
+        }
 
         // タイトル、概要を描画
         val startX = cardPadding + 30f.dp()
         var currentY = cardPadding + 40f.dp()
-
-        // 全幅テキスト幅（QRコードより上で使用）
-        val fullTextMaxWidth = width - (cardPadding + 30f.dp()) * 2
-        // 制限幅テキスト幅（QRコードと重なる高さで使用）
-        val restrictedTextMaxWidth = width - (cardPadding + 30f.dp()) * 2 - qrTotalWidth
 
         // 配信元を描画（存在する場合）
         if (!news.sourceName.isNullOrBlank()) {
@@ -879,58 +899,93 @@ class NewsView @JvmOverloads constructor(
         // タイトル描画（行ごとに幅を動的に調整）
         val titleWords = news.title.split("")
         var currentTitleLine = ""
-        titleWords.forEach { char ->
-            val testLine = currentTitleLine + char
-            // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + titleLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
-            val lineWidth = detailTitlePaint.measureText(testLine)
+        val maxBottomY = cardRect.bottom - 80f.dp() // カード下端マージン
+        run {
+            titleWords.forEach { char ->
+                val testLine = currentTitleLine + char
+                val maxWidth = textMaxWidth
+                val lineWidth = detailTitlePaint.measureText(testLine)
+                
+                if (lineWidth > maxWidth && currentTitleLine.isNotEmpty()) {
+                    // 現在の行を描画する前に下端チェック（余裕: 15dp）
+                    if (currentY + detailTitlePaint.textSize + 15f.dp() > textMaxBottom) {
+                        // カード下端またはフッターと重なるため、「…」をつけて描画して終了
+                        val ellipsizedLine = currentTitleLine + "…"
+                        canvas.drawText(ellipsizedLine, startX, currentY, detailTitlePaint)
+                        return@run
+                    }
+                    
+                    // 現在の行を描画
+                    canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
+                    currentY += titleLineSpacing
+                    currentTitleLine = char
+                } else {
+                    currentTitleLine = testLine
+                }
+            }
             
-            if (lineWidth > maxWidth && currentTitleLine.isNotEmpty()) {
-                // 現在の行を描画
+            // 最後の行を描画する前に下端チェック（余裕: 15dp）
+            if (currentTitleLine.isNotEmpty()) {
+                if (currentY + detailTitlePaint.textSize + 15f.dp() > textMaxBottom) {
+                    // カード下端またはフッターと重なるため、「…」をつけて描画して終了
+                    val ellipsizedLine = currentTitleLine + "…"
+                    canvas.drawText(ellipsizedLine, startX, currentY, detailTitlePaint)
+                    return@run
+                }
+                // 最後の行を描画
                 canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
                 currentY += titleLineSpacing
-                currentTitleLine = char
-            } else {
-                currentTitleLine = testLine
             }
-        }
-        // 最後の行を描画
-        if (currentTitleLine.isNotEmpty()) {
-            canvas.drawText(currentTitleLine, startX, currentY, detailTitlePaint)
-            currentY += titleLineSpacing
         }
 
         currentY += detailTitlePaint.textSize * 0.5f // タイトルと概要の間隔: タイトルサイズの50%
 
-        // 概要描画（行ごとに幅を動的に調整）
+        // 概要描画（行ごとに幅を動的に調整、カード下端で省略）
         val description = news.description.ifBlank { news.title }
         val descWords = description.split("")
         var currentDescLine = ""
-        descWords.forEach { char ->
-            val testLine = currentDescLine + char
-            // 次の行がQRコードのセーフゾーンに入るかチェック
-            val maxWidth = if (currentY + textLineSpacing < qrSafeZone) fullTextMaxWidth else restrictedTextMaxWidth
-            val lineWidth = detailTextPaint.measureText(testLine)
-            
-            if (lineWidth > maxWidth && currentDescLine.isNotEmpty()) {
-                // 現在の行を描画
-                canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
-                currentY += textLineSpacing
-                currentDescLine = char
-            } else {
-                currentDescLine = testLine
+        
+        run {
+            descWords.forEach { char ->
+                val testLine = currentDescLine + char
+                val maxWidth = textMaxWidth
+                val lineWidth = detailTextPaint.measureText(testLine)
+                
+                if (lineWidth > maxWidth && currentDescLine.isNotEmpty()) {
+                    // 現在の行を描画する前に下端チェック（余裕: 15dp）
+                    if (currentY + detailTextPaint.textSize + 15f.dp() > textMaxBottom) {
+                        // カード下端またはフッターと重なるため、「…」をつけて描画して終了
+                        val ellipsizedLine = currentDescLine + "…"
+                        canvas.drawText(ellipsizedLine, startX, currentY, detailTextPaint)
+                        return@run
+                    }
+                    
+                    // 現在の行を描画
+                    canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
+                    currentY += textLineSpacing
+                    currentDescLine = char
+                } else {
+                    currentDescLine = testLine
+                }
             }
-        }
-        // 最後の行を描画
-        if (currentDescLine.isNotEmpty()) {
-            canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
-            currentY += textLineSpacing
+            
+            // 最後の行を描画する前に下端チェック（余裕: 15dp）
+            if (currentDescLine.isNotEmpty()) {
+                if (currentY + detailTextPaint.textSize + 15f.dp() > textMaxBottom) {
+                    // カード下端またはフッターと重なるため、「…」をつけて描画して終了
+                    val ellipsizedLine = currentDescLine + "…"
+                    canvas.drawText(ellipsizedLine, startX, currentY, detailTextPaint)
+                    return@run
+                }
+                // 最後の行を描画
+                canvas.drawText(currentDescLine, startX, currentY, detailTextPaint)
+            }
         }
         
         // QRコード表示（右下）
         drawQRCode(canvas, news.id, cardRect)
         
-        // フッター情報（閉じるヒント）
+        // フッター情報（閉じるヒント）- QRコード上に配置
         val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, context.resources.displayMetrics)
             color = hintColor
@@ -942,7 +997,14 @@ class NewsView @JvmOverloads constructor(
         } else {
             "🔙 戻るキーで閉じる"
         }
-        val hintY = height.toFloat() - cardPadding - 20f.dp()
+        // フッター位置を画面方向によって変更
+        val hintY = if (isPortrait) {
+            // 縦画面：QRコード上に配置
+            footerTop
+        } else {
+            // 横画面：カード下端に近く配置（テキストとの重複を避ける）
+            cardRect.bottom - 30f.dp()
+        }
         canvas.drawText(hintText, startX, hintY, hintPaint)
     }
 

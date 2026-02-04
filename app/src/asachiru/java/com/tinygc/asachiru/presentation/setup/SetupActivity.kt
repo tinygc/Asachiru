@@ -41,6 +41,7 @@ class SetupActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivitySetupBinding
     private lateinit var viewModel: SetupViewModel
+    private lateinit var rssPresetAdapter: RssPresetAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,7 +109,7 @@ class SetupActivity : AppCompatActivity() {
 
         // RSSプリセット一覧（チェックボックスリスト）
         val presets = RssPresets.PRESETS.toList()
-        val rssPresetAdapter = RssPresetAdapter(
+        rssPresetAdapter = RssPresetAdapter(
             presets = presets,
             selectedFeeds = emptyList(),
             onItemChecked = { feed, isChecked ->
@@ -198,15 +199,7 @@ class SetupActivity : AppCompatActivity() {
         }
 
         // RSSプリセットチェックボックスリスト更新
-        val presets = RssPresets.PRESETS.toList()
-        val rssPresetAdapter = RssPresetAdapter(
-            presets = presets,
-            selectedFeeds = state.selectedRssFeeds,
-            onItemChecked = { feed, _ ->
-                viewModel.toggleRssFeed(feed)
-            }
-        )
-        binding.rssPresetsRecyclerView.adapter = rssPresetAdapter
+        rssPresetAdapter.updateSelectedFeeds(state.selectedRssFeeds)
 
         // カスタムRSSリスト更新
         if (state.customRssFeeds.isNotEmpty()) {

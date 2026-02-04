@@ -234,6 +234,77 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
+    <!-- スマホ版QR誘導コンテナ（TV版のみ、広告と同じタイミングで表示） -->
+    <LinearLayout
+        android:id="@+id/qr_promotion_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="48dp"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:background="@drawable/qr_dialog_bg"
+        android:elevation="16dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📱 スマホ版アプリ"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:letterSpacing="0.08"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="今すぐダウンロード"
+            android:textColor="#CCFFFFFF"
+            android:textSize="16sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@android:color/white"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp">
+
+            <ImageView
+                android:id="@+id/qr_image_view"
+                android:layout_width="200dp"
+                android:layout_height="200dp"
+                android:scaleType="fitCenter"
+                android:contentDescription="スマホ版ダウンロードQRコード" />
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📸 カメラでQRコードをスキャン"
+            android:textColor="#E0FFFFFF"
+            android:textSize="14sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:id="@+id/qr_countdown_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="あと 10秒"
+            android:textColor="#99FFFFFF"
+            android:textSize="14sp"
+            android:layout_gravity="center_horizontal" />
+    </LinearLayout>
+
     <!-- 設定ボタン（画面右下） -->
     <TextView
         android:id="@+id/settings_button"

@@ -436,10 +436,32 @@ class NewsReadingStateMachine(
      */
     private fun transitionToWaitingForStart() {
         cancelTimer()
-        val startTimeMs = System.currentTimeMillis() + 3_000
-        _state.value = NewsReadingState.WaitingForStart(startTimeMs)
-        startTimer(3_000) {
-            cachedSettings?.let { handleEvent(NewsReadingEvent.StartTimerExpired, it) }
+        val adDurationMs = 10_000L // 広告表示時間: 10秒
+        val waitDurationMs = 3_000L // 待機時間: 3秒（広告終了後）
+        val totalDurationMs = adDurationMs + waitDurationMs
+        val now = System.currentTimeMillis()
+        val startTimeMs = now + totalDurationMs
+        val adEndTimeMs = now + adDurationMs
+        
+        _state.value = NewsReadingState.WaitingForStart(
+            startTimeMs = startTimeMs,
+            showAd = true, // 最初は広告表示
+            adEndTimeMs = adEndTimeMs
+        )
+        Log.d("StateMachine", "WaitingForStart: ad for ${adDurationMs}ms, then wait ${waitDurationMs}ms")
+        
+        // 10秒後に広告終了 → 待機状態に切り替え
+        startTimer(adDurationMs) {
+            Log.d("StateMachine", "WaitingForStart: ad ended, now waiting")
+            val currentState = _state.value
+            if (currentState is NewsReadingState.WaitingForStart && currentState.showAd) {
+                _state.value = currentState.copy(showAd = false)
+                // 残り3秒待機
+                startTimer(waitDurationMs) {
+                    Log.d("StateMachine", "WaitingForStart: wait expired, triggering StartTimerExpired")
+                    cachedSettings?.let { handleEvent(NewsReadingEvent.StartTimerExpired, it) }
+                }
+            }
         }
     }
 
