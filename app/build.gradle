@@ -16,7 +16,7 @@ android {
 
     defaultConfig {
         minSdk 21
-        targetSdk 36
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,6 +58,8 @@ android {
         feedwatch {
             dimension "app"
             applicationId "com.tinygc.feedwatch"
+            // Google Play の対象 API レベル要件に合わせ、FeedWatch のみ Android 16 を対象にする
+            targetSdk 36
             versionCode 20
             versionName "1.2.8"
             resValue "string", "app_name", "RSS FeedWatch"
