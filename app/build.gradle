@@ -12,11 +12,11 @@ if (localPropertiesFile.exists()) {
 
 android {
     namespace 'com.tinygc.asachiru'
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         minSdk 21
-        targetSdk 35
+        targetSdk 36
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -58,8 +58,8 @@ android {
         feedwatch {
             dimension "app"
             applicationId "com.tinygc.feedwatch"
-            versionCode 19
-            versionName "1.2.7.2"
+            versionCode 20
+            versionName "1.2.8"
             resValue "string", "app_name", "RSS FeedWatch"
             // FeedWatch用のAdMob App ID
             manifestPlaceholders = [
