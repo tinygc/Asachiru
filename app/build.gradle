@@ -58,7 +58,7 @@ android {
         feedwatch {
             dimension "app"
             applicationId "com.tinygc.feedwatch"
-            versionCode 20
+            versionCode 21
             versionName "1.2.8"
             resValue "string", "app_name", "RSS FeedWatch"
             // FeedWatch用のAdMob App ID
