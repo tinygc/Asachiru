@@ -140,6 +140,19 @@ class DeviceUtilsTest {
     }
 
     @Test
+    fun `isStrictTelevision returns false when UiModeManager service is unavailable`() {
+        // Given: UI_MODE_SERVICEが取得できない（一部端末で発生しうる）
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(true)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(null)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: falseが返る（安全側=TVではないと判定し、edge-to-edgeを有効なままにする）
+        assertFalse(result)
+    }
+
+    @Test
     fun `isPhone returns true when not TV and has touchscreen`() {
         // Given: TVではなく、タッチスクリーンあり
         `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(false)

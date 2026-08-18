@@ -20,6 +20,10 @@ object DeviceUtils {
      * 1. Leanback機能をサポートしている
      * 2. UIモードがTV
      *
+     * TV向けUI（広告非表示、QRコード誘導、キー操作ヒントなど）の表示可否判定に使用する。
+     * エッジ ツー エッジ表示の有効化可否の判定には使わないこと。TV誤判定によって
+     * `enableEdgeToEdge()` がスキップされる不具合を避けたい場合は [isStrictTelevision] を使う。
+     *
      * @param context アプリケーションコンテキスト
      * @return TVデバイスの場合true
      */
@@ -46,6 +50,8 @@ object DeviceUtils {
      * TVと判定する（AND条件）。
      *
      * Edge-to-edge表示の有効化可否を判定する用途など、TV誤判定を避けたい場面で使用する。
+     * 広告非表示・QRコード誘導・キー操作ヒントなどTV向けUIの表示可否判定には使わないこと。
+     * それらの判定には[isTV]を使う。
      *
      * @param context アプリケーションコンテキスト
      * @return LeanbackをサポートしていてかつUIモードがTVの場合のみtrue

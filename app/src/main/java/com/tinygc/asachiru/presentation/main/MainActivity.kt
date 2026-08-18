@@ -96,7 +96,9 @@ class MainActivity : AppCompatActivity() {
         setupAdView()
         
         // TV用QRコードを事前生成（非同期）
-        if (isTelevision()) {
+        // 表示判定(updateQrPromotion)は DeviceUtils.isTV() で行うため、
+        // 生成判定もそれに揃える（isTelevision()はedge-to-edge専用のAND判定のため使わない）
+        if (DeviceUtils.isTV(applicationContext)) {
             preGenerateQrCode()
         }
 
@@ -702,12 +704,16 @@ class MainActivity : AppCompatActivity() {
      * 広告表示タイミングと同じ10秒間、スマホ版ダウンロードQRコードを表示
      */
     private fun updateQrPromotion(show: Boolean, remainingSeconds: Long) {
+        if (show && qrBitmap == null) {
+            // QRコード未生成（生成条件と表示条件の判定が食い違った場合の保険）は
+            // 空枠を表示せず、非表示のまま扱う
+            binding.qrPromotionContainer?.visibility = android.view.View.GONE
+            return
+        }
         if (show) {
             // QRコードが既に生成済みなら設定（事前生成で既に完了しているはず）
-            if (qrBitmap != null) {
-                binding.qrImageView?.setImageBitmap(qrBitmap)
-            }
-            
+            binding.qrImageView?.setImageBitmap(qrBitmap)
+
             // QR誘導コンテナを表示
             binding.qrPromotionContainer?.visibility = android.view.View.VISIBLE
             binding.qrPromotionContainer?.bringToFront()
