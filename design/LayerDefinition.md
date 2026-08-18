@@ -605,6 +605,40 @@ Domain LayerがRepositoryインターフェースを定義し、Data Layerがそ
 [Data Layer] ← Repository実装
 ```
 
+### 5.4 既知の例外（技術的負債）
+
+#### 5.4.1 `domain/util/DeviceUtils`
+
+`domain/util/DeviceUtils`（`isTV` / `isStrictTelevision` / `isPhone` /
+`hasTouchscreen` / `getScreenSizeCategory` / `isLargeScreen`）は
+`android.app.UiModeManager` / `android.content.Context` /
+`android.content.pm.PackageManager` / `android.content.res.Configuration` /
+`android.util.Log` / `android.os.Build` を直接importしており、
+5.2の「Domain → Framework (Android SDK) ✗」に反する既知の違反。
+
+**違反を許容している理由:**
+- デバイス種別（TV / スマホ）や画面サイズの判定はOS APIの結果そのものであり、
+  ビジネスルールを含まない単純な参照透過な関数（Entityやビジネスロジックへの依存なし）。
+- Presentation Layer（`MainActivity` / `SplashActivity` / `SetupActivity` /
+  `NewsView`）から広く参照されており、Repository経由に抽象化するほどの
+  ビジネス上の意味（永続化・外部通信・キャッシュなど）を持たない。
+
+**今回（Issue #122）追加された `isStrictTelevision` / 診断ログについて:**
+Issue #122対応で `isStrictTelevision` を追加した際、`android.util.Log` /
+`android.os.Build` の依存を新たに追加した（TV判定の判定材料が食い違った
+ケースを収集するための診断ログ。詳細は
+`requirement/issue-122-edge-to-edge-tv-detection.md` を参照）。
+既存の違反パターンを踏襲する形だが、Domain層のAndroid依存をこれ以上
+拡大させないため、新規のDomain層コードでは同様のAndroid SDK直接参照を
+追加しないこと。
+
+**中期的な解消方針（未着手・別Issue化を推奨）:**
+- `presentation/platform`（または`data`）に `DeviceInfoProvider` 等の
+  実装を置き、Domain層には `interface DeviceInfoRepository` のみを
+  定義する形に置き換える。
+- 診断ログは `Log` 直呼び出しではなく、Data/Presentation層に置いた
+  ロガー実装をDomain側のインターフェース経由で呼び出す形にする。
+
 ---
 
 ## 6. 通信フロー例

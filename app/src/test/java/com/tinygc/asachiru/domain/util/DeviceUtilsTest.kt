@@ -8,13 +8,21 @@ import android.content.res.Resources
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * DeviceUtilsのユニットテスト
+ *
+ * isStrictTelevision()内で android.util.Log / android.os.Build を参照するため、
+ * 他のLog依存クラス（WeatherRepositoryImplTest等）と同様にRobolectricで実行する。
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class DeviceUtilsTest {
 
     @Mock

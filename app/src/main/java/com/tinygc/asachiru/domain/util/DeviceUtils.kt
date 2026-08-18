@@ -4,6 +4,8 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import android.os.Build
+import android.util.Log
 
 /**
  * デバイスタイプ判定ユーティリティ
@@ -61,6 +63,20 @@ object DeviceUtils {
 
         val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
         val isTvMode = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+        if (hasLeanback != isTvMode) {
+            // Leanback機能の有無とUIモードの判定が食い違うケースを収集するための診断ログ。
+            // Issue #122は「UiModeManager.currentModeTypeが一部のOEM端末で
+            // 不安定に報告される」という仮説に基づく修正だが、再現端末・実測ログが
+            // ないまま入れた対症療法のため、実機ログでこの仮説を裏付ける材料として残す。
+            // 詳細: requirement/issue-122-edge-to-edge-tv-detection.md
+            Log.d(
+                "DeviceUtils",
+                "TV判定シグナル不一致: hasLeanback=$hasLeanback, isTvMode=$isTvMode, " +
+                    "manufacturer=${Build.MANUFACTURER}, model=${Build.MODEL}, " +
+                    "sdkInt=${Build.VERSION.SDK_INT}"
+            )
+        }
 
         return hasLeanback && isTvMode
     }
