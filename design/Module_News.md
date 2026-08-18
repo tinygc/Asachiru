@@ -335,7 +335,7 @@ class NewsRssDataSource(
 ) {
     companion object {
         // NHKニュースRSS
-        private const val RSS_URL = "https://www3.nhk.or.jp/rss/news/cat0.xml"
+        private const val RSS_URL = "https://news.web.nhk/n-data/conf/na/rss/cat0.xml"
     }
 
     /**
@@ -859,22 +859,24 @@ presentation/
 
 **URL:**
 ```
-https://www3.nhk.or.jp/rss/news/cat0.xml
+https://news.web.nhk/n-data/conf/na/rss/cat0.xml
 ```
+※ 2026年8月にNHK ONE (news.web.nhk) へ移行。旧URL (www3.nhk.or.jp) は `RssFeedMigrator` で読み替える。
 
 **フォーマット:** RSS 2.0
 
 **レスポンス例:**
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<rss version="2.0">
+<rss xmlns:nhknews="http://news.web.nhk/rss/rss2.0/modules/nhknews/" version="2.0">
     <channel>
-        <title>NHKニュース</title>
+        <title>NHKONEニュース</title>
         <item>
             <title>ニュースタイトル</title>
             <description>ニュースの説明</description>
-            <link>https://www3.nhk.or.jp/news/...</link>
+            <link>https://news.web.nhk/newsweb/na/...</link>
             <pubDate>Wed, 06 Nov 2025 12:00:00 +0900</pubDate>
+            <nhknews:new>false</nhknews:new>
         </item>
     </channel>
 </rss>

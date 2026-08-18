@@ -319,6 +319,41 @@ $items
     }
 
     @Test
+    fun `parse should handle NHK ONE RSS format with custom namespace`() {
+        // Arrange: 移行後のNHK ONE (news.web.nhk) 形式。nhknews名前空間の独自要素を含む
+        val rssXml = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <rss xmlns:nhknews="http://news.web.nhk/rss/rss2.0/modules/nhknews/" version="2.0">
+              <channel>
+                <title>NHKONEニュース</title>
+                <description>日本放送協会 NHKONEニュース</description>
+                <link>https://news.web.nhk/newsweb/</link>
+                <item>
+                  <title>ニュースタイトル</title>
+                  <link>https://news.web.nhk/newsweb/na/nd-20260818de44879</link>
+                  <guid isPermaLink="true">https://news.web.nhk/newsweb/na/nd-20260818de44879</guid>
+                  <description>ニュース本文です。</description>
+                  <pubDate>Tue, 18 Aug 2026 21:01:03 +0900</pubDate>
+                  <nhknews:new>false</nhknews:new>
+                </item>
+              </channel>
+            </rss>
+        """.trimIndent()
+
+        val inputStream = ByteArrayInputStream(rssXml.toByteArray())
+
+        // Act
+        val result = RssParser.parse(inputStream)
+
+        // Assert: 独自要素があっても標準要素が正しく取得できる
+        assertEquals(1, result.size)
+        assertEquals("ニュースタイトル", result[0].title)
+        assertEquals("ニュース本文です。", result[0].description)
+        assertEquals("https://news.web.nhk/newsweb/na/nd-20260818de44879", result[0].link)
+        assertEquals("Tue, 18 Aug 2026 21:01:03 +0900", result[0].pubDate)
+    }
+
+    @Test
     fun `parse should handle RSS without description (like Yahoo News)`() {
         // Arrange
         val rssXml = """
