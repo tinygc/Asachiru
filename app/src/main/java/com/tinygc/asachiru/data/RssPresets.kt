@@ -37,11 +37,4 @@ object RssPresets {
     fun getUrl(presetName: String): String? {
         return PRESETS[presetName]
     }
-
-    /**
-     * 現行のプリセット名かどうか
-     */
-    fun isPreset(presetName: String): Boolean {
-        return PRESETS.containsKey(presetName)
-    }
 }

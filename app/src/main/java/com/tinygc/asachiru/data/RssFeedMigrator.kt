@@ -41,13 +41,8 @@ object RssFeedMigrator {
      * フィードを現行の定義に追従させる
      */
     fun migrate(feed: RssFeed): RssFeed {
-        val currentUrl = if (!feed.isCustom) {
-            // ルール1: プリセットはIDで現行URLを解決する
-            RssPresets.getUrl(feed.id) ?: migrateUrl(feed.url)
-        } else {
-            // ルール2: カスタムURLは旧URLのみ読み替える
-            migrateUrl(feed.url)
-        }
+        // isCustom=falseならルール1(プリセットIDで解決)、trueならルール2(旧URL読み替えのみ)
+        val currentUrl = migrateUrl(feed.url, if (feed.isCustom) null else feed.id)
 
         return if (currentUrl == feed.url) feed else feed.copy(url = currentUrl)
     }
