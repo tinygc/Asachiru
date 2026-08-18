@@ -333,4 +333,52 @@ class SettingsLocalDataSourceTest {
         assertEquals(settings.postalCode, result.postalCode)
         assertEquals(settings.newsIntervalMinutes, result.newsIntervalMinutes)
     }
+
+    @Test
+    fun `loadSettings should migrate legacy NHK rss url`() = runTest {
+        // Arrange: 旧形式（rss_url + rss_preset）で保存されたNHK
+        whenever(sharedPreferences.getString("postal_code", "")).thenReturn("1000001")
+        whenever(sharedPreferences.getInt("news_interval", 30)).thenReturn(30)
+        whenever(sharedPreferences.getString("rss_url", null))
+            .thenReturn("https://www3.nhk.or.jp/rss/news/cat0.xml")
+        whenever(sharedPreferences.getString("rss_preset", null)).thenReturn("NHK")
+
+        // Act
+        val result = dataSource.loadSettings()
+
+        // Assert
+        assertEquals("https://news.web.nhk/n-data/conf/na/rss/cat0.xml", result.rssUrl)
+    }
+
+    @Test
+    fun `loadSettings should migrate legacy NHK url in rss feeds`() = runTest {
+        // Arrange
+        whenever(sharedPreferences.getString("postal_code", "")).thenReturn("1000001")
+        whenever(sharedPreferences.getInt("news_interval", 30)).thenReturn(30)
+        val feedsJson = """[{"id":"NHK","name":"NHK","url":"https://www3.nhk.or.jp/rss/news/cat0.xml","isCustom":false}]"""
+        whenever(sharedPreferences.getString("rss_feeds", null)).thenReturn(feedsJson)
+
+        // Act
+        val result = dataSource.loadSettings()
+
+        // Assert
+        assertEquals(1, result.rssFeeds.size)
+        assertEquals("https://news.web.nhk/n-data/conf/na/rss/cat0.xml", result.rssFeeds[0].url)
+        assertEquals("NHK", result.rssFeeds[0].name)
+    }
+
+    @Test
+    fun `loadSettings should keep non migrated rss urls unchanged`() = runTest {
+        // Arrange
+        whenever(sharedPreferences.getString("postal_code", "")).thenReturn("1000001")
+        whenever(sharedPreferences.getInt("news_interval", 30)).thenReturn(30)
+        val feedsJson = """[{"id":"custom-1","name":"My Feed","url":"https://example.com/rss","isCustom":true}]"""
+        whenever(sharedPreferences.getString("rss_feeds", null)).thenReturn(feedsJson)
+
+        // Act
+        val result = dataSource.loadSettings()
+
+        // Assert
+        assertEquals("https://example.com/rss", result.rssFeeds[0].url)
+    }
 }

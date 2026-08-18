@@ -2,13 +2,17 @@ package com.tinygc.asachiru.data
 
 /**
  * RSS URLのプリセット定義
+ *
+ * ここがプリセットURLの唯一の正となる。
+ * 配信元のURL変更時はこのマップを更新するだけでよく、
+ * 設定に保存済みのフィードは [RssFeedMigrator] が読み込み時に追従させる。
  */
 object RssPresets {
     /**
      * プリセット名とURL のマッピング
      */
     val PRESETS = mapOf(
-        "NHK" to "https://www3.nhk.or.jp/rss/news/cat0.xml",
+        "NHK" to "https://news.web.nhk/n-data/conf/na/rss/cat0.xml",
         "Yahoo!ニュース" to "https://news.yahoo.co.jp/rss/topics/top-picks.xml",
         "毎日新聞" to "https://mainichi.jp/rss/etc/mainichi-flash.rss",
         "Yahoo!ニュース スポーツ" to "https://news.yahoo.co.jp/rss/topics/sports.xml",

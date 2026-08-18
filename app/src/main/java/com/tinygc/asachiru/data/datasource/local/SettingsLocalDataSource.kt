@@ -3,6 +3,7 @@ package com.tinygc.asachiru.data.datasource.local
 import android.content.SharedPreferences
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.tinygc.asachiru.data.RssFeedMigrator
 import com.tinygc.asachiru.domain.entity.RssFeed
 import com.tinygc.asachiru.domain.entity.Settings
 import kotlinx.coroutines.Dispatchers
@@ -34,15 +35,17 @@ class SettingsLocalDataSource(
     suspend fun loadSettings(): Settings = withContext(Dispatchers.IO) {
         val postalCode = sharedPreferences.getString(KEY_POSTAL_CODE, "") ?: ""
         val newsInterval = sharedPreferences.getInt(KEY_NEWS_INTERVAL, 30)
-        val rssUrl = sharedPreferences.getString(KEY_RSS_URL, null)
         val enableTts = sharedPreferences.getBoolean(KEY_ENABLE_TTS, false)
         val enableBgm = sharedPreferences.getBoolean(KEY_ENABLE_BGM, true)
         val rssPreset = sharedPreferences.getString(KEY_RSS_PRESET, null)
+        // 旧形式のURLは現行のプリセット定義に追従させる
+        val rssUrl = sharedPreferences.getString(KEY_RSS_URL, null)
+            ?.let { RssFeedMigrator.migrateUrl(it, rssPreset) }
         
         // 複数RSS読み込み（JSON形式）
         val rssFeedsJson = sharedPreferences.getString(KEY_RSS_FEEDS, null)
         val rssFeeds = if (rssFeedsJson != null) {
-            deserializeRssFeeds(rssFeedsJson)
+            RssFeedMigrator.migrate(deserializeRssFeeds(rssFeedsJson))
         } else {
             emptyList()
         }

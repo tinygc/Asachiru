@@ -66,7 +66,7 @@
 ┌───────────▼──────────────────────────────────────────────────┐
 │                      External / System                       │
 │  - 天気予報API (weather.tsukumijima.net)                     │
-│  - NHKニュースRSS (www3.nhk.or.jp)                          │
+│  - NHKニュースRSS (news.web.nhk)                             │
 │  - SharedPreferences (Android)                               │
 │  - MediaPlayer (Android)                                     │
 │  - Calendar (Java)                                           │
