@@ -35,6 +35,31 @@ object DeviceUtils {
     }
 
     /**
+     * Android TV デバイスかどうかを厳密に判定
+     *
+     * [isTV] はLeanback機能の有無とUIモードのいずれか一方が真であればtrueを返すが、
+     * `UiModeManager.currentModeType` は一部のOEM端末で不安定に報告されることがあり、
+     * スマートフォンであっても一時的に `UI_MODE_TYPE_TELEVISION` を返す場合がある。
+     * この単一の不安定なシグナルのみでTVと誤判定すると、対象ユーザーで
+     * `enableEdgeToEdge()` が呼び出されずエッジ ツー エッジ表示が有効にならない
+     * 不具合につながるため、Leanback機能の有無とUIモードの両方が真の場合のみ
+     * TVと判定する（AND条件）。
+     *
+     * Edge-to-edge表示の有効化可否を判定する用途など、TV誤判定を避けたい場面で使用する。
+     *
+     * @param context アプリケーションコンテキスト
+     * @return LeanbackをサポートしていてかつUIモードがTVの場合のみtrue
+     */
+    fun isStrictTelevision(context: Context): Boolean {
+        val hasLeanback = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+
+        val uiModeManager = context.getSystemService(Context.UI_MODE_SERVICE) as? UiModeManager
+        val isTvMode = uiModeManager?.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+
+        return hasLeanback && isTvMode
+    }
+
+    /**
      * スマートフォンデバイスかどうかを判定
      *
      * 以下の条件でスマホと判定:

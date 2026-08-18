@@ -1,10 +1,8 @@
 package com.tinygc.asachiru.presentation.setup
 
 import android.app.AlertDialog
-import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -68,9 +66,17 @@ class SetupActivity : AppCompatActivity() {
         observeViewModel()
     }
 
+    /**
+     * TVデバイスかどうかを判定
+     *
+     * `UiModeManager.currentModeType` は一部のOEM端末でスマートフォンでも
+     * TVモードと誤って報告されることがあるため、Leanback機能の有無も合わせて
+     * 判定する [DeviceUtils.isStrictTelevision] に委譲する。
+     * これにより、誤判定によって `enableEdgeToEdge()` がスキップされ、
+     * 一部のユーザーでエッジ ツー エッジ表示が有効にならない不具合を防ぐ。
+     */
     private fun isTelevision(): Boolean {
-        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+        return DeviceUtils.isStrictTelevision(applicationContext)
     }
 
     /**
