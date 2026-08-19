@@ -21,13 +21,16 @@
 - **アプリのビルド・実機動作確認**: ✅ 実施済み（旦那の手元環境）。
   アプリのビルドが成功し、実機/エミュレータでエッジ ツー エッジ表示の
   有効化・QR誘導の表示が意図通りであることを確認済み。
-- **ユニットテスト自体の実行**: ⚠️ **未実行**。`gradlew
-  testAsachiruDebugUnitTest --tests
-  "com.tinygc.asachiru.domain.util.DeviceUtilsTest"`
-  を実行してこの5件がPASSすることは、本ドキュメント更新時点ではまだ
-  確認できていない（アプリのビルド確認とはコマンドが別）。静的コード
-  レビュー（実装とアサーションの突き合わせ）のみで正しさを確認した状態
-  であり、マージ前に実行してこのセクションを実測結果で更新すること。
+- **ユニットテスト自体の実行**: ✅ 実施済み（旦那の手元環境）。
+  `gradlew testAsachiruDebugUnitTest`（テスト実行込み）で
+  `BUILD SUCCESSFUL`を確認。`DeviceUtilsTest`を含む全ユニットテストが
+  失敗せず完了した（コンパイル時の警告は`AppExceptionTest` /
+  `ResultTest` / `WeatherViewTest`の既存コードに対するもので、
+  `DeviceUtilsTest`関連の警告・エラーはなし）。
+  ただし、`DeviceUtilsTest`個別のテストケースごとの実行時間・PASS件数の
+  詳細出力（Gradleのテストレポート）までは未確認のため、下表は
+  「実装とアサーションの突き合わせ＋ビルド全体のBUILD SUCCESSFUL」を
+  根拠とした確認とする。
 
 ## テストケース詳細
 
@@ -44,15 +47,19 @@
 - UIモードがTVの場合、TVとして判定されること
 - Leanback機能もTVモードもない場合、TVとして判定されないこと
 
-### 1a. isStrictTelevision() メソッドのテスト（Issue #122で追加、未実行）
+### 1a. isStrictTelevision() メソッドのテスト（Issue #122で追加）
 
 | # | テストケース | 結果 | 対応FR |
 |---|------------|------|--------|
-| 14 | isStrictTelevision returns true when Leanback feature and TV UI mode both present | ⏳ 未実行 | FR-122-01 |
-| 15 | isStrictTelevision returns false when UI mode reports TV but Leanback feature is absent | ⏳ 未実行 | FR-122-01 |
-| 16 | isStrictTelevision returns false when Leanback feature present but UI mode is normal | ⏳ 未実行 | FR-122-01 |
-| 17 | isStrictTelevision returns false when neither Leanback nor TV UI mode | ⏳ 未実行 | FR-122-01 |
-| 18 | isStrictTelevision returns false when UiModeManager service is unavailable | ⏳ 未実行 | FR-122-01, NFR-122-01 |
+| 14 | isStrictTelevision returns true when Leanback feature and TV UI mode both present | ✅ PASS | FR-122-01 |
+| 15 | isStrictTelevision returns false when UI mode reports TV but Leanback feature is absent | ✅ PASS | FR-122-01 |
+| 16 | isStrictTelevision returns false when Leanback feature present but UI mode is normal | ✅ PASS | FR-122-01 |
+| 17 | isStrictTelevision returns false when neither Leanback nor TV UI mode | ✅ PASS | FR-122-01 |
+| 18 | isStrictTelevision returns false when UiModeManager service is unavailable | ✅ PASS | FR-122-01, NFR-122-01 |
+
+`gradlew testAsachiruDebugUnitTest`（2026-08-19実施、旦那の手元環境）で
+`BUILD SUCCESSFUL`を確認。個別テストの実行時間はGradleのテストレポート
+（`build/reports/tests/`）未参照のため未記載。
 
 **検証内容**:
 - Leanback機能とTV UIモードの両方が真の場合のみTVと判定されること（AND条件）
@@ -64,10 +71,10 @@
 
 | FR-ID | FR名称 | TC-ID(s) | カバー済み |
 |-------|--------|----------|-----------|
-| FR-122-01 | TV判定の安全側フォールバック | #14, #15, #16, #17, #18 | ⚠️ 実装・アサーション確認済み、実行未確認 |
-| FR-122-02 | edge-to-edge制御用TV判定の一元化 | (MainActivity等のisTelevision()に対する専用テストは未追加。既存のActivityテストに委ねる) | ⚠️ 未検証 |
-| FR-122-03 | TV向けUI表示判定との整合性維持 | (MainActivityのQR生成/表示ロジックに対する専用テストは未追加) | ⚠️ 未検証 |
-| FR-122-04 | 診断ログによる仮説検証 | (ログ出力自体の単体テストは追加していない) | ⚠️ 未検証（フォローアップ） |
+| FR-122-01 | TV判定の安全側フォールバック | #14, #15, #16, #17, #18 | ✅ ユニットテストPASS確認済み（`testAsachiruDebugUnitTest`） |
+| FR-122-02 | edge-to-edge制御用TV判定の一元化 | (MainActivity等のisTelevision()に対する専用ユニットテストは未追加) | ✅ 実機/エミュレータでのエッジ ツー エッジ表示の動作確認で確認済み。ただし専用ユニットテストは未追加 |
+| FR-122-03 | TV向けUI表示判定との整合性維持 | (MainActivityのQR生成/表示ロジックに対する専用ユニットテストは未追加) | ✅ 実機/エミュレータでQR誘導が空表示にならないことを動作確認で確認済み。ただし専用ユニットテストは未追加 |
+| FR-122-04 | 診断ログによる仮説検証 | (ログ出力自体の単体テストは追加していない) | ⚠️ 未検証（フォローアップ。実運用ログの収集はこれから） |
 
 ### 2. isPhone() メソッドのテスト
 

@@ -80,9 +80,9 @@ TVと判定された場合は`enableEdgeToEdge()`の呼び出し自体をスキ�
   未実施だった。その後、旦那の手元環境で **アプリのビルド成功** と
   **実機/エミュレータでの動作確認**（エッジ ツー エッジ表示が有効になる
   こと・QR誘導が空表示にならないことを含む）を実施済み。
-- 一方、`DeviceUtilsTest`（`isStrictTelevision()`向けに追加した5件を含む）
-  を`gradlew testAsachiruDebugUnitTest`等で実行してPASSすることは、
-  本ドキュメント作成時点ではまだ確認できていない。マージ前に実行を推奨。
+- `DeviceUtilsTest`（`isStrictTelevision()`向けに追加した5件を含む）も
+  `gradlew testAsachiruDebugUnitTest`（テスト実行込み）で`BUILD
+  SUCCESSFUL`を確認済み。詳細は`test/DeviceUtils_test_result.md`参照。
 
 ## スコープ外
 - `DeviceUtils.isTV()` / `isPhone()`自体の判定基準（OR条件）は変更しない
