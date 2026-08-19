@@ -8,13 +8,21 @@ import android.content.res.Resources
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * DeviceUtilsのユニットテスト
+ *
+ * isStrictTelevision()内で android.util.Log / android.os.Build を参照するため、
+ * 他のLog依存クラス（WeatherRepositoryImplTest等）と同様にRobolectricで実行する。
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [28])
 class DeviceUtilsTest {
 
     @Mock
@@ -79,6 +87,76 @@ class DeviceUtilsTest {
         val result = DeviceUtils.isTV(mockContext)
 
         // Then: falseが返る
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isStrictTelevision returns true when Leanback feature and TV UI mode both present`() {
+        // Given: Leanback機能ありかつUIモードがTV（実際のTVデバイス）
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(true)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(mockUiModeManager)
+        `when`(mockUiModeManager.currentModeType).thenReturn(Configuration.UI_MODE_TYPE_TELEVISION)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: trueが返る
+        assertTrue(result)
+    }
+
+    @Test
+    fun `isStrictTelevision returns false when UI mode reports TV but Leanback feature is absent`() {
+        // Given: UIモードだけがTVを報告している（一部端末でスマホでも発生しうる誤報告）が
+        //        Leanback機能を持たない = 実際にはTVではない
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(false)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(mockUiModeManager)
+        `when`(mockUiModeManager.currentModeType).thenReturn(Configuration.UI_MODE_TYPE_TELEVISION)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: falseが返る（エッジ ツー エッジ表示のスキップを誤って行わない）
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isStrictTelevision returns false when Leanback feature present but UI mode is normal`() {
+        // Given: Leanback機能はあるがUIモードは通常（TVモードに遷移していないタイミングなど）
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(true)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(mockUiModeManager)
+        `when`(mockUiModeManager.currentModeType).thenReturn(Configuration.UI_MODE_TYPE_NORMAL)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: falseが返る
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isStrictTelevision returns false when neither Leanback nor TV UI mode`() {
+        // Given: LeanbackもTVモードもなし
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(false)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(mockUiModeManager)
+        `when`(mockUiModeManager.currentModeType).thenReturn(Configuration.UI_MODE_TYPE_NORMAL)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: falseが返る
+        assertFalse(result)
+    }
+
+    @Test
+    fun `isStrictTelevision returns false when UiModeManager service is unavailable`() {
+        // Given: UI_MODE_SERVICEが取得できない（一部端末で発生しうる）
+        `when`(mockPackageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)).thenReturn(true)
+        `when`(mockContext.getSystemService(Context.UI_MODE_SERVICE)).thenReturn(null)
+
+        // When: isStrictTelevision()を呼び出し
+        val result = DeviceUtils.isStrictTelevision(mockContext)
+
+        // Then: falseが返る（安全側=TVではないと判定し、edge-to-edgeを有効なままにする）
         assertFalse(result)
     }
 

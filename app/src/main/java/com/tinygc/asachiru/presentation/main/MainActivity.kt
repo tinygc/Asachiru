@@ -1,6 +1,5 @@
 package com.tinygc.asachiru.presentation.main
 
-import android.app.UiModeManager
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
@@ -97,7 +96,9 @@ class MainActivity : AppCompatActivity() {
         setupAdView()
         
         // TV用QRコードを事前生成（非同期）
-        if (isTelevision()) {
+        // 表示判定(updateQrPromotion)は DeviceUtils.isTV() で行うため、
+        // 生成判定もそれに揃える（isTelevision()はedge-to-edge専用のAND判定のため使わない）
+        if (DeviceUtils.isTV(applicationContext)) {
             preGenerateQrCode()
         }
 
@@ -252,9 +253,17 @@ class MainActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
 
+    /**
+     * TVデバイスかどうかを判定
+     *
+     * `UiModeManager.currentModeType` は一部のOEM端末でスマートフォンでも
+     * TVモードと誤って報告されることがあるため、Leanback機能の有無も合わせて
+     * 判定する [DeviceUtils.isStrictTelevision] に委譲する。
+     * これにより、誤判定によって `enableEdgeToEdge()` がスキップされ、
+     * 一部のユーザーでエッジ ツー エッジ表示が有効にならない不具合を防ぐ。
+     */
     private fun isTelevision(): Boolean {
-        val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
-        return uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
+        return DeviceUtils.isStrictTelevision(applicationContext)
     }
 
     /**
@@ -695,12 +704,16 @@ class MainActivity : AppCompatActivity() {
      * 広告表示タイミングと同じ10秒間、スマホ版ダウンロードQRコードを表示
      */
     private fun updateQrPromotion(show: Boolean, remainingSeconds: Long) {
+        if (show && qrBitmap == null) {
+            // QRコード未生成（生成条件と表示条件の判定が食い違った場合の保険）は
+            // 空枠を表示せず、非表示のまま扱う
+            binding.qrPromotionContainer?.visibility = android.view.View.GONE
+            return
+        }
         if (show) {
             // QRコードが既に生成済みなら設定（事前生成で既に完了しているはず）
-            if (qrBitmap != null) {
-                binding.qrImageView?.setImageBitmap(qrBitmap)
-            }
-            
+            binding.qrImageView?.setImageBitmap(qrBitmap)
+
             // QR誘導コンテナを表示
             binding.qrPromotionContainer?.visibility = android.view.View.VISIBLE
             binding.qrPromotionContainer?.bringToFront()
